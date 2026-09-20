@@ -495,9 +495,16 @@ class PiPPrompterManager {
       .pip-actions {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         flex-wrap: nowrap;
         overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .pip-actions::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
       }
       .pip-btn {
         background: rgba(255, 255, 255, 0.1);
