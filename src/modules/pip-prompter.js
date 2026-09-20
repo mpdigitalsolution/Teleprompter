@@ -180,59 +180,78 @@ class PiPPrompterManager {
 
         <!-- Collapsible Settings Toolbar -->
         <div class="pip-toolbar ${this.isToolbarCollapsed ? 'pip-toolbar-collapsed' : ''}" id="pip-toolbar">
-          <div class="pip-tb-group">
-            <span class="pip-tb-label">Script:</span>
-            <select class="pip-select-script" id="pip-select-script" title="Switch Presentation Script">
-              ${this.scriptsList.map(s => `<option value="${s.id}" ${s.id === this.currentScript.id ? 'selected' : ''}>${s.title}</option>`).join('')}
-            </select>
+
+          <!-- Row 1: Script & Mode -->
+          <div class="pip-tb-row">
+            <div class="pip-tb-cell">
+              <span class="pip-tb-label">📄 Script</span>
+              <select class="pip-select pip-select-script" id="pip-select-script" title="Switch Script">
+                ${this.scriptsList.map(s => `<option value="${s.id}" ${s.id === this.currentScript.id ? 'selected' : ''}>${s.title}</option>`).join('')}
+              </select>
+            </div>
+            <div class="pip-tb-cell">
+              <span class="pip-tb-label">🎬 Mode</span>
+              <select class="pip-select" id="pip-select-mode">
+                <option value="auto" ${this.currentTrackingMode === 'auto' ? 'selected' : ''}>Auto-Scroll (WPM)</option>
+                <option value="manual" ${this.currentTrackingMode === 'manual' ? 'selected' : ''}>Manual (Keys)</option>
+                <option value="dual" ${this.currentTrackingMode === 'dual' ? 'selected' : ''}>Dual (Gaze + Speech)</option>
+                <option value="gaze" ${this.currentTrackingMode === 'gaze' ? 'selected' : ''}>Gaze Only</option>
+                <option value="speech" ${this.currentTrackingMode === 'speech' ? 'selected' : ''}>Speech Sync</option>
+              </select>
+            </div>
           </div>
 
-          <div class="pip-tb-group">
-            <span class="pip-tb-label">Speed:</span>
-            <button class="pip-btn-step" id="pip-btn-wpm-dec2">-</button>
-            <input type="range" class="pip-range" id="pip-range-wpm" min="50" max="300" step="10" value="${this.currentWpm}">
-            <button class="pip-btn-step" id="pip-btn-wpm-inc2">+</button>
-            <span id="pip-val-wpm" class="pip-tb-val">${this.currentWpm}</span>
+          <div class="pip-tb-divider"></div>
+
+          <!-- Row 2: Speed & Opacity -->
+          <div class="pip-tb-row">
+            <div class="pip-tb-cell">
+              <span class="pip-tb-label">⚡ Speed</span>
+              <div class="pip-tb-controls">
+                <button class="pip-btn-step" id="pip-btn-wpm-dec2">−</button>
+                <input type="range" class="pip-range" id="pip-range-wpm" min="50" max="300" step="10" value="${this.currentWpm}">
+                <button class="pip-btn-step" id="pip-btn-wpm-inc2">+</button>
+                <span id="pip-val-wpm" class="pip-tb-val">${this.currentWpm} WPM</span>
+              </div>
+            </div>
+            <div class="pip-tb-cell">
+              <span class="pip-tb-label">🌗 Opacity</span>
+              <div class="pip-tb-controls">
+                <button class="pip-preset-btn ${this.currentOpacity >= 0.85 && !this.isTransparent ? 'active' : ''}" id="pip-preset-solid" data-preset="solid">Solid</button>
+                <button class="pip-preset-btn ${this.currentOpacity >= 0.65 && this.currentOpacity < 0.85 ? 'active' : ''}" id="pip-preset-dark" data-preset="dark">Dark</button>
+                <button class="pip-preset-btn ${this.currentOpacity >= 0.2 && this.currentOpacity < 0.65 && this.isTransparent ? 'active' : ''}" id="pip-preset-glass" data-preset="glass">Glass</button>
+                <button class="pip-preset-btn ${this.currentOpacity < 0.2 && this.isTransparent ? 'active' : ''}" id="pip-preset-clear" data-preset="clear">Clear</button>
+                <input type="range" class="pip-range" id="pip-range-opacity" min="0" max="1" step="0.05" value="${this.currentOpacity}">
+              </div>
+            </div>
           </div>
 
-          <div class="pip-tb-group">
-            <span class="pip-tb-label">Opacity:</span>
-            <button class="pip-btn pip-preset-btn ${this.currentOpacity >= 0.85 && !this.isTransparent ? 'active' : ''}" id="pip-preset-solid" data-preset="solid">⬛ Solid</button>
-            <button class="pip-btn pip-preset-btn ${this.currentOpacity >= 0.65 && this.currentOpacity < 0.85 ? 'active' : ''}" id="pip-preset-dark" data-preset="dark">🌓 Dark</button>
-            <button class="pip-btn pip-preset-btn ${this.currentOpacity >= 0.2 && this.currentOpacity < 0.65 && this.isTransparent ? 'active' : ''}" id="pip-preset-glass" data-preset="glass">🪟 Glass</button>
-            <button class="pip-btn pip-preset-btn ${this.currentOpacity < 0.2 && this.isTransparent ? 'active' : ''}" id="pip-preset-clear" data-preset="clear">👻 Clear</button>
-            <input type="range" class="pip-range" id="pip-range-opacity" min="0" max="1" step="0.05" value="${this.currentOpacity}">
+          <div class="pip-tb-divider"></div>
+
+          <!-- Row 3: Font & Color -->
+          <div class="pip-tb-row">
+            <div class="pip-tb-cell">
+              <span class="pip-tb-label">🔤 Font</span>
+              <div class="pip-tb-controls">
+                <button class="pip-btn-step" id="pip-btn-font-dec">A−</button>
+                <input type="range" class="pip-range" id="pip-range-font" min="16" max="44" step="2" value="${this.currentFontSize}">
+                <button class="pip-btn-step" id="pip-btn-font-inc">A+</button>
+                <span id="pip-val-font" class="pip-tb-val">${this.currentFontSize}px</span>
+              </div>
+            </div>
+            <div class="pip-tb-cell">
+              <span class="pip-tb-label">🎨 Color</span>
+              <select class="pip-select" id="pip-select-color">
+                <option value="#00F0FF" ${this.currentTextColor === '#00F0FF' ? 'selected' : ''}>⚡ Neon Cyan</option>
+                <option value="#FFEA00" ${this.currentTextColor === '#FFEA00' ? 'selected' : ''}>☀️ Yellow</option>
+                <option value="#00FF88" ${this.currentTextColor === '#00FF88' ? 'selected' : ''}>💚 Green</option>
+                <option value="#FFFFFF" ${this.currentTextColor === '#FFFFFF' ? 'selected' : ''}>⚪ White</option>
+              </select>
+            </div>
           </div>
 
-          <div class="pip-tb-group">
-            <span class="pip-tb-label">Font:</span>
-            <button class="pip-btn-step" id="pip-btn-font-dec">A-</button>
-            <input type="range" class="pip-range" id="pip-range-font" min="16" max="44" step="2" value="${this.currentFontSize}">
-            <button class="pip-btn-step" id="pip-btn-font-inc">A+</button>
-            <span id="pip-val-font" class="pip-tb-val">${this.currentFontSize}px</span>
-          </div>
-
-          <div class="pip-tb-group">
-            <span class="pip-tb-label">Color:</span>
-            <select class="pip-select" id="pip-select-color">
-              <option value="#00F0FF" ${this.currentTextColor === '#00F0FF' ? 'selected' : ''}>⚡ Neon Cyan</option>
-              <option value="#FFEA00" ${this.currentTextColor === '#FFEA00' ? 'selected' : ''}>☀️ Yellow</option>
-              <option value="#00FF88" ${this.currentTextColor === '#00FF88' ? 'selected' : ''}>💚 Green</option>
-              <option value="#FFFFFF" ${this.currentTextColor === '#FFFFFF' ? 'selected' : ''}>⚪ White</option>
-            </select>
-          </div>
-
-          <div class="pip-tb-group">
-            <span class="pip-tb-label">Mode:</span>
-            <select class="pip-select" id="pip-select-mode">
-              <option value="auto" ${this.currentTrackingMode === 'auto' ? 'selected' : ''}>Auto-Scroll (WPM)</option>
-              <option value="manual" ${this.currentTrackingMode === 'manual' ? 'selected' : ''}>Manual (Keys)</option>
-              <option value="dual" ${this.currentTrackingMode === 'dual' ? 'selected' : ''}>Dual (Gaze + Speech)</option>
-              <option value="gaze" ${this.currentTrackingMode === 'gaze' ? 'selected' : ''}>Gaze Only</option>
-              <option value="speech" ${this.currentTrackingMode === 'speech' ? 'selected' : ''}>Speech Sync</option>
-            </select>
-          </div>
         </div>
+
 
         <!-- Recording Source Selection Modal -->
         <div class="pip-modal-overlay" id="pip-choice-modal" style="display:none;">
@@ -470,7 +489,7 @@ class PiPPrompterManager {
       this.currentWpm = Math.max(50, this.currentWpm - 10);
       labelWpm.textContent = `${this.currentWpm} WPM`;
       if (rangeWpm) rangeWpm.value = this.currentWpm;
-      if (valWpm) valWpm.textContent = this.currentWpm;
+      if (valWpm) valWpm.textContent = `${this.currentWpm} WPM`;
       this.syncStorage({ wpm: this.currentWpm });
     });
 
@@ -478,7 +497,7 @@ class PiPPrompterManager {
       this.currentWpm = Math.min(350, this.currentWpm + 10);
       labelWpm.textContent = `${this.currentWpm} WPM`;
       if (rangeWpm) rangeWpm.value = this.currentWpm;
-      if (valWpm) valWpm.textContent = this.currentWpm;
+      if (valWpm) valWpm.textContent = `${this.currentWpm} WPM`;
       this.syncStorage({ wpm: this.currentWpm });
     });
 
@@ -487,7 +506,7 @@ class PiPPrompterManager {
       rangeWpm.addEventListener('input', () => {
         this.currentWpm = parseInt(rangeWpm.value, 10);
         labelWpm.textContent = `${this.currentWpm} WPM`;
-        if (valWpm) valWpm.textContent = this.currentWpm;
+        if (valWpm) valWpm.textContent = `${this.currentWpm} WPM`;
         this.syncStorage({ wpm: this.currentWpm });
       });
     }
@@ -710,7 +729,7 @@ class PiPPrompterManager {
             this.currentWpm = s.wpm;
             labelWpm.textContent = `${this.currentWpm} WPM`;
             if (rangeWpm) rangeWpm.value = this.currentWpm;
-            if (valWpm) valWpm.textContent = this.currentWpm;
+            if (valWpm) valWpm.textContent = `${this.currentWpm} WPM`;
           }
           if (s.fontSize && s.fontSize !== this.currentFontSize) {
             this.currentFontSize = s.fontSize;
@@ -1240,18 +1259,24 @@ class PiPPrompterManager {
         max-width: 100px;
       }
 
-      /* Nudge + Rewind buttons */
+      /* Nudge + Rewind buttons - Completely Borderless Pills */
       .pip-btn-nudge, .pip-btn-rewind {
         width: calc(22px * var(--pip-scale, 1));
         height: calc(22px * var(--pip-scale, 1));
         padding: 0;
         font-size: calc(10px * var(--pip-scale, 1));
+        border: none !important;
+        outline: none !important;
+        border-radius: 50%;
       }
 
-      /* Ghost Mode Toggle Button */
+      /* Ghost Mode Toggle Button - Borderless */
       .pip-btn-ghost-toggle {
         background: rgba(255, 255, 255, 0.08);
         color: #CBD5E1;
+        border: none !important;
+        outline: none !important;
+        border-radius: 20px;
       }
       .pip-btn-ghost-toggle:hover {
         background: rgba(0, 240, 255, 0.15);
@@ -1263,11 +1288,14 @@ class PiPPrompterManager {
         box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
       }
 
-      /* Controls Toggle Button */
+      /* Controls Toggle Button - Borderless */
       .pip-btn-controls {
         background: rgba(255, 255, 255, 0.08);
         color: #CBD5E1;
         font-size: calc(10px * var(--pip-scale, 1));
+        border: none !important;
+        outline: none !important;
+        border-radius: 20px;
       }
       .pip-btn-controls:hover {
         background: rgba(0, 240, 255, 0.15);
@@ -1279,19 +1307,19 @@ class PiPPrompterManager {
         box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
       }
 
-      /* Collapsible Toolbar */
+      /* Collapsible Toolbar - Clean Organized Grid */
       .pip-toolbar {
         display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: calc(8px * var(--pip-scale, 1));
-        padding: calc(7px * var(--pip-scale, 1)) calc(12px * var(--pip-scale, 1));
-        background: rgba(14, 20, 34, 0.96);
-        border-bottom: 1px solid rgba(0, 240, 255, 0.12);
+        flex-direction: column;
+        gap: calc(7px * var(--pip-scale, 1));
+        padding: calc(9px * var(--pip-scale, 1)) calc(12px * var(--pip-scale, 1));
+        background: rgba(12, 16, 28, 0.96);
+        border: none !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 24px rgba(0, 0, 0, 0.6);
         flex-shrink: 0;
         overflow: hidden;
-        max-height: 200px;
-        transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+        max-height: 280px;
+        transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding 0.25s ease;
       }
       .pip-toolbar.pip-toolbar-collapsed {
         max-height: 0 !important;
@@ -1299,80 +1327,141 @@ class PiPPrompterManager {
         padding-top: 0 !important;
         padding-bottom: 0 !important;
         pointer-events: none !important;
-        border-bottom: none !important;
+        border: none !important;
         overflow: hidden !important;
       }
-      .pip-tb-group {
+
+      .pip-tb-row {
         display: flex;
         align-items: center;
-        gap: calc(5px * var(--pip-scale, 1));
+        justify-content: space-between;
+        gap: calc(10px * var(--pip-scale, 1));
+        width: 100%;
       }
+
+      .pip-tb-cell {
+        display: flex;
+        align-items: center;
+        gap: calc(6px * var(--pip-scale, 1));
+        flex: 1;
+        min-width: 0;
+      }
+
+      .pip-tb-controls {
+        display: flex;
+        align-items: center;
+        gap: calc(4px * var(--pip-scale, 1));
+        flex: 1;
+        min-width: 0;
+      }
+
+      .pip-tb-divider {
+        height: 1px;
+        background: rgba(255, 255, 255, 0.06);
+        width: 100%;
+        margin: calc(1px * var(--pip-scale, 1)) 0;
+      }
+
       .pip-tb-label {
         font-size: calc(10px * var(--pip-scale, 1));
         color: #94A3B8;
-        font-weight: 600;
+        font-weight: 700;
         white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
       }
       .pip-tb-val {
         font-size: calc(10px * var(--pip-scale, 1));
         color: #00F0FF;
-        font-weight: 700;
-        min-width: 30px;
+        font-weight: 800;
+        min-width: calc(36px * var(--pip-scale, 1));
+        white-space: nowrap;
       }
 
-      /* Range Sliders */
+      /* Range Sliders - Modern Borderless Glass Track */
       .pip-range {
         -webkit-appearance: none;
         appearance: none;
-        width: calc(64px * var(--pip-scale, 1));
+        flex: 1;
+        min-width: calc(50px * var(--pip-scale, 1));
         height: calc(4px * var(--pip-scale, 1));
-        border-radius: 2px;
-        background: #334155;
-        outline: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        outline: none !important;
         cursor: pointer;
         border: none !important;
       }
       .pip-range::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: calc(12px * var(--pip-scale, 1));
-        height: calc(12px * var(--pip-scale, 1));
+        width: calc(13px * var(--pip-scale, 1));
+        height: calc(13px * var(--pip-scale, 1));
         border-radius: 50%;
         background: #00F0FF;
-        box-shadow: 0 0 6px rgba(0, 240, 255, 0.7);
+        box-shadow: 0 0 8px rgba(0, 240, 255, 0.8);
         cursor: pointer;
+        border: none !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .pip-range::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 12px #00F0FF;
       }
 
-      /* Preset Buttons */
+      /* Preset Buttons - Borderless Rounded Pills */
       .pip-preset-btn {
-        height: calc(20px * var(--pip-scale, 1)) !important;
-        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1)) !important;
+        height: calc(21px * var(--pip-scale, 1)) !important;
+        padding: calc(2px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1)) !important;
         font-size: calc(9.5px * var(--pip-scale, 1)) !important;
         background: rgba(255, 255, 255, 0.08) !important;
         color: #CBD5E1 !important;
+        border: none !important;
+        outline: none !important;
+        border-radius: 20px !important;
+        cursor: pointer;
+        font-weight: 700 !important;
+        transition: all 0.15s ease;
+        white-space: nowrap;
       }
       .pip-preset-btn:hover {
-        background: rgba(0, 240, 255, 0.18) !important;
+        background: rgba(0, 240, 255, 0.2) !important;
         color: #00F0FF !important;
       }
       .pip-preset-btn.active {
         background: #00F0FF !important;
         color: #0A0E1A !important;
-        box-shadow: 0 0 8px rgba(0, 240, 255, 0.5) !important;
-        font-weight: 800 !important;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.6) !important;
+        font-weight: 900 !important;
       }
 
-      /* Toolbar Selects */
+      /* Toolbar Selects - Borderless Rounded Glass Dropdown */
       .pip-select {
         background: rgba(255, 255, 255, 0.08);
         border: none !important;
+        outline: none !important;
         color: #E2E8F0;
         font-size: calc(10px * var(--pip-scale, 1));
-        border-radius: calc(10px * var(--pip-scale, 1));
-        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1));
-        outline: none;
+        font-weight: 600;
+        border-radius: 20px;
+        padding: calc(2.5px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1));
         cursor: pointer;
         height: calc(22px * var(--pip-scale, 1));
+        flex: 1;
+        min-width: 0;
+        transition: background 0.15s ease, box-shadow 0.15s ease;
+      }
+      .pip-select:hover {
+        background: rgba(255, 255, 255, 0.14);
+        color: #00F0FF;
+      }
+      .pip-select:focus {
+        background: rgba(20, 28, 50, 0.95);
+        box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+      }
+      .pip-select option {
+        background: #101628;
+        color: #FFF;
       }
 
       /* Ghost Mode click-through styles */
