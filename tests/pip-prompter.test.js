@@ -30,8 +30,10 @@ async function testPiPPrompter() {
   assert(css.includes('--pip-scale'), 'Should contain elastic scaling variable');
   assert(css.includes('border: none !important'), 'Should contain borderless styling');
   assert(css.includes('.pip-btn-rec'), 'Should contain record button styles');
+  assert(css.includes('.pip-btn-rec-stop'), 'Should contain stop record button styles');
   assert(css.includes('.pip-recording'), 'Should contain recording pulse styles');
   assert(css.includes('.pip-choice-card'), 'Should contain choice modal card styles');
+  assert(css.includes('.pip-preview-card'), 'Should contain fast preview card styles');
   assert(css.includes('.pip-toolbar'), 'Should contain collapsible toolbar styles');
   assert(css.includes('.pip-toolbar-collapsed'), 'Should contain collapsed toolbar state');
   assert(css.includes('.pip-preset-btn'), 'Should contain opacity preset button styles');
@@ -99,6 +101,7 @@ async function testPiPPrompter() {
     },
     title: ''
   };
+  const mockStopBtn = { style: { display: 'none' } };
   const mockRecIcon = { textContent: '' };
   const mockRecLabel = { textContent: '' };
   mgr.activePiPWindow = {
@@ -106,6 +109,7 @@ async function testPiPPrompter() {
     document: {
       getElementById: (id) => {
         if (id === 'pip-btn-rec') return mockRecBtn;
+        if (id === 'pip-btn-rec-stop') return mockStopBtn;
         if (id === 'pip-rec-icon') return mockRecIcon;
         if (id === 'pip-rec-label') return mockRecLabel;
         return null;
@@ -116,12 +120,13 @@ async function testPiPPrompter() {
   mgr.updateRecordingState(true, '00:15');
   assert.strictEqual(mgr.isRecording, true);
   assert.strictEqual(addedClass, true);
-  assert.strictEqual(mockRecIcon.textContent, '⏹');
+  assert.strictEqual(mockStopBtn.style.display, 'inline-flex');
   assert.strictEqual(mockRecLabel.textContent, ' 00:15');
 
   mgr.updateRecordingState(false);
   assert.strictEqual(mgr.isRecording, false);
   assert.strictEqual(removedClass, true);
+  assert.strictEqual(mockStopBtn.style.display, 'none');
   assert.strictEqual(mockRecIcon.textContent, '🔴');
   assert.strictEqual(mockRecLabel.textContent, 'Rec');
   console.log('✓ Recording status UI synchronization in PiP passed.');

@@ -664,6 +664,34 @@
       box-shadow: 0 0 16px rgba(239, 68, 68, 0.8) !important;
       animation: gp-rec-pulse 1.4s infinite !important;
     }
+    .gp-btn-rec-stop {
+      background: linear-gradient(135deg, #DC2626, #991B1B) !important;
+      color: #FFFFFF !important;
+      border: 1px solid #F87171 !important;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.9) !important;
+      font-weight: 900 !important;
+      padding: calc(2.5px * var(--gp-scale, 1)) calc(8px * var(--gp-scale, 1)) !important;
+      font-size: calc(10px * var(--gp-scale, 1)) !important;
+      height: calc(24px * var(--gp-scale, 1)) !important;
+      border-radius: calc(20px * var(--gp-scale, 1)) !important;
+      cursor: pointer !important;
+      display: inline-flex;
+      align-items: center;
+      gap: calc(3px * var(--gp-scale, 1));
+      animation: gp-rec-pulse 1.2s infinite ease-in-out !important;
+    }
+    .gp-btn-rec-stop:hover {
+      background: #EF4444 !important;
+      box-shadow: 0 0 20px rgba(239, 68, 68, 1) !important;
+      transform: scale(1.04);
+    }
+    .gp-stop-icon {
+      font-size: calc(9px * var(--gp-scale, 1));
+      line-height: 1;
+    }
+    .gp-stop-label {
+      line-height: 1;
+    }
     @keyframes gp-rec-pulse {
       0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
       50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.95); }
@@ -1093,6 +1121,9 @@
         <div class="gp-actions">
           <button class="gp-btn gp-btn-rec" id="gp-btn-rec" title="Alt+R: Stealth Record Webcam (Prompter is 100% hidden in video!)">
             <span class="gp-rec-icon" id="gp-rec-icon">🔴</span><span class="gp-rec-label" id="gp-rec-label"> Rec</span>
+          </button>
+          <button class="gp-btn gp-btn-rec-stop" id="gp-btn-rec-stop" style="display: none;" title="Stop Recording & Download Video">
+            <span class="gp-stop-icon">⏹</span><span class="gp-stop-label"> Stop</span>
           </button>
           <button class="gp-btn gp-btn-autoscroll" id="gp-btn-play" title="Spacebar: Play / Pause Auto-Scroll">
             <span class="gp-btn-icon-symbol">▶</span><span class="gp-btn-label"> Play</span>
@@ -1534,15 +1565,23 @@
     const colorSelect = shadowRoot.getElementById('gp-select-color');
     const presetBtns = shadowRoot.querySelectorAll('.gp-preset-btn');
     const recBtn = shadowRoot.getElementById('gp-btn-rec');
+    const recStopBtn = shadowRoot.getElementById('gp-btn-rec-stop');
     const recModalClose = shadowRoot.getElementById('gp-rec-modal-close');
     const recModalRetake = shadowRoot.getElementById('gp-rec-btn-retake');
     const recModalSave = shadowRoot.getElementById('gp-rec-btn-save');
 
-    // Video Recording Trigger
+    // Video Recording Trigger & Stop Button
     if (recBtn) {
       recBtn.addEventListener('click', (e) => {
         e.preventDefault();
         toggleRecording();
+      });
+    }
+
+    if (recStopBtn) {
+      recStopBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        stopRecordingFlow();
       });
     }
 
@@ -2049,6 +2088,9 @@
         currentRecordedBlob = take.blob;
         currentRecordedUrl = take.url;
         showRecordingModal(take);
+        if (activePiPInstance && typeof activePiPInstance.showRecordingModal === 'function') {
+          activePiPInstance.showRecordingModal(take);
+        }
       },
       onError: (err) => {
         console.error('GhostPrompter recording error:', err);
@@ -2156,6 +2198,7 @@
 
     if (!shadowRoot) return;
     const recBtn = shadowRoot.getElementById('gp-btn-rec');
+    const stopBtn = shadowRoot.getElementById('gp-btn-rec-stop');
     if (!recBtn) return;
 
     const icon = recBtn.querySelector('.gp-rec-icon');
@@ -2163,14 +2206,16 @@
 
     if (recording) {
       recBtn.classList.add('gp-recording');
-      recBtn.title = 'Alt+R: Stop Recording';
-      if (icon) icon.textContent = '⏹';
+      recBtn.title = 'Recording active. Click Rec or Stop button to finish.';
+      if (icon) icon.textContent = '🔴';
       if (label) label.textContent = ` ${timeStr}`;
+      if (stopBtn) stopBtn.style.display = 'inline-flex';
     } else {
       recBtn.classList.remove('gp-recording');
-      recBtn.title = 'Alt+R: Stealth Record Webcam (Prompter is 100% hidden in video!)';
+      recBtn.title = 'Alt+R: Stealth Record Webcam or Screen';
       if (icon) icon.textContent = '🔴';
       if (label) label.textContent = ' Rec';
+      if (stopBtn) stopBtn.style.display = 'none';
     }
   }
 

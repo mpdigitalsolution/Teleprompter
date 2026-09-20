@@ -146,6 +146,9 @@ class PiPPrompterManager {
             <button class="pip-btn pip-btn-rec" id="pip-btn-rec" title="Record Screen / Window / Tab or Camera">
               <span id="pip-rec-icon">🔴</span> <span id="pip-rec-label">Rec</span>
             </button>
+            <button class="pip-btn pip-btn-rec-stop" id="pip-btn-rec-stop" style="display: none;" title="Stop Recording & Download Video">
+              <span id="pip-stop-icon">⏹</span> <span id="pip-stop-label">Stop</span>
+            </button>
 
             <button class="pip-btn pip-btn-play" id="pip-btn-play" title="Spacebar: Play/Pause Auto-Scroll">
               <span id="pip-play-icon">▶</span> <span id="pip-play-label">Play</span>
@@ -279,6 +282,29 @@ class PiPPrompterManager {
           </div>
         </div>
 
+        <!-- Fast Video Preview & Download Modal -->
+        <div class="pip-modal-overlay" id="pip-preview-modal" style="display:none;">
+          <div class="pip-choice-card pip-preview-card">
+            <div class="pip-choice-header">
+              <span class="pip-choice-title">🎬 Video Ready for Download</span>
+              <button class="pip-choice-close" id="pip-preview-close" title="Close">✕</button>
+            </div>
+            <div class="pip-preview-body">
+              <video id="pip-preview-video" class="pip-preview-video" controls autoplay playsinline></video>
+              <div class="pip-preview-stats">
+                <span id="pip-stat-dur" class="pip-stat-tag">⏱ 00:00</span>
+                <span id="pip-stat-size" class="pip-stat-tag">💾 0 MB</span>
+                <span class="pip-stat-tag pip-stat-shield">🛡 Prompter-Free</span>
+              </div>
+            </div>
+            <div class="pip-preview-footer">
+              <button class="pip-btn pip-btn-preview-dl" id="pip-btn-download" title="Download video to computer">
+                <span>💾</span> Download Video (.webm)
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Scrolling Body & Eye-Line Guide -->
         <main class="pip-viewport" id="pip-viewport">
           <div class="pip-focus-line" id="pip-focus-line"></div>
@@ -295,12 +321,19 @@ class PiPPrompterManager {
     const viewport = doc.getElementById('pip-viewport');
     const textEl = doc.getElementById('pip-text');
     const btnRec = doc.getElementById('pip-btn-rec');
+    const btnStopRec = doc.getElementById('pip-btn-rec-stop');
     const recIcon = doc.getElementById('pip-rec-icon');
     const recLabel = doc.getElementById('pip-rec-label');
     const choiceModal = doc.getElementById('pip-choice-modal');
     const choiceScreen = doc.getElementById('pip-choice-screen');
     const choiceCam = doc.getElementById('pip-choice-cam');
     const choiceClose = doc.getElementById('pip-choice-close');
+    const previewModal = doc.getElementById('pip-preview-modal');
+    const previewVideo = doc.getElementById('pip-preview-video');
+    const previewClose = doc.getElementById('pip-preview-close');
+    const previewDlBtn = doc.getElementById('pip-btn-download');
+    const statDur = doc.getElementById('pip-stat-dur');
+    const statSize = doc.getElementById('pip-stat-size');
     const btnPlay = doc.getElementById('pip-btn-play');
     const playIcon = doc.getElementById('pip-play-icon');
     const playLabel = doc.getElementById('pip-play-label');
@@ -431,6 +464,16 @@ class PiPPrompterManager {
       });
     }
 
+    if (btnStopRec) {
+      btnStopRec.addEventListener('click', () => {
+        if (this.onStopRecording) {
+          this.onStopRecording();
+        } else if (this.onToggleRecord) {
+          this.onToggleRecord();
+        }
+      });
+    }
+
     if (choiceClose) {
       choiceClose.addEventListener('click', () => {
         if (choiceModal) choiceModal.style.display = 'none';
@@ -455,6 +498,36 @@ class PiPPrompterManager {
           this.onStartCameraRecording();
         } else if (this.onToggleRecord) {
           this.onToggleRecord('camera');
+        }
+      });
+    }
+
+    if (previewClose) {
+      previewClose.addEventListener('click', () => {
+        if (previewModal) previewModal.style.display = 'none';
+        if (previewVideo) {
+          previewVideo.pause();
+          previewVideo.removeAttribute('src');
+          previewVideo.load();
+        }
+      });
+    }
+
+    if (previewDlBtn) {
+      previewDlBtn.addEventListener('click', () => {
+        if (this.currentTake && this.currentTake.blob) {
+          const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+          const filename = `ghostprompter-video-${dateStr}.webm`;
+          const url = this.currentTake.url || URL.createObjectURL(this.currentTake.blob);
+          const a = doc.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = filename;
+          doc.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            try { doc.body.removeChild(a); } catch (e) {}
+          }, 300);
         }
       });
     }
@@ -803,21 +876,47 @@ class PiPPrompterManager {
     if (!this.activePiPWindow || this.activePiPWindow.closed) return;
     const doc = this.activePiPWindow.document;
     const recBtn = doc.getElementById('pip-btn-rec');
+    const stopBtn = doc.getElementById('pip-btn-rec-stop');
     const icon = doc.getElementById('pip-rec-icon');
     const label = doc.getElementById('pip-rec-label');
 
     if (!recBtn) return;
     if (isRecording) {
       recBtn.classList.add('pip-recording');
-      recBtn.title = 'Stop Recording';
-      if (icon) icon.textContent = '⏹';
+      recBtn.title = 'Recording active. Click Stop to finish.';
+      if (icon) icon.textContent = '🔴';
       if (label) label.textContent = ` ${timeStr}`;
+      if (stopBtn) stopBtn.style.display = 'inline-flex';
     } else {
       recBtn.classList.remove('pip-recording');
       recBtn.title = 'Record Screen / Window / Tab or Camera';
       if (icon) icon.textContent = '🔴';
       if (label) label.textContent = 'Rec';
+      if (stopBtn) stopBtn.style.display = 'none';
     }
+  }
+
+  /**
+   * Display instant video preview & download modal inside PiP window
+   */
+  showRecordingModal(take) {
+    this.currentTake = take;
+    if (!this.activePiPWindow || this.activePiPWindow.closed) return;
+    const doc = this.activePiPWindow.document;
+    const previewModal = doc.getElementById('pip-preview-modal');
+    const previewVideo = doc.getElementById('pip-preview-video');
+    const statDur = doc.getElementById('pip-stat-dur');
+    const statSize = doc.getElementById('pip-stat-size');
+
+    if (statDur) statDur.textContent = `⏱ ${take.formattedTime || '00:00'}`;
+    if (statSize) statSize.textContent = `💾 ${take.fileSizeFormatted || '0 MB'}`;
+
+    if (previewVideo && take.url) {
+      previewVideo.src = take.url;
+      previewVideo.play().catch(() => {});
+    }
+
+    if (previewModal) previewModal.style.display = 'flex';
   }
 
   handlePiPClose() {
@@ -999,6 +1098,31 @@ class PiPPrompterManager {
         color: #FFF !important;
         box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
         animation: pipPulseRec 1.2s infinite ease-in-out;
+      }
+      .pip-btn-rec-stop {
+        padding: calc(2px * var(--pip-scale, 1)) calc(7.5px * var(--pip-scale, 1));
+        font-size: calc(9.5px * var(--pip-scale, 1));
+        height: calc(20.5px * var(--pip-scale, 1));
+        font-weight: 900;
+        background: linear-gradient(135deg, #DC2626, #991B1B) !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        border-radius: 20px !important;
+        cursor: pointer !important;
+        display: inline-flex;
+        align-items: center;
+        gap: calc(3px * var(--pip-scale, 1));
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.85);
+        animation: pipPulseRec 1.1s infinite ease-in-out;
+      }
+      .pip-btn-rec-stop:hover {
+        background: #EF4444 !important;
+        box-shadow: 0 0 18px rgba(239, 68, 68, 1);
+        transform: scale(1.05);
+      }
+      #pip-stop-icon {
+        font-size: calc(8px * var(--pip-scale, 1));
+        line-height: 1;
       }
       @keyframes pipPulseRec {
         0%, 100% { opacity: 1; transform: scale(1); }
@@ -1235,11 +1359,72 @@ class PiPPrompterManager {
         margin-top: 2px;
       }
 
+      /* Fast Preview & Download Modal Styles */
+      .pip-preview-card {
+        max-width: calc(380px * var(--pip-scale, 1)) !important;
+      }
+      .pip-preview-body {
+        display: flex;
+        flex-direction: column;
+        gap: calc(8px * var(--pip-scale, 1));
+      }
+      .pip-preview-video {
+        width: 100%;
+        max-height: calc(140px * var(--pip-scale, 1));
+        border-radius: calc(8px * var(--pip-scale, 1));
+        background: #000;
+        outline: none;
+      }
+      .pip-preview-stats {
+        display: flex;
+        align-items: center;
+        gap: calc(6px * var(--pip-scale, 1));
+        flex-wrap: wrap;
+      }
+      .pip-stat-tag {
+        font-size: calc(9.5px * var(--pip-scale, 1));
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.08);
+        color: #CBD5E1;
+        padding: calc(2px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1));
+        border-radius: 12px;
+      }
+      .pip-stat-shield {
+        color: #00FF88 !important;
+        background: rgba(0, 255, 136, 0.15) !important;
+      }
+      .pip-preview-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: calc(4px * var(--pip-scale, 1));
+      }
+      .pip-btn-preview-dl {
+        background: linear-gradient(135deg, #00F0FF, #0099FF) !important;
+        color: #080C16 !important;
+        font-weight: 900 !important;
+        font-size: calc(10.5px * var(--pip-scale, 1)) !important;
+        height: calc(26px * var(--pip-scale, 1)) !important;
+        padding: 0 calc(14px * var(--pip-scale, 1)) !important;
+        border-radius: 20px !important;
+        border: none !important;
+        cursor: pointer !important;
+        box-shadow: 0 0 12px rgba(0, 240, 255, 0.6) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .pip-btn-preview-dl:hover {
+        transform: scale(1.04);
+        box-shadow: 0 0 18px rgba(0, 240, 255, 0.9) !important;
+      }
+
       /* Responsive Elastic Classes */
       .pip-size-xs .pip-title-text,
       .pip-size-xs .pip-pill,
       .pip-size-xs #pip-play-label,
       .pip-size-xs #pip-rec-label,
+      .pip-size-xs #pip-stop-label,
       .pip-size-xs #pip-trans-label,
       .pip-size-xs .pip-ghost-label,
       .pip-size-xs .pip-ctrl-label {

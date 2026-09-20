@@ -336,10 +336,21 @@
       const mimeType = VideoRecorder.getSupportedMimeType();
       const options = mimeType ? { mimeType } : {};
 
+      // Hardware-accelerated bitrate hints for ultra-fast instantaneous muxing & rendering
+      if (this.sourceType === 'screen') {
+        options.videoBitsPerSecond = 3000000; // 3 Mbps: Crisp 1080p/60 screen capture with ultra-low mux latency
+      } else {
+        options.videoBitsPerSecond = 2500000; // 2.5 Mbps: Crisp webcam stream
+      }
+
       try {
         this.mediaRecorder = new MediaRecorder(this.mediaStream, options);
       } catch (e) {
-        this.mediaRecorder = new MediaRecorder(this.mediaStream);
+        try {
+          this.mediaRecorder = new MediaRecorder(this.mediaStream, mimeType ? { mimeType } : {});
+        } catch (e2) {
+          this.mediaRecorder = new MediaRecorder(this.mediaStream);
+        }
       }
 
       this.mediaRecorder.ondataavailable = (event) => {
@@ -369,7 +380,7 @@
         });
       };
 
-      // Request data chunks every 1 second (ensures smooth memory management)
+      // Request data chunks every 1 second (ensures progressive streaming and instant assembly)
       this.mediaRecorder.start(1000);
       this.state = 'recording';
       this.elapsedSeconds = 0;
@@ -416,6 +427,12 @@
       }
 
       if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+        try {
+          // Immediately flush any pending buffer chunk so stop is instantaneous
+          if (typeof this.mediaRecorder.requestData === 'function') {
+            this.mediaRecorder.requestData();
+          }
+        } catch (e) {}
         this.mediaRecorder.stop();
       }
 
