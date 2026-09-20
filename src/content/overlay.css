@@ -8,7 +8,7 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 2147483647; /* Maximum z-index */
+  z-index: 2147483647;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   box-sizing: border-box;
 }
@@ -20,23 +20,26 @@
   user-select: none;
 }
 
-/* Floating Prompter Window */
+/* Floating Prompter Window - High Contrast & Clearly Visible */
 .gp-window {
   position: fixed;
   display: flex;
   flex-direction: column;
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(0, 240, 255, 0.25);
-  transition: box-shadow 0.25s ease, opacity 0.2s ease;
+  border: 2px solid rgba(0, 240, 255, 0.75);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.9), 0 0 24px rgba(0, 240, 255, 0.4);
+  transition: box-shadow 0.25s ease, opacity 0.2s ease, background-color 0.2s ease;
   pointer-events: auto;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background-color: rgba(12, 16, 28, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .gp-window.gp-ghost-mode {
   pointer-events: none !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 240, 255, 0.15) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 240, 255, 0.3) !important;
+  background-color: rgba(10, 14, 24, 0.25) !important;
 }
 
 .gp-window.gp-ghost-mode .gp-ghost-pill {
@@ -49,11 +52,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 14px;
-  background: rgba(10, 14, 26, 0.88);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #111728;
+  border-bottom: 2px solid rgba(0, 240, 255, 0.35);
   cursor: grab;
-  height: 38px;
-  transition: background 0.2s ease, opacity 0.3s ease;
+  height: 42px;
+  transition: background 0.2s ease;
 }
 
 .gp-header:active {
@@ -67,10 +70,10 @@
 }
 
 .gp-logo-icon {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   fill: #00F0FF;
-  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.6));
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.7));
 }
 
 .gp-title {
@@ -78,13 +81,13 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   color: #FFFFFF;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 .gp-status-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-left: 6px;
 }
 
@@ -92,12 +95,12 @@
   font-size: 10px;
   font-weight: 700;
   padding: 2px 7px;
-  border-radius: 6px;
+  border-radius: 5px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background: rgba(0, 240, 255, 0.15);
+  background: rgba(0, 240, 255, 0.2);
   color: #00F0FF;
-  border: 1px solid rgba(0, 240, 255, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.4);
 }
 
 /* Indicator Lights */
@@ -106,7 +109,8 @@
   align-items: center;
   gap: 4px;
   font-size: 10px;
-  color: #8E9BAE;
+  color: #A0AEC0;
+  font-weight: 600;
 }
 
 .gp-dot {
@@ -132,70 +136,64 @@
   box-shadow: 0 0 8px #FFB703;
 }
 
-.gp-dot.pulse {
-  animation: gp-pulse 1s infinite alternate;
-}
-
-@keyframes gp-pulse {
-  0% { transform: scale(0.9); opacity: 0.7; }
-  100% { transform: scale(1.25); opacity: 1; }
-}
-
-/* Header Action Buttons */
+/* Action Buttons */
 .gp-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .gp-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #E2E8F0;
+  background: #1C2438;
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: #FFFFFF;
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: 5px 10px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
   transition: all 0.15s ease;
 }
 
 .gp-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #FFFFFF;
-  border-color: rgba(0, 240, 255, 0.4);
+  background: #28334E;
+  color: #00F0FF;
+  border-color: #00F0FF;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
 }
 
 .gp-btn.active {
-  background: rgba(0, 240, 255, 0.25);
+  background: rgba(0, 240, 255, 0.3);
   color: #00F0FF;
   border-color: #00F0FF;
 }
 
 .gp-btn-icon {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   padding: 0;
+  font-size: 12px;
 }
 
-/* Auto-Hiding Controls Panel */
+/* Toolbar Panel */
 .gp-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 6px 14px;
-  background: rgba(14, 18, 32, 0.94);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 8px 14px;
+  background: #141A2C;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 11px;
-  color: #A0AEC0;
+  color: #CBD5E1;
   transition: max-height 0.25s ease, opacity 0.25s ease, padding 0.25s ease;
   overflow: hidden;
-  max-height: 80px;
+  max-height: 90px;
 }
 
 .gp-toolbar.collapsed {
@@ -206,7 +204,6 @@
   border-bottom: none;
 }
 
-/* Toolbar Control Items */
 .gp-ctrl-group {
   display: flex;
   align-items: center;
@@ -222,7 +219,7 @@
 .gp-range {
   -webkit-appearance: none;
   appearance: none;
-  width: 75px;
+  width: 70px;
   height: 4px;
   border-radius: 2px;
   background: #334155;
@@ -247,7 +244,7 @@
   color: #E2E8F0;
   font-size: 11px;
   border-radius: 5px;
-  padding: 2px 6px;
+  padding: 3px 6px;
   outline: none;
   cursor: pointer;
 }
@@ -259,45 +256,42 @@
   overflow-y: scroll;
   overflow-x: hidden;
   padding: 24px 28px 80px 28px;
-  scroll-behavior: smooth;
   cursor: text;
   user-select: text;
+  background: #0B0E18;
 }
 
-/* Custom Minimal Scrollbar */
 .gp-viewport::-webkit-scrollbar {
-  width: 5px;
-}
-
-.gp-viewport::-webkit-scrollbar-track {
-  background: transparent;
+  width: 6px;
 }
 
 .gp-viewport::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 240, 255, 0.35);
   border-radius: 3px;
 }
 
 .gp-viewport::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 240, 255, 0.6);
+  background: rgba(0, 240, 255, 0.7);
 }
 
-/* Prompter Script Text Content */
+/* Script Text Content */
 .gp-script-body {
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 600;
   color: #00F0FF;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
   white-space: pre-wrap;
   word-break: break-word;
-  transition: transform 0.2s ease;
   line-height: 1.6;
   outline: none;
+  min-height: 140px;
 }
 
 .gp-script-body.gp-mirrored {
   transform: scaleX(-1);
 }
 
-/* Highlighting Active Words / Current Focus Line */
+/* Focus Line Indicator */
 .gp-focus-line {
   position: absolute;
   top: 35%;
@@ -305,36 +299,28 @@
   width: 100%;
   height: 48px;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.08) 15%, rgba(0, 240, 255, 0.08) 85%, transparent);
-  border-top: 1px dashed rgba(0, 240, 255, 0.35);
-  border-bottom: 1px dashed rgba(0, 240, 255, 0.35);
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.12) 15%, rgba(0, 240, 255, 0.12) 85%, transparent);
+  border-top: 1px dashed rgba(0, 240, 255, 0.4);
+  border-bottom: 1px dashed rgba(0, 240, 255, 0.4);
   transform: translateY(-50%);
   z-index: 10;
-}
-
-.gp-word-active {
-  background: rgba(0, 240, 255, 0.35);
-  color: #FFFFFF !important;
-  border-radius: 4px;
-  padding: 0 3px;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
 }
 
 /* Click-Through Ghost Mode Top Pill */
 .gp-ghost-pill {
   position: absolute;
-  top: 6px;
-  right: 12px;
+  top: 8px;
+  right: 14px;
   display: none;
-  background: rgba(10, 14, 26, 0.9);
+  background: #111728;
   border: 1px solid #00F0FF;
   border-radius: 20px;
-  padding: 3px 10px;
-  font-size: 10px;
+  padding: 4px 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #00F0FF;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
   z-index: 999;
 }
 
@@ -352,59 +338,42 @@
 .gp-resize-se {
   right: 0;
   bottom: 0;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   cursor: se-resize;
-  background: linear-gradient(135deg, transparent 50%, rgba(0, 240, 255, 0.6) 50%);
+  background: linear-gradient(135deg, transparent 50%, #00F0FF 50%);
   border-bottom-right-radius: 12px;
 }
 
 .gp-resize-sw {
   left: 0;
   bottom: 0;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   cursor: sw-resize;
   border-bottom-left-radius: 12px;
 }
 
 .gp-resize-s {
-  left: 16px;
-  right: 16px;
+  left: 18px;
+  right: 18px;
   bottom: 0;
   height: 6px;
   cursor: s-resize;
 }
 
 .gp-resize-e {
-  top: 38px;
-  bottom: 16px;
+  top: 42px;
+  bottom: 18px;
   right: 0;
   width: 6px;
   cursor: e-resize;
 }
 
 .gp-resize-w {
-  top: 38px;
-  bottom: 16px;
+  top: 42px;
+  bottom: 18px;
   left: 0;
   width: 6px;
   cursor: w-resize;
-}
-
-/* Stealth Idle Fade */
-.gp-window.gp-idle .gp-header {
-  opacity: 0.15;
-}
-
-.gp-window.gp-idle:hover .gp-header {
-  opacity: 1;
-}
-
-.gp-window.gp-idle .gp-toolbar {
-  opacity: 0.15;
-}
-
-.gp-window.gp-idle:hover .gp-toolbar {
-  opacity: 1;
 }

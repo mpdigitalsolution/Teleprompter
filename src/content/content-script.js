@@ -1,13 +1,12 @@
 /**
  * GhostPrompter Content Script
- * Injects and manages the stealth Heads-Up Display (HUD) inside an isolated Shadow DOM.
- * Works seamlessly in both Manual and Auto/Dual tracking modes.
+ * Injects and manages the high-contrast stealth Heads-Up Display (HUD) inside an isolated Shadow DOM.
+ * Features solid high-visibility theme with one-click transparency controls.
  */
 
 (function () {
   // Prevent duplicate injection
   if (window.__GHOST_PROMPTER_INITIALIZED__) {
-    // If already initialized, trigger toggle on re-execution
     if (window.GhostPrompter && window.GhostPrompter.toggle) {
       window.GhostPrompter.toggle();
     }
@@ -23,21 +22,21 @@
   let isPlaying = false;
   let isGhostMode = false;
   let isMirrorMode = false;
+  let isSolidMode = true; // High visibility solid mode by default
   let currentSettings = null;
   let currentScript = null;
-  let idleTimer = null;
   let scrollAnimFrame = null;
-  let scrollVelocity = 0; // pixels per frame
+  let scrollVelocity = 0;
 
-  // Default fallback settings
+  // High-visibility default settings
   const defaultState = {
-    opacity: 0.78,
-    fontSize: 22,
+    opacity: 0.94, // 94% solid dark background by default
+    fontSize: 24,
     textColor: '#00F0FF',
     lineHeight: 1.6,
     wpm: 130,
-    trackingMode: 'dual',
-    window: { x: null, y: 30, width: 620, height: 260 }
+    trackingMode: 'manual',
+    window: { x: null, y: 24, width: 640, height: 280 }
   };
 
   /**
@@ -68,16 +67,18 @@
       flex-direction: column;
       border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(0, 240, 255, 0.3);
-      transition: box-shadow 0.25s ease, opacity 0.2s ease;
+      border: 2px solid rgba(0, 240, 255, 0.85);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95), 0 0 24px rgba(0, 240, 255, 0.4);
+      transition: box-shadow 0.25s ease, opacity 0.2s ease, background-color 0.2s ease;
       pointer-events: auto;
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      background: rgba(10, 12, 20, 0.85);
+      background-color: rgba(12, 16, 28, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
     .gp-window.gp-ghost-mode {
       pointer-events: none !important;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 240, 255, 0.15) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 240, 255, 0.3) !important;
+      background-color: rgba(10, 14, 24, 0.25) !important;
     }
     .gp-window.gp-ghost-mode .gp-ghost-pill {
       pointer-events: auto !important;
@@ -86,12 +87,12 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 6px 12px;
-      background: rgba(10, 14, 26, 0.92);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 12px;
+      background: #111728;
+      border-bottom: 2px solid rgba(0, 240, 255, 0.35);
       cursor: grab;
-      height: 38px;
-      transition: background 0.2s ease, opacity 0.3s ease;
+      height: 42px;
+      transition: background 0.2s ease;
     }
     .gp-header:active {
       cursor: grabbing;
@@ -102,17 +103,17 @@
       gap: 8px;
     }
     .gp-logo-icon {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       fill: #00F0FF;
-      filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.6));
+      filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.7));
     }
     .gp-title {
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.5px;
       color: #FFFFFF;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
     }
     .gp-status-group {
       display: flex;
@@ -123,20 +124,21 @@
     .gp-badge {
       font-size: 10px;
       font-weight: 700;
-      padding: 2px 6px;
+      padding: 2px 7px;
       border-radius: 5px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      background: rgba(0, 240, 255, 0.15);
+      background: rgba(0, 240, 255, 0.2);
       color: #00F0FF;
-      border: 1px solid rgba(0, 240, 255, 0.3);
+      border: 1px solid rgba(0, 240, 255, 0.4);
     }
     .gp-indicator {
       display: inline-flex;
       align-items: center;
       gap: 4px;
       font-size: 10px;
-      color: #8E9BAE;
+      color: #A0AEC0;
+      font-weight: 600;
     }
     .gp-dot {
       width: 8px;
@@ -160,36 +162,38 @@
     .gp-actions {
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
     }
     .gp-btn {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: #E2E8F0;
+      background: #1C2438;
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      color: #FFFFFF;
       border-radius: 6px;
-      padding: 4px 8px;
+      padding: 5px 9px;
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
       transition: all 0.15s ease;
     }
     .gp-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-      color: #FFFFFF;
-      border-color: rgba(0, 240, 255, 0.4);
+      background: #28334E;
+      color: #00F0FF;
+      border-color: #00F0FF;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
     }
     .gp-btn.active {
-      background: rgba(0, 240, 255, 0.25);
+      background: rgba(0, 240, 255, 0.3);
       color: #00F0FF;
       border-color: #00F0FF;
     }
     .gp-btn-icon {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       padding: 0;
       font-size: 12px;
     }
@@ -197,12 +201,12 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 10px;
-      padding: 6px 12px;
-      background: rgba(14, 18, 32, 0.96);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      gap: 12px;
+      padding: 8px 14px;
+      background: #141A2C;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 11px;
-      color: #A0AEC0;
+      color: #CBD5E1;
       transition: max-height 0.25s ease, opacity 0.25s ease, padding 0.25s ease;
       overflow: hidden;
       max-height: 90px;
@@ -210,14 +214,14 @@
     .gp-toolbar.collapsed {
       max-height: 0;
       opacity: 0;
-      padding: 0 12px;
+      padding: 0 14px;
       pointer-events: none;
       border-bottom: none;
     }
     .gp-ctrl-group {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
     .gp-ctrl-group label {
       font-size: 11px;
@@ -227,7 +231,7 @@
     .gp-range {
       -webkit-appearance: none;
       appearance: none;
-      width: 65px;
+      width: 70px;
       height: 4px;
       border-radius: 2px;
       background: #334155;
@@ -250,7 +254,7 @@
       color: #E2E8F0;
       font-size: 11px;
       border-radius: 5px;
-      padding: 2px 6px;
+      padding: 3px 6px;
       outline: none;
       cursor: pointer;
     }
@@ -259,28 +263,31 @@
       flex: 1;
       overflow-y: scroll;
       overflow-x: hidden;
-      padding: 20px 24px 70px 24px;
+      padding: 24px 28px 80px 28px;
       cursor: text;
       user-select: text;
+      background-color: rgba(11, 14, 24, 0.94);
     }
     .gp-viewport::-webkit-scrollbar {
-      width: 5px;
+      width: 6px;
     }
     .gp-viewport::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.25);
+      background: rgba(0, 240, 255, 0.35);
       border-radius: 3px;
     }
     .gp-viewport::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 240, 255, 0.6);
+      background: rgba(0, 240, 255, 0.7);
     }
     .gp-script-body {
-      font-weight: 500;
+      font-size: 24px;
+      font-weight: 600;
       color: #00F0FF;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
       white-space: pre-wrap;
       word-break: break-word;
-      transition: transform 0.2s ease;
       line-height: 1.6;
       outline: none;
+      min-height: 140px;
     }
     .gp-script-body.gp-mirrored {
       transform: scaleX(-1);
@@ -290,28 +297,28 @@
       top: 35%;
       left: 0;
       width: 100%;
-      height: 44px;
+      height: 48px;
       pointer-events: none;
-      background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.08) 15%, rgba(0, 240, 255, 0.08) 85%, transparent);
-      border-top: 1px dashed rgba(0, 240, 255, 0.35);
-      border-bottom: 1px dashed rgba(0, 240, 255, 0.35);
+      background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.12) 15%, rgba(0, 240, 255, 0.12) 85%, transparent);
+      border-top: 1px dashed rgba(0, 240, 255, 0.4);
+      border-bottom: 1px dashed rgba(0, 240, 255, 0.4);
       transform: translateY(-50%);
       z-index: 10;
     }
     .gp-ghost-pill {
       position: absolute;
-      top: 6px;
-      right: 12px;
+      top: 8px;
+      right: 14px;
       display: none;
-      background: rgba(10, 14, 26, 0.92);
+      background: #111728;
       border: 1px solid #00F0FF;
       border-radius: 20px;
-      padding: 3px 10px;
-      font-size: 10px;
+      padding: 4px 12px;
+      font-size: 11px;
       font-weight: 700;
       color: #00F0FF;
       cursor: pointer;
-      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
       z-index: 999;
     }
     .gp-window.gp-ghost-mode .gp-ghost-pill {
@@ -325,46 +332,40 @@
     .gp-resize-se {
       right: 0;
       bottom: 0;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       cursor: se-resize;
-      background: linear-gradient(135deg, transparent 50%, rgba(0, 240, 255, 0.6) 50%);
+      background: linear-gradient(135deg, transparent 50%, #00F0FF 50%);
       border-bottom-right-radius: 12px;
     }
     .gp-resize-sw {
       left: 0;
       bottom: 0;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       cursor: sw-resize;
       border-bottom-left-radius: 12px;
     }
     .gp-resize-s {
-      left: 16px;
-      right: 16px;
+      left: 18px;
+      right: 18px;
       bottom: 0;
       height: 6px;
       cursor: s-resize;
     }
     .gp-resize-e {
-      top: 38px;
-      bottom: 16px;
+      top: 42px;
+      bottom: 18px;
       right: 0;
       width: 6px;
       cursor: e-resize;
     }
     .gp-resize-w {
-      top: 38px;
-      bottom: 16px;
+      top: 42px;
+      bottom: 18px;
       left: 0;
       width: 6px;
       cursor: w-resize;
-    }
-    .gp-window.gp-idle .gp-header, .gp-window.gp-idle .gp-toolbar {
-      opacity: 0.15;
-    }
-    .gp-window.gp-idle:hover .gp-header, .gp-window.gp-idle:hover .gp-toolbar {
-      opacity: 1;
     }
   `;
 
@@ -409,7 +410,7 @@
     if (hostEl) {
       if (hostEl.style.display === 'none') {
         hostEl.style.display = 'block';
-        resetIdleTimer();
+        applyWindowAppearance();
       } else {
         hostEl.style.display = 'none';
         pauseScroll();
@@ -419,11 +420,17 @@
 
     const data = await loadData();
     currentSettings = { ...defaultState, ...(data.settings || {}) };
+    
+    // Ensure opacity is high enough to be clearly visible
+    if (!currentSettings.opacity || currentSettings.opacity < 0.3) {
+      currentSettings.opacity = 0.94;
+    }
+
     const scripts = data.scripts || [];
     currentScript = scripts.find(s => s.id === data.activeScriptId) || scripts[0] || {
       id: 'default',
       title: 'Welcome to GhostPrompter',
-      content: `Welcome to GhostPrompter! 👻\n\nThis is your transparent, eye-tracking heads-up teleprompter.\n\n• Drag this window directly beneath your webcam lens.\n• Resize it using the bottom-right handle.\n• Press Spacebar to Pause / Resume scroll.\n• Press Alt + C to activate Click-Through Ghost Mode.\n• Press Up / Down arrows to nudge lines.\n\nStart speaking or reading, and enjoy natural eye contact!`
+      content: `Welcome to GhostPrompter! 👻\n\nThis is your high-visibility heads-up teleprompter.\n\n• Drag this window directly beneath your webcam lens.\n• Resize it using the bottom-right cyan handle.\n• Click "▶ Play" or press Spacebar to Pause / Resume scroll.\n• Click "▲" or "▼" (or Up/Down arrows) to nudge lines.\n• Click "⬛ Solid" to toggle between Solid and Glass transparency.\n• Click "👻 Ghost" (Alt + C) to click right through the window.\n\nStart speaking or reading, and enjoy natural eye contact!`
     };
 
     createHUD(data.scripts || [currentScript]);
@@ -451,9 +458,9 @@
 
     // Initial position & dimensions
     const winConfig = currentSettings.window || defaultState.window;
-    const initialWidth = winConfig.width || 620;
-    const initialHeight = winConfig.height || 260;
-    const initialTop = winConfig.y !== null ? winConfig.y : 30;
+    const initialWidth = winConfig.width || 640;
+    const initialHeight = winConfig.height || 280;
+    const initialTop = winConfig.y !== null ? winConfig.y : 24;
     const initialLeft = winConfig.x !== null ? winConfig.x : Math.max(20, (window.innerWidth - initialWidth) / 2);
 
     // Main window element
@@ -463,9 +470,8 @@
     windowEl.style.height = `${initialHeight}px`;
     windowEl.style.top = `${initialTop}px`;
     windowEl.style.left = `${initialLeft}px`;
-    applyWindowAppearance();
 
-    // Markup with full manual controls
+    // Markup with high-visibility manual controls
     windowEl.innerHTML = `
       <!-- Click-through Ghost Mode exit badge -->
       <button class="gp-ghost-pill" id="gp-ghost-pill">👻 Ghost Mode Active (Click to Exit)</button>
@@ -489,10 +495,11 @@
         </div>
 
         <div class="gp-actions">
-          <button class="gp-btn" id="gp-btn-play" title="Spacebar: Play/Pause">▶ Play</button>
+          <button class="gp-btn active" id="gp-btn-play" title="Spacebar: Play/Pause">▶ Play</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-nudge-up" title="Nudge Up (Up Arrow)">▲</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-nudge-down" title="Nudge Down (Down Arrow)">▼</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-reset-top" title="Reset to Top">⏮</button>
+          <button class="gp-btn" id="gp-btn-solid" title="Toggle Solid / Transparent window">⬛ Solid</button>
           <button class="gp-btn" id="gp-btn-ghost" title="Alt+C: Ghost Click-Through Mode">👻 Ghost</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-mirror" title="Mirror text for glass prompter">🪞</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-tools" title="Toggle control sliders">⚙</button>
@@ -511,22 +518,31 @@
 
         <div class="gp-ctrl-group">
           <label>Speed:</label>
-          <button class="gp-btn gp-btn-icon" id="gp-btn-wpm-dec" style="width:20px; height:20px; font-size:10px;">-</button>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-wpm-dec" style="width:22px; height:22px; font-size:11px;">-</button>
           <input type="range" class="gp-range" id="gp-range-wpm" min="50" max="260" step="10" value="${currentSettings.wpm}">
-          <button class="gp-btn gp-btn-icon" id="gp-btn-wpm-inc" style="width:20px; height:20px; font-size:10px;">+</button>
-          <span id="gp-val-wpm" style="font-size:10px; color:#00F0FF; min-width:26px;">${currentSettings.wpm}</span>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-wpm-inc" style="width:22px; height:22px; font-size:11px;">+</button>
+          <span id="gp-val-wpm" style="font-size:11px; color:#00F0FF; min-width:28px; font-weight:700;">${currentSettings.wpm}</span>
         </div>
 
         <div class="gp-ctrl-group">
           <label>Font:</label>
-          <button class="gp-btn gp-btn-icon" id="gp-btn-font-dec" style="width:20px; height:20px; font-size:10px;">-</button>
-          <input type="range" class="gp-range" id="gp-range-font" min="14" max="44" step="2" value="${currentSettings.fontSize}">
-          <button class="gp-btn gp-btn-icon" id="gp-btn-font-inc" style="width:20px; height:20px; font-size:10px;">+</button>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-font-dec" style="width:22px; height:22px; font-size:11px;">-</button>
+          <input type="range" class="gp-range" id="gp-range-font" min="16" max="44" step="2" value="${currentSettings.fontSize}">
+          <button class="gp-btn gp-btn-icon" id="gp-btn-font-inc" style="width:22px; height:22px; font-size:11px;">+</button>
+        </div>
+
+        <div class="gp-ctrl-group">
+          <label>Color:</label>
+          <select class="gp-select" id="gp-select-color">
+            <option value="#00F0FF" selected>⚡ Neon Cyan</option>
+            <option value="#FFEA00">☀️ Bright Yellow</option>
+            <option value="#FFFFFF">⚪ Crisp White</option>
+          </select>
         </div>
 
         <div class="gp-ctrl-group">
           <label>Opacity:</label>
-          <input type="range" class="gp-range" id="gp-range-opacity" min="0" max="1" step="0.05" value="${currentSettings.opacity}">
+          <input type="range" class="gp-range" id="gp-range-opacity" min="0.2" max="1" step="0.05" value="${currentSettings.opacity}">
         </div>
 
         <div class="gp-ctrl-group">
@@ -563,12 +579,14 @@
     scriptBodyEl = shadowRoot.getElementById('gp-script-body');
     updateScriptContent();
 
+    // Now apply appearance with guaranteed elements present!
+    applyWindowAppearance();
+
     // Attach Event Listeners
     setupDragHandlers();
     setupResizeHandlers();
     setupUIControls();
     setupHotkeys();
-    resetIdleTimer();
 
     // Notify background / offscreen that prompter is active
     sendMessageToExtension({ type: 'HUD_OPENED', trackingMode: currentSettings.trackingMode });
@@ -576,12 +594,23 @@
 
   function applyWindowAppearance() {
     if (!windowEl) return;
-    const bgAlpha = isGhostMode ? Math.min(0.2, currentSettings.opacity * 0.25) : currentSettings.opacity;
-    windowEl.style.backgroundColor = `rgba(10, 12, 20, ${bgAlpha})`;
+    const bgAlpha = isGhostMode 
+      ? 0.2 
+      : isSolidMode 
+        ? Math.max(0.92, currentSettings.opacity || 0.94) 
+        : (currentSettings.opacity || 0.5);
+
+    windowEl.style.backgroundColor = `rgba(12, 16, 28, ${bgAlpha})`;
+    
+    if (viewportEl) {
+      viewportEl.style.backgroundColor = `rgba(11, 14, 24, ${bgAlpha * 0.98})`;
+    }
+
     if (scriptBodyEl) {
-      scriptBodyEl.style.fontSize = `${currentSettings.fontSize}px`;
+      scriptBodyEl.style.fontSize = `${currentSettings.fontSize || 24}px`;
       scriptBodyEl.style.color = currentSettings.textColor || '#00F0FF';
       scriptBodyEl.style.lineHeight = currentSettings.lineHeight || 1.6;
+      scriptBodyEl.style.textShadow = '0 2px 8px rgba(0, 0, 0, 0.95)';
     }
   }
 
@@ -667,14 +696,14 @@
       const dy = e.clientY - startY;
 
       if (currentDir.includes('e')) {
-        windowEl.style.width = `${Math.max(340, Math.min(window.innerWidth - startLeft, startWidth + dx))}px`;
+        windowEl.style.width = `${Math.max(360, Math.min(window.innerWidth - startLeft, startWidth + dx))}px`;
       }
       if (currentDir.includes('s')) {
-        windowEl.style.height = `${Math.max(160, Math.min(window.innerHeight - startTop, startHeight + dy))}px`;
+        windowEl.style.height = `${Math.max(180, Math.min(window.innerHeight - startTop, startHeight + dy))}px`;
       }
       if (currentDir.includes('w')) {
-        const newW = Math.max(340, startWidth - dx);
-        if (newW > 340) {
+        const newW = Math.max(360, startWidth - dx);
+        if (newW > 360) {
           windowEl.style.width = `${newW}px`;
           windowEl.style.left = `${startLeft + dx}px`;
         }
@@ -703,6 +732,7 @@
     const nudgeUpBtn = shadowRoot.getElementById('gp-btn-nudge-up');
     const nudgeDownBtn = shadowRoot.getElementById('gp-btn-nudge-down');
     const resetTopBtn = shadowRoot.getElementById('gp-btn-reset-top');
+    const solidBtn = shadowRoot.getElementById('gp-btn-solid');
     const ghostBtn = shadowRoot.getElementById('gp-btn-ghost');
     const ghostPill = shadowRoot.getElementById('gp-ghost-pill');
     const mirrorBtn = shadowRoot.getElementById('gp-btn-mirror');
@@ -715,15 +745,34 @@
     const wpmVal = shadowRoot.getElementById('gp-val-wpm');
     const modeSelect = shadowRoot.getElementById('gp-select-mode');
     const scriptSelect = shadowRoot.getElementById('gp-select-script');
+    const colorSelect = shadowRoot.getElementById('gp-select-color');
 
     // Play / Pause
     playBtn.addEventListener('click', togglePlay);
 
     // Manual nudges
-    nudgeUpBtn.addEventListener('click', () => nudgeScroll(-32));
-    nudgeDownBtn.addEventListener('click', () => nudgeScroll(32));
+    nudgeUpBtn.addEventListener('click', () => nudgeScroll(-36));
+    nudgeDownBtn.addEventListener('click', () => nudgeScroll(36));
     resetTopBtn.addEventListener('click', () => {
       if (viewportEl) viewportEl.scrollTop = 0;
+    });
+
+    // Solid vs Transparent Toggle
+    solidBtn.addEventListener('click', () => {
+      isSolidMode = !isSolidMode;
+      solidBtn.textContent = isSolidMode ? '⬛ Solid' : '🪟 Glass';
+      solidBtn.classList.toggle('active', isSolidMode);
+      currentSettings.opacity = isSolidMode ? 0.94 : 0.45;
+      opacitySlider.value = currentSettings.opacity;
+      applyWindowAppearance();
+      saveData({ settings: currentSettings });
+    });
+
+    // Color Selector
+    colorSelect.addEventListener('change', (e) => {
+      currentSettings.textColor = e.target.value;
+      applyWindowAppearance();
+      saveData({ settings: currentSettings });
     });
 
     // Quick +/- WPM buttons
@@ -736,7 +785,7 @@
     const fontDecBtn = shadowRoot.getElementById('gp-btn-font-dec');
     const fontIncBtn = shadowRoot.getElementById('gp-btn-font-inc');
     fontDecBtn.addEventListener('click', () => {
-      currentSettings.fontSize = Math.max(14, currentSettings.fontSize - 2);
+      currentSettings.fontSize = Math.max(16, currentSettings.fontSize - 2);
       fontSlider.value = currentSettings.fontSize;
       applyWindowAppearance();
       saveData({ settings: currentSettings });
@@ -776,6 +825,9 @@
     // Opacity
     opacitySlider.addEventListener('input', (e) => {
       currentSettings.opacity = parseFloat(e.target.value);
+      isSolidMode = currentSettings.opacity >= 0.85;
+      solidBtn.textContent = isSolidMode ? '⬛ Solid' : '🪟 Glass';
+      solidBtn.classList.toggle('active', isSolidMode);
       applyWindowAppearance();
       saveData({ settings: currentSettings });
     });
@@ -830,9 +882,6 @@
         });
       }
     });
-
-    windowEl.addEventListener('mousemove', resetIdleTimer);
-    windowEl.addEventListener('mouseenter', resetIdleTimer);
   }
 
   /**
@@ -862,10 +911,10 @@
           togglePlay();
         } else if (e.code === 'ArrowUp') {
           e.preventDefault();
-          nudgeScroll(-32);
+          nudgeScroll(-36);
         } else if (e.code === 'ArrowDown') {
           e.preventDefault();
-          nudgeScroll(32);
+          nudgeScroll(36);
         } else if (e.key === '[') {
           e.preventDefault();
           adjustSpeed(-10);
@@ -890,7 +939,6 @@
         playBtn.classList.add('active');
       }
       startScrollLoop();
-      resetIdleTimer();
     } else {
       if (playBtn) {
         playBtn.textContent = '▶ Play';
@@ -930,7 +978,6 @@
     if (scrollAnimFrame) cancelAnimationFrame(scrollAnimFrame);
     if (!viewportEl) return;
 
-    // Use auto scroll behavior during continuous animation to prevent smooth scroll fighting
     viewportEl.style.scrollBehavior = 'auto';
 
     let lastTime = performance.now();
@@ -941,7 +988,6 @@
       const dt = (time - lastTime) / 1000;
       lastTime = time;
 
-      // Base auto-scroll speed from WPM:
       const wps = (currentSettings.wpm || 130) / 60;
       const basePixelsPerSec = wps * 3.5;
 
@@ -962,22 +1008,6 @@
     if (scrollAnimFrame) {
       cancelAnimationFrame(scrollAnimFrame);
       scrollAnimFrame = null;
-    }
-  }
-
-  /**
-   * Auto-hide idle timer for stealth HUD
-   */
-  function resetIdleTimer() {
-    if (!windowEl) return;
-    windowEl.classList.remove('gp-idle');
-    clearTimeout(idleTimer);
-    if (isPlaying) {
-      idleTimer = setTimeout(() => {
-        if (isPlaying && windowEl) {
-          windowEl.classList.add('gp-idle');
-        }
-      }, 2500);
     }
   }
 

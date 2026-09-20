@@ -63,8 +63,8 @@ Let's keep each update to two minutes so we have ample time for open discussion.
   ];
 
   const DEFAULT_SETTINGS = {
-    opacity: 0.78,
-    fontSize: 22,
+    opacity: 0.92, // Solid high-contrast dark background by default
+    fontSize: 24,
     lineHeight: 1.6,
     textColor: '#00F0FF',
     backgroundColor: '#0A0C14',
@@ -72,16 +72,16 @@ Let's keep each update to two minutes so we have ample time for open discussion.
     ghostMode: false,
     scrollSpeed: 1.5,
     wpm: 130,
-    trackingMode: 'dual', // 'dual' | 'gaze' | 'speech' | 'auto' | 'manual'
+    trackingMode: 'manual', // Start in Manual mode immediately
     gazeSensitivity: 1.2,
     speechSyncEnabled: true,
     gazeTrackingEnabled: true,
-    autoHideControls: true,
+    autoHideControls: false, // Keep controls visible
     window: {
       x: null, // centered
       y: 24,
-      width: 620,
-      height: 250
+      width: 640,
+      height: 280
     }
   };
 
