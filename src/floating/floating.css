@@ -1,0 +1,255 @@
+:root {
+  --bg-solid: #0A0D18;
+  --bg-glass: rgba(10, 14, 24, 0.40);
+  --header-bg: rgba(16, 22, 38, 0.95);
+  --accent-cyan: #00F0FF;
+  --accent-green: #00FF88;
+  --accent-red: #FF0055;
+  --text-main: #FFFFFF;
+  --sp-font-size: 24px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text-main);
+  user-select: none;
+  background-color: var(--bg-solid);
+  transition: background-color 0.25s ease;
+}
+
+body.mode-transparent {
+  background-color: var(--bg-glass) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* Header Action Strip */
+.float-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--header-bg);
+  border-bottom: 1.5px solid rgba(0, 240, 255, 0.4);
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+body.mode-transparent .float-header {
+  background: rgba(12, 18, 34, 0.75);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+}
+
+.badge-floating {
+  background: rgba(0, 255, 136, 0.15);
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  color: var(--accent-green);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+/* Buttons */
+.btn-action {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #E2E8F0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-action:hover {
+  background: rgba(0, 240, 255, 0.18);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  transform: translateY(-1px);
+}
+
+/* 1-Click PiP Always-on-Top Button */
+.btn-pip {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 255, 136, 0.2)) !important;
+  border: 1.5px solid var(--accent-cyan) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.35);
+  font-weight: 800 !important;
+}
+
+.btn-pip:hover {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.35), rgba(0, 255, 136, 0.35)) !important;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.6);
+}
+
+/* Play/Pause Button */
+.btn-play {
+  background: var(--accent-cyan);
+  color: #080C16;
+  border-color: var(--accent-cyan);
+  font-weight: 800;
+}
+
+.btn-play:hover {
+  background: #33F5FF;
+  color: #000;
+}
+
+.btn-play.active {
+  background: var(--accent-red);
+  border-color: var(--accent-red);
+  color: #FFF;
+}
+
+/* Stepper Pills */
+.pill-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--accent-cyan);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.btn-step {
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFF;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-step:hover {
+  background: var(--accent-cyan);
+  color: #0A0D18;
+  border-color: var(--accent-cyan);
+}
+
+.select-script {
+  background: #141C30;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #FFF;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  max-width: 140px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Scrolling Viewport */
+.float-viewport {
+  height: calc(100vh - 48px);
+  position: relative;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 240, 255, 0.4) transparent;
+  padding: 20px 24px 140px 24px;
+  cursor: text;
+}
+
+.float-viewport::-webkit-scrollbar {
+  width: 6px;
+}
+
+.float-viewport::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.4);
+  border-radius: 3px;
+}
+
+/* Focus Reading Bar */
+.float-focus-bar {
+  position: sticky;
+  top: 24px;
+  height: calc(var(--sp-font-size, 24px) * 1.6);
+  border-top: 1.5px solid rgba(0, 240, 255, 0.6);
+  border-bottom: 1.5px solid rgba(0, 240, 255, 0.6);
+  background: rgba(0, 240, 255, 0.08);
+  border-radius: 6px;
+  pointer-events: none;
+  margin-bottom: calc(var(--sp-font-size, 24px) * -1.6);
+  z-index: 10;
+}
+
+/* Text */
+.float-text {
+  font-size: var(--sp-font-size, 24px);
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--accent-cyan);
+  white-space: pre-wrap;
+  word-break: break-word;
+  outline: none;
+  user-select: text;
+  text-shadow: 
+    0 0 16px rgba(0, 0, 0, 1),
+    0 2px 4px rgba(0, 0, 0, 1),
+    -1.5px -1.5px 0 #000,
+     1.5px -1.5px 0 #000,
+    -1.5px  1.5px 0 #000,
+     1.5px  1.5px 0 #000;
+}
+
+body.mode-transparent .float-text {
+  color: var(--accent-cyan) !important;
+  text-shadow: 
+    0 0 16px #000,
+    0 0 8px #000,
+    0 2px 4px #000,
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000 !important;
+}

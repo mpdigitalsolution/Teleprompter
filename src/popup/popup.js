@@ -201,7 +201,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // Float Across Tabs & Windows (PiP)
+  const pipBtn = document.getElementById('popup-btn-pip');
+  if (pipBtn) {
+    pipBtn.addEventListener('click', () => {
+      pipBtn.innerHTML = '<span>⏳</span> Floating...';
+      chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
+        setTimeout(() => {
+          notifyActiveTab({ type: 'OPEN_PIP' });
+          setTimeout(() => { window.close(); }, 300);
+        }, 150);
+      });
+    });
+  }
+
   // Links
+  const floatingLink = document.getElementById('link-floating');
+  if (floatingLink) {
+    floatingLink.addEventListener('click', () => {
+      chrome.runtime.sendMessage({ type: 'OPEN_FLOATING_PROMPTER_WINDOW' });
+      window.close();
+    });
+  }
+
+  const allTabsLink = document.getElementById('link-all-tabs');
+  if (allTabsLink) {
+    allTabsLink.addEventListener('click', () => {
+      allTabsLink.textContent = 'Launching... 🚀';
+      chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ALL_TABS' }, (res) => {
+        allTabsLink.textContent = `Launched on ${res && res.count ? res.count : 'All'} Tabs!`;
+        setTimeout(() => { window.close(); }, 700);
+      });
+    });
+  }
+
   if (studioLink) {
     studioLink.addEventListener('click', () => {
       chrome.tabs.create({ url: chrome.runtime.getURL('src/studio/studio.html') });

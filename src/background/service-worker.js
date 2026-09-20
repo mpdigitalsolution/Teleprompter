@@ -95,7 +95,7 @@ async function togglePrompterOnTab(tabId, tabUrl) {
     try {
       await chrome.scripting.executeScript({
         target: { tabId: tabId },
-        files: ['src/modules/video-recorder.js', 'src/content/content-script.js']
+        files: ['src/modules/pip-prompter.js', 'src/modules/video-recorder.js', 'src/content/content-script.js']
       });
     } catch (e) {
       // Script might already be running or tab restricted
@@ -112,7 +112,7 @@ async function togglePrompterOnTab(tabId, tabUrl) {
       try {
         await chrome.scripting.executeScript({
           target: { tabId: tabId },
-          files: ['src/modules/video-recorder.js', 'src/content/content-script.js']
+          files: ['src/modules/pip-prompter.js', 'src/modules/video-recorder.js', 'src/content/content-script.js']
         });
         await chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_PROMPTER' });
         return { status: 'toggled' };
@@ -186,6 +186,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'OPEN_RECORDING_STUDIO') {
     chrome.tabs.create({ url: chrome.runtime.getURL('src/studio/studio.html') });
     sendResponse({ status: 'opened' });
+    return true;
+  }
+
+  // Open standalone floating popup window (Multi-Tab / Multi-Screen)
+  if (message.type === 'OPEN_FLOATING_PROMPTER_WINDOW') {
+    chrome.windows.create({
+      url: chrome.runtime.getURL('src/floating/floating.html'),
+      type: 'popup',
+      width: 700,
+      height: 360,
+      focused: true
+    }, (win) => {
+      sendResponse({ status: 'opened', windowId: win ? win.id : null });
+    });
+    return true;
+  }
+
+  // Broadcast prompter launch to ALL open tabs
+  if (message.type === 'LAUNCH_PROMPTER_ON_ALL_TABS') {
+    chrome.tabs.query({}, async (tabs) => {
+      let count = 0;
+      for (const tab of tabs) {
+        if (tab.id && tab.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('edge://')) {
+          try {
+            await togglePrompterOnTab(tab.id, tab.url);
+            count++;
+          } catch (e) {}
+        }
+      }
+      sendResponse({ status: 'launched_all', count });
+    });
     return true;
   }
 

@@ -517,6 +517,10 @@
     .gp-window.gp-size-xs .gp-trans-label {
       display: none !important;
     }
+    .gp-window.gp-size-sm .gp-popout-label,
+    .gp-window.gp-size-xs .gp-popout-label {
+      display: none !important;
+    }
     .gp-window.gp-size-xs .gp-btn-nudge {
       display: none !important;
     }
@@ -525,6 +529,18 @@
     }
     .gp-window.gp-size-xs .gp-actions {
       gap: 2px !important;
+    }
+    .gp-btn-popout {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.18), rgba(0, 255, 136, 0.18)) !important;
+      border: 1px solid rgba(0, 240, 255, 0.6) !important;
+      color: #FFFFFF !important;
+      font-weight: 700 !important;
+    }
+    .gp-btn-popout:hover {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.35), rgba(0, 255, 136, 0.35)) !important;
+      border-color: #00F0FF !important;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.6) !important;
+      color: #00F0FF !important;
     }
     .gp-ghost-pill {
       position: absolute;
@@ -951,6 +967,9 @@
             <span>👻</span><span class="gp-ghost-label"> Ghost</span>
           </button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-mirror" title="Mirror text for glass prompter">🪞</button>
+          <button class="gp-btn gp-btn-popout" id="gp-btn-popout" title="Float on top of ALL tabs, PowerPoint, Zoom, and Desktop Windows (Always-On-Top PiP)">
+            <span>📌</span><span class="gp-popout-label"> Pop Out</span>
+          </button>
           <button class="gp-btn gp-btn-tools ${!isToolbarCollapsed ? 'active' : ''}" id="gp-btn-tools" title="Alt+S: Toggle Settings Toolbar">
             <span>⚙</span><span class="gp-tools-label"> Controls</span> <span class="gp-tools-arrow">${isToolbarCollapsed ? '▼' : '▲'}</span>
           </button>
@@ -1457,6 +1476,69 @@
         if (scriptBodyEl) scriptBodyEl.classList.toggle('gp-mirrored', isMirrorMode);
         currentSettings.mirrorMode = isMirrorMode;
         saveData({ settings: currentSettings });
+      });
+    }
+
+    // Always-on-Top Floating Pop-Out (Picture-in-Picture & Standalone)
+    const popoutBtn = shadowRoot.getElementById('gp-btn-popout');
+    if (popoutBtn) {
+      let pipInstance = null;
+      popoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        pauseAutoScroll();
+
+        if (typeof PiPPrompterManager !== 'undefined' && PiPPrompterManager.isSupported()) {
+          pipInstance = new PiPPrompterManager();
+
+          // Temporarily hide in-tab prompter while floating in PiP
+          windowEl.style.display = 'none';
+
+          const data = await loadData();
+          const scripts = data.scripts || [currentScript];
+
+          await pipInstance.openPiP({
+            width: windowEl.offsetWidth || 680,
+            height: windowEl.offsetHeight || 320,
+            wpm: currentSettings.wpm || 130,
+            fontSize: currentSettings.fontSize || 24,
+            isTransparent: isTransparentMode,
+            script: currentScript,
+            scripts: scripts,
+            initialScrollTop: viewportEl ? viewportEl.scrollTop : 0,
+            onClose: (res) => {
+              // Restore in-tab prompter when PiP closes
+              windowEl.style.display = 'flex';
+              if (res) {
+                if (typeof res.finalScrollTop === 'number' && viewportEl) {
+                  viewportEl.scrollTop = res.finalScrollTop;
+                }
+                if (res.wpm && res.wpm !== currentSettings.wpm) {
+                  currentSettings.wpm = res.wpm;
+                  const wpmVal = shadowRoot.getElementById('gp-val-wpm');
+                  const hdrWpmVal = shadowRoot.getElementById('gp-hdr-wpm-val');
+                  if (wpmVal) wpmVal.textContent = res.wpm;
+                  if (hdrWpmVal) hdrWpmVal.textContent = `${res.wpm} WPM`;
+                }
+                if (typeof res.isTransparent === 'boolean' && res.isTransparent !== isTransparentMode) {
+                  isTransparentMode = res.isTransparent;
+                  isSolidMode = !isTransparentMode;
+                  applyWindowAppearance();
+                }
+              }
+            }
+          });
+        } else {
+          // Open fallback standalone window via background service worker
+          if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+            chrome.runtime.sendMessage({ type: 'OPEN_FLOATING_PROMPTER_WINDOW' });
+          } else {
+            window.open(
+              'src/floating/floating.html',
+              'GhostPrompterFloating',
+              'width=700,height=360,menubar=no,toolbar=no'
+            );
+          }
+        }
       });
     }
 
@@ -2177,6 +2259,24 @@
         return true;
       }
 
+      if (message.type === 'OPEN_PIP' || message.type === 'TOGGLE_PIP') {
+        if (shadowRoot) {
+          const btn = shadowRoot.getElementById('gp-btn-popout');
+          if (btn) btn.click();
+        } else {
+          initOrToggleHUD().then(() => {
+            setTimeout(() => {
+              if (shadowRoot) {
+                const btn = shadowRoot.getElementById('gp-btn-popout');
+                if (btn) btn.click();
+              }
+            }, 100);
+          });
+        }
+        sendResponse({ status: 'ok' });
+        return true;
+      }
+
       if (message.type === 'GAZE_TRACKING_UPDATE') {
         handleGazeUpdate(message);
         return;
@@ -2185,6 +2285,45 @@
       if (message.type === 'SPEECH_SYNC_UPDATE') {
         handleSpeechUpdate(message);
         return;
+      }
+    });
+  }
+
+  // Cross-Tab Realtime Synchronization via chrome.storage.onChanged
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local') return;
+
+      if (changes.settings && changes.settings.newValue) {
+        const s = changes.settings.newValue;
+        currentSettings = { ...currentSettings, ...s };
+        if (s.wpm && shadowRoot) {
+          const wpmVal = shadowRoot.getElementById('gp-val-wpm');
+          const hdrWpmVal = shadowRoot.getElementById('gp-hdr-wpm-val');
+          if (wpmVal) wpmVal.textContent = s.wpm;
+          if (hdrWpmVal) hdrWpmVal.textContent = `${s.wpm} WPM`;
+        }
+        if (s.fontSize && scriptBodyEl) {
+          scriptBodyEl.style.fontSize = `${s.fontSize}px`;
+        }
+        if (typeof s.isTransparentMode === 'boolean' && s.isTransparentMode !== isTransparentMode) {
+          isTransparentMode = s.isTransparentMode;
+          isSolidMode = !isTransparentMode;
+          applyWindowAppearance();
+        }
+      }
+
+      if (changes.activeScriptId && changes.activeScriptId.newValue) {
+        const newId = changes.activeScriptId.newValue;
+        loadData().then(data => {
+          const scr = (data.scripts || []).find(s => s.id === newId);
+          if (scr && scriptBodyEl) {
+            currentScript = scr;
+            scriptBodyEl.innerText = scr.content || '';
+            const scriptSelect = shadowRoot ? shadowRoot.getElementById('gp-select-script') : null;
+            if (scriptSelect) scriptSelect.value = newId;
+          }
+        });
       }
     });
   }
@@ -2226,6 +2365,21 @@
   // Expose global controller
   window.GhostPrompter = {
     toggle: initOrToggleHUD,
+    openPiP: () => {
+      if (shadowRoot) {
+        const btn = shadowRoot.getElementById('gp-btn-popout');
+        if (btn) btn.click();
+      } else {
+        initOrToggleHUD().then(() => {
+          setTimeout(() => {
+            if (shadowRoot) {
+              const btn = shadowRoot.getElementById('gp-btn-popout');
+              if (btn) btn.click();
+            }
+          }, 100);
+        });
+      }
+    },
     toggleAutoScroll: toggleAutoScroll,
     startAutoScroll: startAutoScroll,
     pauseAutoScroll: pauseAutoScroll,

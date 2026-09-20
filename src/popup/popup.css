@@ -161,6 +161,30 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-pip-pop {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.22), rgba(0, 255, 136, 0.22));
+  color: #FFFFFF;
+  border: 1.5px solid #00F0FF;
+  border-radius: 8px;
+  padding: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.25);
+  transition: all 0.15s ease;
+}
+
+.btn-pip-pop:hover {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.35), rgba(0, 255, 136, 0.35));
+  box-shadow: 0 4px 20px rgba(0, 240, 255, 0.5);
+  transform: translateY(-1px);
+}
+
 /* Control Sections */
 .section {
   background: var(--card-bg);

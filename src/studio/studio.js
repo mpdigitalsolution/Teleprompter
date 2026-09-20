@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnWpmInc = document.getElementById('btn-wpm-inc');
   const labelWpm = document.getElementById('label-wpm');
   const btnPrompterReset = document.getElementById('btn-prompter-reset');
+  const btnPrompterPip = document.getElementById('btn-prompter-pip');
 
   const selectScript = document.getElementById('select-studio-script');
   const btnFontDec = document.getElementById('btn-font-dec');
@@ -315,6 +316,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     prompterViewport.scrollTop = 0;
     scrollAccumulator = 0;
   });
+
+  if (btnPrompterPip) {
+    const pipManager = new PiPPrompterManager();
+    btnPrompterPip.addEventListener('click', async () => {
+      if (isScrolling) toggleScroll();
+
+      await pipManager.openPiP({
+        width: 680,
+        height: 340,
+        wpm: currentWpm,
+        fontSize: currentFontSize,
+        isTransparent: false,
+        script: currentScript,
+        scripts: scriptsList,
+        initialScrollTop: prompterViewport.scrollTop,
+        onClose: (res) => {
+          if (res && typeof res.finalScrollTop === 'number') {
+            prompterViewport.scrollTop = res.finalScrollTop;
+          }
+          if (res && res.wpm) {
+            adjustWpm(res.wpm - currentWpm);
+          }
+        }
+      });
+    });
+  }
 
   // Font size adjustments
   btnFontDec.addEventListener('click', () => {

@@ -55,6 +55,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const testBtnPip = document.getElementById('test-btn-pip');
+  if (testBtnPip) {
+    testBtnPip.addEventListener('click', () => {
+      if (window.GhostPrompter && window.GhostPrompter.openPiP) {
+        window.GhostPrompter.openPiP();
+      } else if (typeof PiPPrompterManager !== 'undefined' && PiPPrompterManager.isSupported()) {
+        const mgr = new PiPPrompterManager();
+        mgr.openPiP();
+      } else {
+        window.open('src/floating/floating.html', 'GhostPrompterFloating', 'width=700,height=360,menubar=no,toolbar=no');
+      }
+    });
+  }
+
   if (toggleGhostBtn) {
     toggleGhostBtn.addEventListener('click', () => {
       if (window.GhostPrompter && window.GhostPrompter.toggleGhostMode) {
