@@ -123,12 +123,16 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: calc(6px * var(--gp-scale, 1)) calc(12px * var(--gp-scale, 1));
       background: #111728;
       border-bottom: 2px solid rgba(0, 240, 255, 0.35);
       cursor: grab;
-      height: 42px;
+      height: calc(42px * var(--gp-scale, 1));
+      min-height: 28px;
       transition: background 0.2s ease;
+      gap: calc(6px * var(--gp-scale, 1));
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
     .gp-header:active {
       cursor: grabbing;
@@ -136,52 +140,64 @@
     .gp-brand {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: calc(6px * var(--gp-scale, 1));
+      flex-shrink: 1;
+      min-width: 0;
     }
     .gp-logo-icon {
-      width: 20px;
-      height: 20px;
+      width: calc(20px * var(--gp-scale, 1));
+      height: calc(20px * var(--gp-scale, 1));
+      flex-shrink: 0;
       fill: #00F0FF;
       filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.7));
     }
     .gp-title {
-      font-size: 13px;
+      font-size: calc(13px * var(--gp-scale, 1));
       font-weight: 700;
       letter-spacing: 0.5px;
       color: #FFFFFF;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+      white-space: nowrap;
+      flex-shrink: 1;
     }
     .gp-status-group {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-left: 6px;
+      gap: calc(5px * var(--gp-scale, 1));
+      margin-left: calc(4px * var(--gp-scale, 1));
+      flex-shrink: 0;
     }
     .gp-badge {
-      font-size: 10px;
+      font-size: calc(10px * var(--gp-scale, 1));
       font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 5px;
+      padding: calc(2px * var(--gp-scale, 1)) calc(6px * var(--gp-scale, 1));
+      border-radius: calc(5px * var(--gp-scale, 1));
       text-transform: uppercase;
       letter-spacing: 0.5px;
       background: rgba(0, 240, 255, 0.2);
       color: #00F0FF;
       border: 1px solid rgba(0, 240, 255, 0.4);
+      white-space: nowrap;
+    }
+    .gp-badge .gp-badge-short {
+      display: none;
     }
     .gp-indicator {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: 10px;
+      gap: calc(3px * var(--gp-scale, 1));
+      font-size: calc(10px * var(--gp-scale, 1));
       color: #A0AEC0;
       font-weight: 600;
+      white-space: nowrap;
     }
     .gp-dot {
-      width: 8px;
-      height: 8px;
+      width: calc(8px * var(--gp-scale, 1));
+      height: calc(8px * var(--gp-scale, 1));
       border-radius: 50%;
       background: #4A5568;
       transition: all 0.2s ease;
+      flex-shrink: 0;
     }
     .gp-dot.active-green {
       background: #00FF88;
@@ -198,23 +214,25 @@
     .gp-actions {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: calc(4px * var(--gp-scale, 1));
+      flex-shrink: 0;
     }
     .gp-btn {
       background: #1C2438;
       border: 1px solid rgba(0, 240, 255, 0.35);
       color: #FFFFFF;
-      border-radius: 6px;
-      padding: 5px 9px;
-      font-size: 11px;
+      border-radius: calc(6px * var(--gp-scale, 1));
+      padding: calc(4px * var(--gp-scale, 1)) calc(8px * var(--gp-scale, 1));
+      font-size: calc(11px * var(--gp-scale, 1));
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: calc(3px * var(--gp-scale, 1));
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
     .gp-btn:hover {
       background: #28334E;
@@ -228,10 +246,11 @@
       border-color: #00F0FF;
     }
     .gp-btn-icon {
-      width: 28px;
-      height: 28px;
+      width: calc(28px * var(--gp-scale, 1));
+      height: calc(28px * var(--gp-scale, 1));
       padding: 0;
-      font-size: 12px;
+      font-size: calc(12px * var(--gp-scale, 1));
+      flex-shrink: 0;
     }
     .gp-btn-autoscroll {
       background: linear-gradient(135deg, #00C853, #00E676) !important;
@@ -259,25 +278,26 @@
     .gp-speed-pill {
       display: inline-flex;
       align-items: center;
-      gap: 3px;
+      gap: calc(3px * var(--gp-scale, 1));
       background: #0D1424;
       border: 1px solid rgba(0, 240, 255, 0.4);
-      border-radius: 6px;
-      padding: 2px 6px;
-      font-size: 11px;
+      border-radius: calc(6px * var(--gp-scale, 1));
+      padding: calc(2px * var(--gp-scale, 1)) calc(6px * var(--gp-scale, 1));
+      font-size: calc(11px * var(--gp-scale, 1));
       color: #00F0FF;
       font-weight: 700;
       user-select: none;
+      white-space: nowrap;
     }
     .gp-btn-tiny {
-      width: 18px;
-      height: 18px;
+      width: calc(18px * var(--gp-scale, 1));
+      height: calc(18px * var(--gp-scale, 1));
       padding: 0;
       background: rgba(0, 240, 255, 0.15);
       border: 1px solid rgba(0, 240, 255, 0.35);
-      border-radius: 4px;
+      border-radius: calc(4px * var(--gp-scale, 1));
       color: #FFFFFF;
-      font-size: 12px;
+      font-size: calc(11px * var(--gp-scale, 1));
       font-weight: 800;
       cursor: pointer;
       display: inline-flex;
@@ -291,8 +311,8 @@
       border-color: #00F0FF;
     }
     .gp-preset-btn {
-      padding: 3px 8px !important;
-      font-size: 10px !important;
+      padding: calc(3px * var(--gp-scale, 1)) calc(8px * var(--gp-scale, 1)) !important;
+      font-size: calc(10px * var(--gp-scale, 1)) !important;
     }
     .gp-preset-btn.active {
       background: #00F0FF !important;
@@ -311,15 +331,15 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 12px;
-      padding: 8px 14px;
+      gap: calc(10px * var(--gp-scale, 1));
+      padding: calc(8px * var(--gp-scale, 1)) calc(14px * var(--gp-scale, 1));
       background: #141A2C;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 11px;
+      font-size: calc(11px * var(--gp-scale, 1));
       color: #CBD5E1;
       transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
       overflow: hidden;
-      max-height: 220px;
+      max-height: 240px;
     }
     .gp-toolbar.collapsed {
       max-height: 0 !important;
@@ -331,16 +351,16 @@
       overflow: hidden !important;
     }
     .gp-btn-tools {
-      font-size: 11px !important;
+      font-size: calc(11px * var(--gp-scale, 1)) !important;
       font-weight: 700 !important;
-      padding: 4px 9px !important;
-      border-radius: 6px !important;
+      padding: calc(4px * var(--gp-scale, 1)) calc(8px * var(--gp-scale, 1)) !important;
+      border-radius: calc(6px * var(--gp-scale, 1)) !important;
       color: #CBD5E1 !important;
       border: 1px solid rgba(255, 255, 255, 0.2) !important;
       background: rgba(255, 255, 255, 0.06) !important;
       display: inline-flex !important;
       align-items: center !important;
-      gap: 4px !important;
+      gap: calc(4px * var(--gp-scale, 1)) !important;
     }
     .gp-btn-tools:hover {
       background: rgba(0, 240, 255, 0.15) !important;
@@ -358,12 +378,12 @@
       color: #00F0FF !important;
       border: 1px solid rgba(0, 240, 255, 0.5) !important;
       font-weight: 700 !important;
-      padding: 4px 10px !important;
-      font-size: 11px !important;
-      border-radius: 6px !important;
+      padding: calc(4px * var(--gp-scale, 1)) calc(10px * var(--gp-scale, 1)) !important;
+      font-size: calc(11px * var(--gp-scale, 1)) !important;
+      border-radius: calc(6px * var(--gp-scale, 1)) !important;
       display: inline-flex !important;
       align-items: center !important;
-      gap: 4px !important;
+      gap: calc(4px * var(--gp-scale, 1)) !important;
       cursor: pointer !important;
       transition: all 0.2s ease !important;
     }
@@ -377,18 +397,18 @@
     .gp-ctrl-group {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: calc(6px * var(--gp-scale, 1));
     }
     .gp-ctrl-group label {
-      font-size: 11px;
+      font-size: calc(11px * var(--gp-scale, 1));
       color: #94A3B8;
       font-weight: 600;
     }
     .gp-range {
       -webkit-appearance: none;
       appearance: none;
-      width: 70px;
-      height: 4px;
+      width: calc(70px * var(--gp-scale, 1));
+      height: calc(4px * var(--gp-scale, 1));
       border-radius: 2px;
       background: #334155;
       outline: none;
@@ -397,8 +417,8 @@
     .gp-range::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 12px;
-      height: 12px;
+      width: calc(12px * var(--gp-scale, 1));
+      height: calc(12px * var(--gp-scale, 1));
       border-radius: 50%;
       background: #00F0FF;
       box-shadow: 0 0 6px #00F0FF;
@@ -408,9 +428,9 @@
       background: #1E293B;
       border: 1px solid #334155;
       color: #E2E8F0;
-      font-size: 11px;
-      border-radius: 5px;
-      padding: 3px 6px;
+      font-size: calc(11px * var(--gp-scale, 1));
+      border-radius: calc(5px * var(--gp-scale, 1));
+      padding: calc(3px * var(--gp-scale, 1)) calc(6px * var(--gp-scale, 1));
       outline: none;
       cursor: pointer;
     }
@@ -419,13 +439,13 @@
       flex: 1;
       overflow-y: scroll;
       overflow-x: hidden;
-      padding: 24px 28px 80px 28px;
+      padding: calc(20px * var(--gp-scale, 1)) calc(24px * var(--gp-scale, 1)) calc(80px * var(--gp-scale, 1)) calc(24px * var(--gp-scale, 1));
       cursor: text;
       user-select: text;
       background-color: rgba(11, 14, 24, 0.94);
     }
     .gp-viewport::-webkit-scrollbar {
-      width: 6px;
+      width: calc(6px * var(--gp-scale, 1));
     }
     .gp-viewport::-webkit-scrollbar-thumb {
       background: rgba(0, 240, 255, 0.35);
@@ -435,7 +455,7 @@
       background: rgba(0, 240, 255, 0.7);
     }
     .gp-script-body {
-      font-size: 24px;
+      font-size: calc(var(--gp-base-font-size, 24px) * var(--gp-font-scale, 1));
       font-weight: 600;
       color: #00F0FF;
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
@@ -454,13 +474,52 @@
       top: 35%;
       left: 0;
       width: 100%;
-      height: 48px;
+      height: calc(48px * var(--gp-font-scale, 1));
       pointer-events: none;
       background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.12) 15%, rgba(0, 240, 255, 0.12) 85%, transparent);
       border-top: 1px dashed rgba(0, 240, 255, 0.4);
       border-bottom: 1px dashed rgba(0, 240, 255, 0.4);
       transform: translateY(-50%);
       z-index: 10;
+    }
+
+    /* Responsive Adaptation Classes */
+    .gp-window.gp-size-sm .gp-title,
+    .gp-window.gp-size-xs .gp-title {
+      display: none !important;
+    }
+    .gp-window.gp-size-sm .gp-indicator-text,
+    .gp-window.gp-size-xs .gp-indicator-text {
+      display: none !important;
+    }
+    .gp-window.gp-size-sm .gp-badge .gp-badge-long,
+    .gp-window.gp-size-xs .gp-badge .gp-badge-long {
+      display: none !important;
+    }
+    .gp-window.gp-size-sm .gp-badge .gp-badge-short,
+    .gp-window.gp-size-xs .gp-badge .gp-badge-short {
+      display: inline !important;
+    }
+    .gp-window.gp-size-sm .gp-tools-label,
+    .gp-window.gp-size-xs .gp-tools-label {
+      display: none !important;
+    }
+    .gp-window.gp-size-sm .gp-ghost-label,
+    .gp-window.gp-size-xs .gp-ghost-label {
+      display: none !important;
+    }
+    .gp-window.gp-size-sm .gp-trans-label,
+    .gp-window.gp-size-xs .gp-trans-label {
+      display: none !important;
+    }
+    .gp-window.gp-size-xs .gp-btn-nudge {
+      display: none !important;
+    }
+    .gp-window.gp-size-xs .gp-btn-label {
+      display: none !important;
+    }
+    .gp-window.gp-size-xs .gp-actions {
+      gap: 2px !important;
     }
     .gp-ghost-pill {
       position: absolute;
@@ -651,30 +710,38 @@
           </svg>
           <span class="gp-title">GhostPrompter</span>
           <div class="gp-status-group">
-            <span class="gp-badge" id="gp-mode-badge">${(currentSettings.trackingMode || 'AUTO').toUpperCase()}</span>
+            <span class="gp-badge" id="gp-mode-badge"><span class="gp-badge-long">${(currentSettings.trackingMode || 'AUTO').toUpperCase()}</span><span class="gp-badge-short">${(currentSettings.trackingMode || 'AUTO').substring(0, 4).toUpperCase()}</span></span>
             <div class="gp-indicator" title="Gaze Tracking Status">
-              <span class="gp-dot" id="gp-gaze-dot"></span> Gaze
+              <span class="gp-dot" id="gp-gaze-dot"></span><span class="gp-indicator-text"> Gaze</span>
             </div>
             <div class="gp-indicator" title="Speech Sync Status">
-              <span class="gp-dot" id="gp-speech-dot"></span> Speech
+              <span class="gp-dot" id="gp-speech-dot"></span><span class="gp-indicator-text"> Speech</span>
             </div>
           </div>
         </div>
 
         <div class="gp-actions">
-          <button class="gp-btn gp-btn-autoscroll" id="gp-btn-play" title="Spacebar: Play / Pause Auto-Scroll">▶ Play</button>
+          <button class="gp-btn gp-btn-autoscroll" id="gp-btn-play" title="Spacebar: Play / Pause Auto-Scroll">
+            <span class="gp-btn-icon-symbol">▶</span><span class="gp-btn-label"> Play</span>
+          </button>
           <div class="gp-speed-pill" title="Live Auto-Scroll Speed (WPM)">
             <button class="gp-btn-tiny" id="gp-btn-hdr-wpm-dec" title="Slower (-10 WPM)">-</button>
             <span id="gp-hdr-wpm-val">${currentSettings.wpm} WPM</span>
             <button class="gp-btn-tiny" id="gp-btn-hdr-wpm-inc" title="Faster (+10 WPM)">+</button>
           </div>
-          <button class="gp-btn ${isTransparentMode ? 'active' : ''}" id="gp-btn-transparency" title="Alt+T: Toggle Transparent Glass / Solid mode">${isTransparentMode ? '⬛ Solid' : '🪟 Transparent'}</button>
-          <button class="gp-btn gp-btn-icon" id="gp-btn-nudge-up" title="Nudge Up (Up Arrow)">▲</button>
-          <button class="gp-btn gp-btn-icon" id="gp-btn-nudge-down" title="Nudge Down (Down Arrow)">▼</button>
-          <button class="gp-btn gp-btn-icon" id="gp-btn-reset-top" title="Reset to Top">⏮</button>
-          <button class="gp-btn" id="gp-btn-ghost" title="Alt+C: Ghost Click-Through Mode">👻 Ghost</button>
+          <button class="gp-btn ${isTransparentMode ? 'active' : ''}" id="gp-btn-transparency" title="Alt+T: Toggle Transparent Glass / Solid mode">
+            <span class="gp-trans-icon">${isTransparentMode ? '⬛' : '🪟'}</span><span class="gp-trans-label"> ${isTransparentMode ? 'Solid' : 'Transparent'}</span>
+          </button>
+          <button class="gp-btn gp-btn-icon gp-btn-nudge" id="gp-btn-nudge-up" title="Nudge Up (Up Arrow)">▲</button>
+          <button class="gp-btn gp-btn-icon gp-btn-nudge" id="gp-btn-nudge-down" title="Nudge Down (Down Arrow)">▼</button>
+          <button class="gp-btn gp-btn-icon gp-btn-nudge" id="gp-btn-reset-top" title="Reset to Top">⏮</button>
+          <button class="gp-btn" id="gp-btn-ghost" title="Alt+C: Ghost Click-Through Mode">
+            <span>👻</span><span class="gp-ghost-label"> Ghost</span>
+          </button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-mirror" title="Mirror text for glass prompter">🪞</button>
-          <button class="gp-btn gp-btn-tools ${!isToolbarCollapsed ? 'active' : ''}" id="gp-btn-tools" title="Alt+S: Toggle Settings Toolbar">${isToolbarCollapsed ? '⚙ Controls ▼' : '⚙ Controls ▲'}</button>
+          <button class="gp-btn gp-btn-tools ${!isToolbarCollapsed ? 'active' : ''}" id="gp-btn-tools" title="Alt+S: Toggle Settings Toolbar">
+            <span>⚙</span><span class="gp-tools-label"> Controls</span> <span class="gp-tools-arrow">${isToolbarCollapsed ? '▼' : '▲'}</span>
+          </button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-close" title="Close HUD (Alt+P)">✕</button>
         </div>
       </div>
@@ -768,6 +835,7 @@
     setupResizeHandlers();
     setupUIControls();
     setupHotkeys();
+    updateWindowScale();
 
     // Notify background / offscreen that prompter is active
     sendMessageToExtension({ type: 'HUD_OPENED', trackingMode: currentSettings.trackingMode });
@@ -804,7 +872,8 @@
     }
 
     if (scriptBodyEl) {
-      scriptBodyEl.style.fontSize = `${currentSettings.fontSize || 24}px`;
+      scriptBodyEl.style.setProperty('--gp-base-font-size', `${currentSettings.fontSize || 24}px`);
+      scriptBodyEl.style.fontSize = `calc(var(--gp-base-font-size, 24px) * var(--gp-font-scale, 1))`;
       scriptBodyEl.style.color = currentSettings.textColor || '#00F0FF';
       scriptBodyEl.style.lineHeight = currentSettings.lineHeight || 1.6;
       if (isTransparentMode) {
@@ -832,10 +901,11 @@
 
       const transBtn = shadowRoot.getElementById('gp-btn-transparency');
       if (transBtn) {
-        transBtn.textContent = isTransparentMode ? '⬛ Solid' : '🪟 Transparent';
+        transBtn.innerHTML = `<span class="gp-trans-icon">${isTransparentMode ? '⬛' : '🪟'}</span><span class="gp-trans-label"> ${isTransparentMode ? 'Solid' : 'Transparent'}</span>`;
         transBtn.classList.toggle('active', isTransparentMode);
       }
     }
+    updateWindowScale();
   }
 
   function updateScriptContent() {
@@ -889,6 +959,37 @@
   }
 
   /**
+   * Elastic UI Scaler
+   * Dynamically adapts fonts, padding, buttons, and badges based on HUD window size.
+   */
+  function updateWindowScale() {
+    if (!windowEl) return;
+    const width = windowEl.offsetWidth;
+    const height = windowEl.offsetHeight;
+    if (!width || !height) return;
+
+    // Dampened elastic scale factor: reference width 680px
+    // Range: ~0.72 (at 300px) to ~1.32 (at 1200px+)
+    const ratio = width / 680;
+    const scale = Math.max(0.72, Math.min(1.32, Math.pow(ratio, 0.65)));
+
+    // Font scale factor for script text: range ~0.80 to ~1.25
+    const fontScale = Math.max(0.80, Math.min(1.25, Math.pow(ratio, 0.5)));
+
+    windowEl.style.setProperty('--gp-scale', scale.toFixed(3));
+    windowEl.style.setProperty('--gp-font-scale', fontScale.toFixed(3));
+    windowEl.style.setProperty('--gp-width', `${width}px`);
+    windowEl.style.setProperty('--gp-height', `${height}px`);
+
+    // Responsive sizing classes
+    windowEl.classList.toggle('gp-size-xs', width < 480);
+    windowEl.classList.toggle('gp-size-sm', width >= 480 && width < 620);
+    windowEl.classList.toggle('gp-size-md', width >= 620 && width < 820);
+    windowEl.classList.toggle('gp-size-lg', width >= 820 && width < 1050);
+    windowEl.classList.toggle('gp-size-xl', width >= 1050);
+  }
+
+  /**
    * Resize Handling
    */
   function setupResizeHandlers() {
@@ -920,18 +1021,19 @@
       const dy = e.clientY - startY;
 
       if (currentDir.includes('e')) {
-        windowEl.style.width = `${Math.max(360, Math.min(window.innerWidth - startLeft, startWidth + dx))}px`;
+        windowEl.style.width = `${Math.max(300, Math.min(window.innerWidth - startLeft, startWidth + dx))}px`;
       }
       if (currentDir.includes('s')) {
-        windowEl.style.height = `${Math.max(180, Math.min(window.innerHeight - startTop, startHeight + dy))}px`;
+        windowEl.style.height = `${Math.max(150, Math.min(window.innerHeight - startTop, startHeight + dy))}px`;
       }
       if (currentDir.includes('w')) {
-        const newW = Math.max(360, startWidth - dx);
-        if (newW > 360) {
+        const newW = Math.max(300, startWidth - dx);
+        if (newW >= 300) {
           windowEl.style.width = `${newW}px`;
           windowEl.style.left = `${startLeft + dx}px`;
         }
       }
+      updateWindowScale();
     });
 
     window.addEventListener('mouseup', () => {
@@ -944,7 +1046,19 @@
           height: windowEl.offsetHeight
         };
         saveData({ settings: currentSettings });
+        updateWindowScale();
       }
+    });
+
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => {
+        updateWindowScale();
+      });
+      ro.observe(windowEl);
+    }
+
+    window.addEventListener('resize', () => {
+      updateWindowScale();
     });
   }
 
@@ -1222,7 +1336,7 @@
     toolbar.classList.toggle('collapsed', shouldCollapse);
     if (toolsBtn) {
       toolsBtn.classList.toggle('active', !shouldCollapse);
-      toolsBtn.innerHTML = shouldCollapse ? '⚙ Controls ▼' : '⚙ Controls ▲';
+      toolsBtn.innerHTML = `<span>⚙</span><span class="gp-tools-label"> Controls</span> <span class="gp-tools-arrow">${shouldCollapse ? '▼' : '▲'}</span>`;
       toolsBtn.title = shouldCollapse ? 'Show Controls Toolbar (Alt+S)' : 'Hide Controls Toolbar (Alt+S)';
     }
     currentSettings.isToolbarCollapsed = shouldCollapse;
@@ -1349,12 +1463,12 @@
 
     if (playBtn) {
       if (isPlaying) {
-        playBtn.innerHTML = '<span>⏸</span> Pause';
+        playBtn.innerHTML = '<span class="gp-btn-icon-symbol">⏸</span><span class="gp-btn-label"> Pause</span>';
         playBtn.classList.add('gp-scrolling');
         playBtn.classList.add('active');
         playBtn.title = 'Spacebar: Pause Auto-Scroll';
       } else {
-        playBtn.innerHTML = '<span>▶</span> Play';
+        playBtn.innerHTML = '<span class="gp-btn-icon-symbol">▶</span><span class="gp-btn-label"> Play</span>';
         playBtn.classList.remove('gp-scrolling');
         playBtn.classList.remove('active');
         playBtn.title = 'Spacebar: Start Auto-Scroll';
@@ -1363,10 +1477,11 @@
 
     if (modeBadge) {
       if (isPlaying) {
-        modeBadge.textContent = `● SCROLLING (${currentSettings.wpm || 130} WPM)`;
+        modeBadge.innerHTML = `<span class="gp-badge-long">● SCROLLING (${currentSettings.wpm || 130} WPM)</span><span class="gp-badge-short">● ${currentSettings.wpm || 130} WPM</span>`;
         modeBadge.className = 'gp-badge gp-badge-scrolling';
       } else {
-        modeBadge.textContent = (currentSettings.trackingMode || 'AUTO').toUpperCase();
+        const modeStr = (currentSettings.trackingMode || 'AUTO').toUpperCase();
+        modeBadge.innerHTML = `<span class="gp-badge-long">${modeStr}</span><span class="gp-badge-short">${modeStr.substring(0, 4)}</span>`;
         modeBadge.className = 'gp-badge';
       }
     }
