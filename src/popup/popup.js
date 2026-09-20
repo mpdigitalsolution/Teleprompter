@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Listeners
     scriptSelect.addEventListener('change', async (e) => {
       await Storage.setActiveScript(e.target.value);
-      sendToActiveTab({ type: 'SCRIPT_CHANGED', scriptId: e.target.value });
+      notifyActiveTab({ type: 'SCRIPT_CHANGED', scriptId: e.target.value });
     });
 
     modeSelect.addEventListener('change', async (e) => {
@@ -55,10 +55,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Toggle HUD button
-  toggleBtn.addEventListener('click', async () => {
-    sendToActiveTab({ type: 'TOGGLE_PROMPTER' });
-    window.close();
+  // Toggle HUD button: robust launcher with feedback
+  toggleBtn.addEventListener('click', () => {
+    toggleBtn.disabled = true;
+    toggleBtn.innerHTML = '<span>⏳</span> Launching...';
+
+    chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, (res) => {
+      if (res && res.status === 'opened_test_page') {
+        toggleBtn.innerHTML = '<span>🧪</span> Opened in Test Tab!';
+      } else {
+        toggleBtn.innerHTML = '<span>✓</span> Prompter Launched!';
+      }
+      setTimeout(() => {
+        window.close();
+      }, 450);
+    });
   });
 
   // Links
@@ -85,11 +96,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (e) {}
 });
 
-function sendToActiveTab(msg) {
+function notifyActiveTab(msg) {
   if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0] && tabs[0].id) {
-        chrome.tabs.sendMessage(tabs[0].id, msg);
+      if (tabs && tabs[0] && tabs[0].id) {
+        chrome.tabs.sendMessage(tabs[0].id, msg).catch(() => {});
       }
     });
   }

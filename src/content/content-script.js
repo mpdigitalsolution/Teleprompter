@@ -1,11 +1,16 @@
 /**
  * GhostPrompter Content Script
  * Injects and manages the stealth Heads-Up Display (HUD) inside an isolated Shadow DOM.
+ * Works seamlessly in both Manual and Auto/Dual tracking modes.
  */
 
 (function () {
   // Prevent duplicate injection
   if (window.__GHOST_PROMPTER_INITIALIZED__) {
+    // If already initialized, trigger toggle on re-execution
+    if (window.GhostPrompter && window.GhostPrompter.toggle) {
+      window.GhostPrompter.toggle();
+    }
     return;
   }
   window.__GHOST_PROMPTER_INITIALIZED__ = true;
@@ -34,6 +39,334 @@
     trackingMode: 'dual',
     window: { x: null, y: 30, width: 620, height: 260 }
   };
+
+  /**
+   * Complete embedded stylesheet (guarantees 100% styled rendering even on strict CSP sites)
+   */
+  const EMBEDDED_STYLES = `
+    :host {
+      all: initial;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2147483647;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      box-sizing: border-box;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    .gp-window {
+      position: fixed;
+      display: flex;
+      flex-direction: column;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(0, 240, 255, 0.3);
+      transition: box-shadow 0.25s ease, opacity 0.2s ease;
+      pointer-events: auto;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background: rgba(10, 12, 20, 0.85);
+    }
+    .gp-window.gp-ghost-mode {
+      pointer-events: none !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 240, 255, 0.15) !important;
+    }
+    .gp-window.gp-ghost-mode .gp-ghost-pill {
+      pointer-events: auto !important;
+    }
+    .gp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px;
+      background: rgba(10, 14, 26, 0.92);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: grab;
+      height: 38px;
+      transition: background 0.2s ease, opacity 0.3s ease;
+    }
+    .gp-header:active {
+      cursor: grabbing;
+    }
+    .gp-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .gp-logo-icon {
+      width: 18px;
+      height: 18px;
+      fill: #00F0FF;
+      filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.6));
+    }
+    .gp-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: #FFFFFF;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    }
+    .gp-status-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 6px;
+    }
+    .gp-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(0, 240, 255, 0.15);
+      color: #00F0FF;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+    }
+    .gp-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      color: #8E9BAE;
+    }
+    .gp-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4A5568;
+      transition: all 0.2s ease;
+    }
+    .gp-dot.active-green {
+      background: #00FF88;
+      box-shadow: 0 0 8px #00FF88;
+    }
+    .gp-dot.active-cyan {
+      background: #00F0FF;
+      box-shadow: 0 0 8px #00F0FF;
+    }
+    .gp-dot.active-amber {
+      background: #FFB703;
+      box-shadow: 0 0 8px #FFB703;
+    }
+    .gp-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .gp-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #E2E8F0;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .gp-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      border-color: rgba(0, 240, 255, 0.4);
+    }
+    .gp-btn.active {
+      background: rgba(0, 240, 255, 0.25);
+      color: #00F0FF;
+      border-color: #00F0FF;
+    }
+    .gp-btn-icon {
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      font-size: 12px;
+    }
+    .gp-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      background: rgba(14, 18, 32, 0.96);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      color: #A0AEC0;
+      transition: max-height 0.25s ease, opacity 0.25s ease, padding 0.25s ease;
+      overflow: hidden;
+      max-height: 90px;
+    }
+    .gp-toolbar.collapsed {
+      max-height: 0;
+      opacity: 0;
+      padding: 0 12px;
+      pointer-events: none;
+      border-bottom: none;
+    }
+    .gp-ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .gp-ctrl-group label {
+      font-size: 11px;
+      color: #94A3B8;
+      font-weight: 600;
+    }
+    .gp-range {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 65px;
+      height: 4px;
+      border-radius: 2px;
+      background: #334155;
+      outline: none;
+      cursor: pointer;
+    }
+    .gp-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #00F0FF;
+      box-shadow: 0 0 6px #00F0FF;
+      cursor: pointer;
+    }
+    .gp-select {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #E2E8F0;
+      font-size: 11px;
+      border-radius: 5px;
+      padding: 2px 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    .gp-viewport {
+      position: relative;
+      flex: 1;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      padding: 20px 24px 70px 24px;
+      cursor: text;
+      user-select: text;
+    }
+    .gp-viewport::-webkit-scrollbar {
+      width: 5px;
+    }
+    .gp-viewport::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 3px;
+    }
+    .gp-viewport::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 240, 255, 0.6);
+    }
+    .gp-script-body {
+      font-weight: 500;
+      color: #00F0FF;
+      white-space: pre-wrap;
+      word-break: break-word;
+      transition: transform 0.2s ease;
+      line-height: 1.6;
+      outline: none;
+    }
+    .gp-script-body.gp-mirrored {
+      transform: scaleX(-1);
+    }
+    .gp-focus-line {
+      position: absolute;
+      top: 35%;
+      left: 0;
+      width: 100%;
+      height: 44px;
+      pointer-events: none;
+      background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.08) 15%, rgba(0, 240, 255, 0.08) 85%, transparent);
+      border-top: 1px dashed rgba(0, 240, 255, 0.35);
+      border-bottom: 1px dashed rgba(0, 240, 255, 0.35);
+      transform: translateY(-50%);
+      z-index: 10;
+    }
+    .gp-ghost-pill {
+      position: absolute;
+      top: 6px;
+      right: 12px;
+      display: none;
+      background: rgba(10, 14, 26, 0.92);
+      border: 1px solid #00F0FF;
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #00F0FF;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+      z-index: 999;
+    }
+    .gp-window.gp-ghost-mode .gp-ghost-pill {
+      display: block;
+    }
+    .gp-resize-handle {
+      position: absolute;
+      pointer-events: auto;
+      z-index: 50;
+    }
+    .gp-resize-se {
+      right: 0;
+      bottom: 0;
+      width: 16px;
+      height: 16px;
+      cursor: se-resize;
+      background: linear-gradient(135deg, transparent 50%, rgba(0, 240, 255, 0.6) 50%);
+      border-bottom-right-radius: 12px;
+    }
+    .gp-resize-sw {
+      left: 0;
+      bottom: 0;
+      width: 16px;
+      height: 16px;
+      cursor: sw-resize;
+      border-bottom-left-radius: 12px;
+    }
+    .gp-resize-s {
+      left: 16px;
+      right: 16px;
+      bottom: 0;
+      height: 6px;
+      cursor: s-resize;
+    }
+    .gp-resize-e {
+      top: 38px;
+      bottom: 16px;
+      right: 0;
+      width: 6px;
+      cursor: e-resize;
+    }
+    .gp-resize-w {
+      top: 38px;
+      bottom: 16px;
+      left: 0;
+      width: 6px;
+      cursor: w-resize;
+    }
+    .gp-window.gp-idle .gp-header, .gp-window.gp-idle .gp-toolbar {
+      opacity: 0.15;
+    }
+    .gp-window.gp-idle:hover .gp-header, .gp-window.gp-idle:hover .gp-toolbar {
+      opacity: 1;
+    }
+  `;
 
   /**
    * Helper to load settings and scripts using chrome.storage or localStorage
@@ -111,19 +444,9 @@
 
     shadowRoot = hostEl.attachShadow({ mode: 'open' });
 
-    // Inject CSS
+    // Inject embedded styles directly
     const styleEl = document.createElement('style');
-    fetch(typeof chrome !== 'undefined' && chrome.runtime ? chrome.runtime.getURL('src/content/overlay.css') : 'src/content/overlay.css')
-      .then(res => res.text())
-      .then(css => { styleEl.textContent = css; })
-      .catch(() => {
-        // Embedded minimal CSS fallback if fetch fails
-        styleEl.textContent = `
-          .gp-window { position: fixed; border-radius: 12px; backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0,0,0,0.7); overflow: hidden; pointer-events: auto; }
-          .gp-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; background: rgba(10,14,24,0.9); cursor: grab; color: #fff; font-family: sans-serif; font-size: 12px; }
-          .gp-viewport { padding: 20px; overflow-y: scroll; height: 180px; font-family: sans-serif; }
-        `;
-      });
+    styleEl.textContent = EMBEDDED_STYLES;
     shadowRoot.appendChild(styleEl);
 
     // Initial position & dimensions
@@ -142,7 +465,7 @@
     windowEl.style.left = `${initialLeft}px`;
     applyWindowAppearance();
 
-    // Markup
+    // Markup with full manual controls
     windowEl.innerHTML = `
       <!-- Click-through Ghost Mode exit badge -->
       <button class="gp-ghost-pill" id="gp-ghost-pill">👻 Ghost Mode Active (Click to Exit)</button>
@@ -155,7 +478,7 @@
           </svg>
           <span class="gp-title">GhostPrompter</span>
           <div class="gp-status-group">
-            <span class="gp-badge" id="gp-mode-badge">${(currentSettings.trackingMode || 'DUAL').toUpperCase()}</span>
+            <span class="gp-badge" id="gp-mode-badge">${(currentSettings.trackingMode || 'MANUAL').toUpperCase()}</span>
             <div class="gp-indicator" title="Gaze Tracking Status">
               <span class="gp-dot" id="gp-gaze-dot"></span> Gaze
             </div>
@@ -167,9 +490,12 @@
 
         <div class="gp-actions">
           <button class="gp-btn" id="gp-btn-play" title="Spacebar: Play/Pause">▶ Play</button>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-nudge-up" title="Nudge Up (Up Arrow)">▲</button>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-nudge-down" title="Nudge Down (Down Arrow)">▼</button>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-reset-top" title="Reset to Top">⏮</button>
           <button class="gp-btn" id="gp-btn-ghost" title="Alt+C: Ghost Click-Through Mode">👻 Ghost</button>
-          <button class="gp-btn" id="gp-btn-mirror" title="Mirror text for glass prompter">🪞 Mirror</button>
-          <button class="gp-btn" id="gp-btn-tools" title="Toggle control sliders">⚙</button>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-mirror" title="Mirror text for glass prompter">🪞</button>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-tools" title="Toggle control sliders">⚙</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-close" title="Close HUD (Alt+P)">✕</button>
         </div>
       </div>
@@ -184,29 +510,33 @@
         </div>
 
         <div class="gp-ctrl-group">
+          <label>Speed:</label>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-wpm-dec" style="width:20px; height:20px; font-size:10px;">-</button>
+          <input type="range" class="gp-range" id="gp-range-wpm" min="50" max="260" step="10" value="${currentSettings.wpm}">
+          <button class="gp-btn gp-btn-icon" id="gp-btn-wpm-inc" style="width:20px; height:20px; font-size:10px;">+</button>
+          <span id="gp-val-wpm" style="font-size:10px; color:#00F0FF; min-width:26px;">${currentSettings.wpm}</span>
+        </div>
+
+        <div class="gp-ctrl-group">
+          <label>Font:</label>
+          <button class="gp-btn gp-btn-icon" id="gp-btn-font-dec" style="width:20px; height:20px; font-size:10px;">-</button>
+          <input type="range" class="gp-range" id="gp-range-font" min="14" max="44" step="2" value="${currentSettings.fontSize}">
+          <button class="gp-btn gp-btn-icon" id="gp-btn-font-inc" style="width:20px; height:20px; font-size:10px;">+</button>
+        </div>
+
+        <div class="gp-ctrl-group">
           <label>Opacity:</label>
           <input type="range" class="gp-range" id="gp-range-opacity" min="0" max="1" step="0.05" value="${currentSettings.opacity}">
         </div>
 
         <div class="gp-ctrl-group">
-          <label>Font:</label>
-          <input type="range" class="gp-range" id="gp-range-font" min="14" max="44" step="2" value="${currentSettings.fontSize}">
-        </div>
-
-        <div class="gp-ctrl-group">
-          <label>Speed (WPM):</label>
-          <input type="range" class="gp-range" id="gp-range-wpm" min="60" max="260" step="10" value="${currentSettings.wpm}">
-          <span id="gp-val-wpm" style="font-size:10px; color:#00F0FF;">${currentSettings.wpm}</span>
-        </div>
-
-        <div class="gp-ctrl-group">
           <label>Mode:</label>
           <select class="gp-select" id="gp-select-mode">
+            <option value="manual" ${currentSettings.trackingMode === 'manual' ? 'selected' : ''}>Manual (Keys/Buttons)</option>
+            <option value="auto" ${currentSettings.trackingMode === 'auto' ? 'selected' : ''}>Auto-Scroll (WPM)</option>
             <option value="dual" ${currentSettings.trackingMode === 'dual' ? 'selected' : ''}>Dual (Gaze + Speech)</option>
             <option value="gaze" ${currentSettings.trackingMode === 'gaze' ? 'selected' : ''}>Gaze Only</option>
             <option value="speech" ${currentSettings.trackingMode === 'speech' ? 'selected' : ''}>Speech Sync</option>
-            <option value="auto" ${currentSettings.trackingMode === 'auto' ? 'selected' : ''}>Auto-Scroll</option>
-            <option value="manual" ${currentSettings.trackingMode === 'manual' ? 'selected' : ''}>Manual Only</option>
           </select>
         </div>
       </div>
@@ -257,7 +587,6 @@
 
   function updateScriptContent() {
     if (!scriptBodyEl || !currentScript) return;
-    // Format text into wrapped spans or paragraphs for speech sync
     scriptBodyEl.textContent = currentScript.content || '';
   }
 
@@ -371,6 +700,9 @@
    */
   function setupUIControls() {
     const playBtn = shadowRoot.getElementById('gp-btn-play');
+    const nudgeUpBtn = shadowRoot.getElementById('gp-btn-nudge-up');
+    const nudgeDownBtn = shadowRoot.getElementById('gp-btn-nudge-down');
+    const resetTopBtn = shadowRoot.getElementById('gp-btn-reset-top');
     const ghostBtn = shadowRoot.getElementById('gp-btn-ghost');
     const ghostPill = shadowRoot.getElementById('gp-ghost-pill');
     const mirrorBtn = shadowRoot.getElementById('gp-btn-mirror');
@@ -386,6 +718,35 @@
 
     // Play / Pause
     playBtn.addEventListener('click', togglePlay);
+
+    // Manual nudges
+    nudgeUpBtn.addEventListener('click', () => nudgeScroll(-32));
+    nudgeDownBtn.addEventListener('click', () => nudgeScroll(32));
+    resetTopBtn.addEventListener('click', () => {
+      if (viewportEl) viewportEl.scrollTop = 0;
+    });
+
+    // Quick +/- WPM buttons
+    const wpmDecBtn = shadowRoot.getElementById('gp-btn-wpm-dec');
+    const wpmIncBtn = shadowRoot.getElementById('gp-btn-wpm-inc');
+    wpmDecBtn.addEventListener('click', () => adjustSpeed(-10));
+    wpmIncBtn.addEventListener('click', () => adjustSpeed(10));
+
+    // Quick +/- Font buttons
+    const fontDecBtn = shadowRoot.getElementById('gp-btn-font-dec');
+    const fontIncBtn = shadowRoot.getElementById('gp-btn-font-inc');
+    fontDecBtn.addEventListener('click', () => {
+      currentSettings.fontSize = Math.max(14, currentSettings.fontSize - 2);
+      fontSlider.value = currentSettings.fontSize;
+      applyWindowAppearance();
+      saveData({ settings: currentSettings });
+    });
+    fontIncBtn.addEventListener('click', () => {
+      currentSettings.fontSize = Math.min(48, currentSettings.fontSize + 2);
+      fontSlider.value = currentSettings.fontSize;
+      applyWindowAppearance();
+      saveData({ settings: currentSettings });
+    });
 
     // Ghost Mode
     ghostBtn.addEventListener('click', toggleGhostMode);
@@ -461,7 +822,6 @@
         currentScript.content = scriptBodyEl.innerText;
         currentScript.updatedAt = Date.now();
         saveData({ activeScriptId: currentScript.id });
-        // Save back into scripts array
         loadData().then(data => {
           const scripts = data.scripts || [];
           const idx = scripts.findIndex(s => s.id === currentScript.id);
@@ -471,7 +831,6 @@
       }
     });
 
-    // Mouse activity resets stealth idle timer
     windowEl.addEventListener('mousemove', resetIdleTimer);
     windowEl.addEventListener('mouseenter', resetIdleTimer);
   }
@@ -481,7 +840,6 @@
    */
   function setupHotkeys() {
     window.addEventListener('keydown', (e) => {
-      // Don't intercept if user is typing inside the script body or another form input
       const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
       const isEditingScript = shadowRoot && shadowRoot.activeElement === scriptBodyEl;
       
@@ -525,7 +883,7 @@
 
   function togglePlay() {
     isPlaying = !isPlaying;
-    const playBtn = shadowRoot.getElementById('gp-btn-play');
+    const playBtn = shadowRoot ? shadowRoot.getElementById('gp-btn-play') : null;
     if (isPlaying) {
       if (playBtn) {
         playBtn.textContent = '⏸ Pause';
@@ -545,30 +903,35 @@
   function toggleGhostMode() {
     isGhostMode = !isGhostMode;
     windowEl.classList.toggle('gp-ghost-mode', isGhostMode);
-    const ghostBtn = shadowRoot.getElementById('gp-btn-ghost');
+    const ghostBtn = shadowRoot ? shadowRoot.getElementById('gp-btn-ghost') : null;
     if (ghostBtn) ghostBtn.classList.toggle('active', isGhostMode);
     applyWindowAppearance();
   }
 
   function nudgeScroll(pixels) {
     if (!viewportEl) return;
+    viewportEl.style.scrollBehavior = 'smooth';
     viewportEl.scrollTop += pixels;
   }
 
   function adjustSpeed(deltaWpm) {
     currentSettings.wpm = Math.max(50, Math.min(300, (currentSettings.wpm || 130) + deltaWpm));
-    const slider = shadowRoot.getElementById('gp-range-wpm');
-    const val = shadowRoot.getElementById('gp-val-wpm');
+    const slider = shadowRoot ? shadowRoot.getElementById('gp-range-wpm') : null;
+    const val = shadowRoot ? shadowRoot.getElementById('gp-val-wpm') : null;
     if (slider) slider.value = currentSettings.wpm;
     if (val) val.textContent = currentSettings.wpm;
     saveData({ settings: currentSettings });
   }
 
   /**
-   * Scroll Loop Animation
+   * Continuous Scroll Animation Loop
    */
   function startScrollLoop() {
     if (scrollAnimFrame) cancelAnimationFrame(scrollAnimFrame);
+    if (!viewportEl) return;
+
+    // Use auto scroll behavior during continuous animation to prevent smooth scroll fighting
+    viewportEl.style.scrollBehavior = 'auto';
 
     let lastTime = performance.now();
 
@@ -579,7 +942,6 @@
       lastTime = time;
 
       // Base auto-scroll speed from WPM:
-      // Approx 1 line per 10 words, each line is ~35px high
       const wps = (currentSettings.wpm || 130) / 60;
       const basePixelsPerSec = wps * 3.5;
 
@@ -630,7 +992,7 @@
     }
   }
 
-  // Listen for messages from background service-worker or offscreen tracker
+  // Listen for messages from background service-worker or popup
   if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (!message || !message.type) return;
@@ -652,12 +1014,10 @@
           break;
 
         case 'GAZE_TRACKING_UPDATE':
-          // { glanceZone: 'top'|'middle'|'lower'|'away', verticalRatio: 0.65 }
           handleGazeUpdate(message);
           break;
 
         case 'SPEECH_SYNC_UPDATE':
-          // { recognizedText: '...', wordIndex: 45 }
           handleSpeechUpdate(message);
           break;
       }
@@ -670,13 +1030,13 @@
     if (!dot) return;
 
     if (data.glanceZone === 'lower') {
-      dot.className = 'gp-dot active-green pulse'; // Lower third: reading advancing
-      scrollVelocity = 25; // Gently accelerate
+      dot.className = 'gp-dot active-green';
+      scrollVelocity = 25;
     } else if (data.glanceZone === 'away') {
-      dot.className = 'gp-dot active-amber'; // Looked away: hold
-      scrollVelocity = -15; // Slow down/pause
+      dot.className = 'gp-dot active-amber';
+      scrollVelocity = -15;
     } else {
-      dot.className = 'gp-dot active-cyan'; // Middle/neutral
+      dot.className = 'gp-dot active-cyan';
       scrollVelocity = 0;
     }
   }
@@ -685,23 +1045,23 @@
     if (!shadowRoot) return;
     const dot = shadowRoot.getElementById('gp-speech-dot');
     if (dot) {
-      dot.className = 'gp-dot active-cyan pulse';
+      dot.className = 'gp-dot active-cyan';
       setTimeout(() => {
         if (dot) dot.className = 'gp-dot active-cyan';
       }, 300);
     }
-    // Advance scroll smoothly if speech is actively progressing
     if (isPlaying && viewportEl && data.advancePixels) {
       viewportEl.scrollTop += data.advancePixels;
     }
   }
 
-  // Expose global init function for manual testing
+  // Expose global controller
   window.GhostPrompter = {
     toggle: initOrToggleHUD,
     toggleGhostMode: toggleGhostMode,
-    togglePlay: togglePlay
+    togglePlay: togglePlay,
+    nudge: nudgeScroll
   };
 
-  console.log('GhostPrompter content script loaded. Press Alt+P to activate.');
+  console.log('GhostPrompter content script loaded. Press Alt+P or click extension icon to launch.');
 })();

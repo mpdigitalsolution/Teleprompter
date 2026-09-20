@@ -19,35 +19,82 @@ async function setupOffscreenDocument() {
     return;
   }
 
-  isOffscreenCreating = chrome.offscreen.createDocument({
-    url: OFFSCREEN_PATH,
-    reasons: ['USER_MEDIA'],
-    justification: 'Capture webcam stream for low-resource eye gaze and speech sync tracking'
-  });
+  try {
+    isOffscreenCreating = chrome.offscreen.createDocument({
+      url: OFFSCREEN_PATH,
+      reasons: ['USER_MEDIA'],
+      justification: 'Capture webcam stream for low-resource eye gaze and speech sync tracking'
+    });
 
-  await isOffscreenCreating;
-  isOffscreenCreating = null;
-  console.log('GhostPrompter offscreen document created.');
+    await isOffscreenCreating;
+    console.log('GhostPrompter offscreen document created.');
+  } catch (err) {
+    console.warn('Could not create offscreen document (prompter will operate in manual mode):', err);
+  } finally {
+    isOffscreenCreating = null;
+  }
 }
 
 async function hasOffscreenDocument() {
   if ('getContexts' in chrome.runtime) {
-    const contexts = await chrome.runtime.getContexts({
-      contextTypes: ['OFFSCREEN_DOCUMENT'],
-      documentUrls: [chrome.runtime.getURL(OFFSCREEN_PATH)]
-    });
-    return contexts.length > 0;
+    try {
+      const contexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT'],
+        documentUrls: [chrome.runtime.getURL(OFFSCREEN_PATH)]
+      });
+      return contexts.length > 0;
+    } catch (e) {
+      return false;
+    }
   } else {
-    // Fallback for earlier Chrome versions
-    const matched = await chrome.extension.getViews({ type: 'tab' });
-    return matched.some(v => v.location.pathname.includes('offscreen.html'));
+    try {
+      const matched = await chrome.extension.getViews({ type: 'tab' });
+      return matched.some(v => v.location.pathname.includes('offscreen.html'));
+    } catch (e) {
+      return false;
+    }
   }
 }
 
 async function closeOffscreenDocument() {
   if (await hasOffscreenDocument()) {
-    await chrome.offscreen.closeDocument();
-    console.log('GhostPrompter offscreen document closed.');
+    try {
+      await chrome.offscreen.closeDocument();
+      console.log('GhostPrompter offscreen document closed.');
+    } catch (e) {}
+  }
+}
+
+/**
+ * Launch or Toggle Prompter on a specific tab with automatic fallback
+ */
+async function togglePrompterOnTab(tabId, tabUrl) {
+  // If user is on an internal browser URL where scripting is prohibited, open test page
+  if (!tabUrl || tabUrl.startsWith('chrome://') || tabUrl.startsWith('chrome-extension://') || tabUrl.startsWith('edge://') || tabUrl.startsWith('about:')) {
+    const testPageUrl = chrome.runtime.getURL('test-page.html');
+    await chrome.tabs.create({ url: testPageUrl });
+    return { status: 'opened_test_page' };
+  }
+
+  // Try injecting content script if not already present
+  if (chrome.scripting) {
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tabId },
+        files: ['src/content/content-script.js']
+      });
+    } catch (e) {
+      // Script might already be running or tab restricted
+    }
+  }
+
+  // Send toggle message
+  try {
+    await chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_PROMPTER' });
+    return { status: 'toggled' };
+  } catch (err) {
+    console.warn('Could not message content script:', err);
+    return { status: 'error', error: err.message };
   }
 }
 
@@ -57,40 +104,31 @@ async function closeOffscreenDocument() {
 async function sendToActiveTab(message) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tab || !tab.id) return;
-
-  try {
-    return await chrome.tabs.sendMessage(tab.id, message);
-  } catch (err) {
-    // Content script might not be injected yet (e.g. on newly opened tab)
-    if (chrome.scripting) {
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          files: ['src/content/content-script.js']
-        });
-        return await chrome.tabs.sendMessage(tab.id, message);
-      } catch (e) {
-        console.warn('Could not inject content script:', e);
-      }
-    }
-  }
+  return togglePrompterOnTab(tab.id, tab.url);
 }
 
 /**
  * Global Keyboard Shortcut Listeners
  */
 chrome.commands.onCommand.addListener(async (command) => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !tab.id) return;
+
   switch (command) {
     case 'toggle-prompter':
-      await sendToActiveTab({ type: 'TOGGLE_PROMPTER' });
+      await togglePrompterOnTab(tab.id, tab.url);
       break;
 
     case 'toggle-ghost-mode':
-      await sendToActiveTab({ type: 'TOGGLE_GHOST_MODE' });
+      try {
+        await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_GHOST_MODE' });
+      } catch (e) {}
       break;
 
     case 'toggle-pause':
-      await sendToActiveTab({ type: 'TOGGLE_PAUSE' });
+      try {
+        await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_PAUSE' });
+      } catch (e) {}
       break;
   }
 });
@@ -101,37 +139,62 @@ chrome.commands.onCommand.addListener(async (command) => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || !message.type) return;
 
-  // 1. Content Script notifies HUD opened -> start offscreen tracking
-  if (message.type === 'HUD_OPENED') {
-    setupOffscreenDocument().then(() => {
-      chrome.runtime.sendMessage({
-        target: 'offscreen',
-        type: 'START_TRACKING',
-        trackingMode: message.trackingMode || 'dual'
-      });
+  // 1. Launch / Toggle prompter request from popup
+  if (message.type === 'LAUNCH_PROMPTER_ON_ACTIVE_TAB') {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      if (tabs && tabs[0]) {
+        const res = await togglePrompterOnTab(tabs[0].id, tabs[0].url);
+        sendResponse(res);
+      } else {
+        sendResponse({ status: 'no_active_tab' });
+      }
     });
-    sendResponse({ status: 'starting_tracker' });
+    return true; // Async response
+  }
+
+  // 2. Content Script notifies HUD opened -> optionally start offscreen tracking
+  if (message.type === 'HUD_OPENED') {
+    if (message.trackingMode === 'dual' || message.trackingMode === 'gaze' || message.trackingMode === 'speech') {
+      setupOffscreenDocument().then(() => {
+        chrome.runtime.sendMessage({
+          target: 'offscreen',
+          type: 'START_TRACKING',
+          trackingMode: message.trackingMode
+        });
+      });
+    }
+    sendResponse({ status: 'ready' });
     return true;
   }
 
-  // 2. Offscreen sends gaze or speech update -> forward to active tab
+  // 3. Offscreen sends gaze or speech update -> forward to active tab
   if (message.target === 'content') {
-    sendToActiveTab(message);
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs && tabs[0] && tabs[0].id) {
+        chrome.tabs.sendMessage(tabs[0].id, message).catch(() => {});
+      }
+    });
     return;
   }
 
-  // 3. Mode or configuration changes
+  // 4. Mode or configuration changes
   if (message.type === 'SET_TRACKING_MODE') {
-    chrome.runtime.sendMessage({
-      target: 'offscreen',
-      type: 'SET_TRACKING_MODE',
-      mode: message.mode
-    });
+    if (message.mode === 'manual' || message.mode === 'auto') {
+      closeOffscreenDocument();
+    } else {
+      setupOffscreenDocument().then(() => {
+        chrome.runtime.sendMessage({
+          target: 'offscreen',
+          type: 'SET_TRACKING_MODE',
+          mode: message.mode
+        });
+      });
+    }
     sendResponse({ status: 'mode_updated' });
     return;
   }
 
-  // 4. Popup queries status
+  // 5. Popup queries status
   if (message.type === 'GET_STATUS') {
     hasOffscreenDocument().then(hasDoc => {
       sendResponse({
