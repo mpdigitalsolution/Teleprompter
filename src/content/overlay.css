@@ -610,3 +610,241 @@
   width: 6px;
   cursor: w-resize;
 }
+
+/* ==========================================================================
+   Stealth Video Recorder Styles
+   ========================================================================== */
+
+/* Record Button in HUD Header */
+.gp-btn-rec {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.25), rgba(185, 28, 28, 0.35)) !important;
+  color: #FF6B6B !important;
+  border: 1px solid rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.25) !important;
+  font-weight: 800 !important;
+}
+
+.gp-btn-rec:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.4), rgba(220, 38, 38, 0.5)) !important;
+  color: #FFFFFF !important;
+  border-color: #EF4444 !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5) !important;
+}
+
+.gp-btn-rec.gp-recording {
+  background: linear-gradient(135deg, #EF4444, #B91C1C) !important;
+  color: #FFFFFF !important;
+  border-color: #F87171 !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.8) !important;
+  animation: gp-rec-pulse 1.4s infinite !important;
+}
+
+@keyframes gp-rec-pulse {
+  0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.95); }
+  100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+}
+
+/* 3-2-1 Countdown Overlay */
+.gp-countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 14, 26, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  border-radius: 12px;
+  animation: gp-fade-in 0.2s ease;
+}
+
+.gp-countdown-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(8px * var(--gp-scale, 1));
+  text-align: center;
+  padding: calc(16px * var(--gp-scale, 1));
+}
+
+.gp-countdown-num {
+  font-size: calc(64px * var(--gp-scale, 1));
+  font-weight: 900;
+  line-height: 1;
+  background: linear-gradient(135deg, #00F0FF, #00FF88);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 24px rgba(0, 240, 255, 0.7));
+  animation: gp-num-pop 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+}
+
+@keyframes gp-num-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  50% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.gp-countdown-msg {
+  font-size: calc(14px * var(--gp-scale, 1));
+  font-weight: 700;
+  color: #FFFFFF;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.gp-countdown-badge {
+  font-size: calc(10px * var(--gp-scale, 1));
+  font-weight: 700;
+  color: #00FF88;
+  background: rgba(0, 255, 136, 0.15);
+  border: 1px solid rgba(0, 255, 136, 0.4);
+  padding: calc(3px * var(--gp-scale, 1)) calc(10px * var(--gp-scale, 1));
+  border-radius: calc(20px * var(--gp-scale, 1));
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Instant Preview & Save Modal */
+.gp-rec-modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(8, 11, 20, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  border-radius: 12px;
+  padding: calc(12px * var(--gp-scale, 1));
+  box-sizing: border-box;
+}
+
+.gp-rec-modal-card {
+  width: 100%;
+  max-width: 520px;
+  max-height: 94%;
+  background: #10162A;
+  border: 1.5px solid rgba(0, 240, 255, 0.5);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.95), 0 0 24px rgba(0, 240, 255, 0.3);
+  border-radius: calc(10px * var(--gp-scale, 1));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.gp-rec-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(8px * var(--gp-scale, 1)) calc(12px * var(--gp-scale, 1));
+  background: #141C34;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+}
+
+.gp-rec-modal-title {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--gp-scale, 1));
+  font-size: calc(12px * var(--gp-scale, 1));
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.gp-rec-modal-ico {
+  font-size: calc(14px * var(--gp-scale, 1));
+}
+
+.gp-rec-modal-body {
+  padding: calc(10px * var(--gp-scale, 1)) calc(12px * var(--gp-scale, 1));
+  display: flex;
+  flex-direction: column;
+  gap: calc(8px * var(--gp-scale, 1));
+  align-items: center;
+  overflow-y: auto;
+  max-height: calc(100% - 80px);
+}
+
+.gp-rec-video {
+  width: 100%;
+  max-height: calc(140px * var(--gp-scale, 1));
+  background: #000000;
+  border-radius: calc(6px * var(--gp-scale, 1));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  object-fit: contain;
+}
+
+.gp-rec-stats-row {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--gp-scale, 1));
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.gp-rec-stat-pill {
+  font-size: calc(10px * var(--gp-scale, 1));
+  font-weight: 700;
+  color: #00F0FF;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  padding: calc(3px * var(--gp-scale, 1)) calc(8px * var(--gp-scale, 1));
+  border-radius: calc(6px * var(--gp-scale, 1));
+  white-space: nowrap;
+}
+
+.gp-rec-clean-pill {
+  color: #00FF88 !important;
+  background: rgba(0, 255, 136, 0.15) !important;
+  border-color: rgba(0, 255, 136, 0.45) !important;
+  text-shadow: 0 0 6px rgba(0, 255, 136, 0.5);
+}
+
+.gp-rec-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(8px * var(--gp-scale, 1));
+  padding: calc(8px * var(--gp-scale, 1)) calc(12px * var(--gp-scale, 1));
+  background: #11182B;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gp-btn-save {
+  background: linear-gradient(135deg, #00C853, #00E676) !important;
+  color: #051408 !important;
+  font-weight: 800 !important;
+  border: 1px solid #69F0AE !important;
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.4) !important;
+}
+
+.gp-btn-save:hover {
+  filter: brightness(1.15) !important;
+  box-shadow: 0 0 16px rgba(0, 230, 118, 0.7) !important;
+}
+
+.gp-btn-retake {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #CBD5E1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.gp-btn-retake:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #FFFFFF !important;
+}
+
+@keyframes gp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+

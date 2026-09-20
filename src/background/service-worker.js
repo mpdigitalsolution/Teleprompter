@@ -95,7 +95,7 @@ async function togglePrompterOnTab(tabId, tabUrl) {
     try {
       await chrome.scripting.executeScript({
         target: { tabId: tabId },
-        files: ['src/content/content-script.js']
+        files: ['src/modules/video-recorder.js', 'src/content/content-script.js']
       });
     } catch (e) {
       // Script might already be running or tab restricted
@@ -112,7 +112,7 @@ async function togglePrompterOnTab(tabId, tabUrl) {
       try {
         await chrome.scripting.executeScript({
           target: { tabId: tabId },
-          files: ['src/content/content-script.js']
+          files: ['src/modules/video-recorder.js', 'src/content/content-script.js']
         });
         await chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_PROMPTER' });
         return { status: 'toggled' };
@@ -154,6 +154,12 @@ chrome.commands.onCommand.addListener(async (command) => {
         await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_PAUSE' });
       } catch (e) {}
       break;
+
+    case 'toggle-recording':
+      try {
+        await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_RECORDING' });
+      } catch (e) {}
+      break;
   }
 });
 
@@ -174,6 +180,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     });
     return true; // Async response
+  }
+
+  // Open dedicated Recording Studio
+  if (message.type === 'OPEN_RECORDING_STUDIO') {
+    chrome.tabs.create({ url: chrome.runtime.getURL('src/studio/studio.html') });
+    sendResponse({ status: 'opened' });
+    return true;
   }
 
   // 2. Content Script notifies HUD opened -> optionally start offscreen tracking

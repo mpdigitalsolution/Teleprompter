@@ -28,6 +28,11 @@
   let currentScript = null;
   let scrollAnimFrame = null;
   let scrollVelocity = 0;
+  let videoRecorderInstance = null;
+  let isRecording = false;
+  let isCountingDown = false;
+  let currentRecordedBlob = null;
+  let currentRecordedUrl = null;
 
   // High-visibility default settings
   const defaultState = {
@@ -583,6 +588,210 @@
       width: 6px;
       cursor: w-resize;
     }
+    .gp-btn-rec {
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.25), rgba(185, 28, 28, 0.35)) !important;
+      color: #FF6B6B !important;
+      border: 1px solid rgba(239, 68, 68, 0.6) !important;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.25) !important;
+      font-weight: 800 !important;
+    }
+    .gp-btn-rec:hover {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.4), rgba(220, 38, 38, 0.5)) !important;
+      color: #FFFFFF !important;
+      border-color: #EF4444 !important;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.5) !important;
+    }
+    .gp-btn-rec.gp-recording {
+      background: linear-gradient(135deg, #EF4444, #B91C1C) !important;
+      color: #FFFFFF !important;
+      border-color: #F87171 !important;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.8) !important;
+      animation: gp-rec-pulse 1.4s infinite !important;
+    }
+    @keyframes gp-rec-pulse {
+      0% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.95); }
+      100% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
+    }
+    .gp-countdown-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(10, 14, 26, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      border-radius: 12px;
+      animation: gp-fade-in 0.2s ease;
+    }
+    .gp-countdown-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: calc(8px * var(--gp-scale, 1));
+      text-align: center;
+      padding: calc(16px * var(--gp-scale, 1));
+    }
+    .gp-countdown-num {
+      font-size: calc(64px * var(--gp-scale, 1));
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, #00F0FF, #00FF88);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 24px rgba(0, 240, 255, 0.7));
+      animation: gp-num-pop 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+    }
+    @keyframes gp-num-pop {
+      0% { transform: scale(0.6); opacity: 0; }
+      50% { transform: scale(1.08); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .gp-countdown-msg {
+      font-size: calc(14px * var(--gp-scale, 1));
+      font-weight: 700;
+      color: #FFFFFF;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+    }
+    .gp-countdown-badge {
+      font-size: calc(10px * var(--gp-scale, 1));
+      font-weight: 700;
+      color: #00FF88;
+      background: rgba(0, 255, 136, 0.15);
+      border: 1px solid rgba(0, 255, 136, 0.4);
+      padding: calc(3px * var(--gp-scale, 1)) calc(10px * var(--gp-scale, 1));
+      border-radius: calc(20px * var(--gp-scale, 1));
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .gp-rec-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(8, 11, 20, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      border-radius: 12px;
+      padding: calc(12px * var(--gp-scale, 1));
+      box-sizing: border-box;
+    }
+    .gp-rec-modal-card {
+      width: 100%;
+      max-width: 520px;
+      max-height: 94%;
+      background: #10162A;
+      border: 1.5px solid rgba(0, 240, 255, 0.5);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.95), 0 0 24px rgba(0, 240, 255, 0.3);
+      border-radius: calc(10px * var(--gp-scale, 1));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .gp-rec-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: calc(8px * var(--gp-scale, 1)) calc(12px * var(--gp-scale, 1));
+      background: #141C34;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+    }
+    .gp-rec-modal-title {
+      display: flex;
+      align-items: center;
+      gap: calc(6px * var(--gp-scale, 1));
+      font-size: calc(12px * var(--gp-scale, 1));
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .gp-rec-modal-ico {
+      font-size: calc(14px * var(--gp-scale, 1));
+    }
+    .gp-rec-modal-body {
+      padding: calc(10px * var(--gp-scale, 1)) calc(12px * var(--gp-scale, 1));
+      display: flex;
+      flex-direction: column;
+      gap: calc(8px * var(--gp-scale, 1));
+      align-items: center;
+      overflow-y: auto;
+      max-height: calc(100% - 80px);
+    }
+    .gp-rec-video {
+      width: 100%;
+      max-height: calc(140px * var(--gp-scale, 1));
+      background: #000000;
+      border-radius: calc(6px * var(--gp-scale, 1));
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      object-fit: contain;
+    }
+    .gp-rec-stats-row {
+      display: flex;
+      align-items: center;
+      gap: calc(6px * var(--gp-scale, 1));
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+    .gp-rec-stat-pill {
+      font-size: calc(10px * var(--gp-scale, 1));
+      font-weight: 700;
+      color: #00F0FF;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      padding: calc(3px * var(--gp-scale, 1)) calc(8px * var(--gp-scale, 1));
+      border-radius: calc(6px * var(--gp-scale, 1));
+      white-space: nowrap;
+    }
+    .gp-rec-clean-pill {
+      color: #00FF88 !important;
+      background: rgba(0, 255, 136, 0.15) !important;
+      border-color: rgba(0, 255, 136, 0.45) !important;
+      text-shadow: 0 0 6px rgba(0, 255, 136, 0.5);
+    }
+    .gp-rec-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: calc(8px * var(--gp-scale, 1));
+      padding: calc(8px * var(--gp-scale, 1)) calc(12px * var(--gp-scale, 1));
+      background: #11182B;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .gp-btn-save {
+      background: linear-gradient(135deg, #00C853, #00E676) !important;
+      color: #051408 !important;
+      font-weight: 800 !important;
+      border: 1px solid #69F0AE !important;
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.4) !important;
+    }
+    .gp-btn-save:hover {
+      filter: brightness(1.15) !important;
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.7) !important;
+    }
+    .gp-btn-retake {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #CBD5E1 !important;
+      border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    }
+    .gp-btn-retake:hover {
+      background: rgba(255, 255, 255, 0.16) !important;
+      color: #FFFFFF !important;
+    }
+    @keyframes gp-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   `;
 
   /**
@@ -721,6 +930,9 @@
         </div>
 
         <div class="gp-actions">
+          <button class="gp-btn gp-btn-rec" id="gp-btn-rec" title="Alt+R: Stealth Record Webcam (Prompter is 100% hidden in video!)">
+            <span class="gp-rec-icon" id="gp-rec-icon">🔴</span><span class="gp-rec-label" id="gp-rec-label"> Rec</span>
+          </button>
           <button class="gp-btn gp-btn-autoscroll" id="gp-btn-play" title="Spacebar: Play / Pause Auto-Scroll">
             <span class="gp-btn-icon-symbol">▶</span><span class="gp-btn-label"> Play</span>
           </button>
@@ -809,6 +1021,44 @@
       <div class="gp-viewport" id="gp-viewport">
         <div class="gp-focus-line"></div>
         <div class="gp-script-body" id="gp-script-body" contenteditable="true" spellcheck="false"></div>
+      </div>
+
+      <!-- 3-2-1 Countdown Overlay -->
+      <div class="gp-countdown-overlay" id="gp-countdown-overlay" style="display: none;">
+        <div class="gp-countdown-inner">
+          <div class="gp-countdown-num" id="gp-countdown-num">3</div>
+          <div class="gp-countdown-msg">Get Ready to Present!</div>
+          <div class="gp-countdown-badge">🛡 100% Stealth: Prompter invisible in video</div>
+        </div>
+      </div>
+
+      <!-- Instant Preview & Save Modal -->
+      <div class="gp-rec-modal" id="gp-rec-modal" style="display: none;">
+        <div class="gp-rec-modal-card">
+          <div class="gp-rec-modal-header">
+            <div class="gp-rec-modal-title">
+              <span class="gp-rec-modal-ico">🎬</span>
+              <span>Stealth Video Recorded</span>
+            </div>
+            <button class="gp-btn gp-btn-icon" id="gp-rec-modal-close" title="Close Preview">✕</button>
+          </div>
+          <div class="gp-rec-modal-body">
+            <video id="gp-rec-preview-video" class="gp-rec-video" controls autoplay playsinline></video>
+            <div class="gp-rec-stats-row">
+              <span class="gp-rec-stat-pill" id="gp-rec-stat-duration">⏱ 00:00</span>
+              <span class="gp-rec-stat-pill" id="gp-rec-stat-size">💾 0 MB</span>
+              <span class="gp-rec-stat-pill gp-rec-clean-pill">🛡 100% Prompter-Free</span>
+            </div>
+          </div>
+          <div class="gp-rec-modal-footer">
+            <button class="gp-btn gp-btn-retake" id="gp-rec-btn-retake" title="Discard & Record Fresh Take">
+              <span>🔄</span> Retake
+            </button>
+            <button class="gp-btn gp-btn-save" id="gp-rec-btn-save" title="Save recording to computer">
+              <span>💾</span> Save Video (.webm)
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Edge & Corner Resize Handles -->
@@ -1088,6 +1338,37 @@
     const scriptSelect = shadowRoot.getElementById('gp-select-script');
     const colorSelect = shadowRoot.getElementById('gp-select-color');
     const presetBtns = shadowRoot.querySelectorAll('.gp-preset-btn');
+    const recBtn = shadowRoot.getElementById('gp-btn-rec');
+    const recModalClose = shadowRoot.getElementById('gp-rec-modal-close');
+    const recModalRetake = shadowRoot.getElementById('gp-rec-btn-retake');
+    const recModalSave = shadowRoot.getElementById('gp-rec-btn-save');
+
+    // Video Recording Trigger
+    if (recBtn) {
+      recBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleRecording();
+      });
+    }
+
+    // Modal Events
+    if (recModalClose) {
+      recModalClose.addEventListener('click', () => {
+        closeRecordingModal();
+      });
+    }
+
+    if (recModalRetake) {
+      recModalRetake.addEventListener('click', () => {
+        retakeRecording();
+      });
+    }
+
+    if (recModalSave) {
+      recModalSave.addEventListener('click', () => {
+        saveRecording();
+      });
+    }
 
     // Play / Auto-Scroll Toggle
     if (playBtn) {
@@ -1379,6 +1660,13 @@
         return;
       }
 
+      // Global stealth video recording hotkey: Alt + R
+      if (e.altKey && (e.key === 'r' || e.key === 'R')) {
+        e.preventDefault();
+        toggleRecording();
+        return;
+      }
+
       if (hostEl && hostEl.style.display !== 'none' && !isEditingScript && activeTag !== 'input' && activeTag !== 'textarea') {
         if (e.code === 'Space') {
           e.preventDefault();
@@ -1402,6 +1690,210 @@
         }
       }
     });
+  }
+
+  /**
+   * Stealth Video Recorder Controller
+   */
+  function getOrCreateRecorder() {
+    if (videoRecorderInstance) return videoRecorderInstance;
+
+    const RecClass = (typeof window !== 'undefined' && window.VideoRecorder) || 
+                     (typeof self !== 'undefined' && self.VideoRecorder) || 
+                     (typeof VideoRecorder !== 'undefined' ? VideoRecorder : null);
+
+    if (!RecClass) {
+      console.warn('GhostPrompter: VideoRecorder module not found yet.');
+      return null;
+    }
+
+    videoRecorderInstance = new RecClass({
+      videoQuality: '1080p',
+      aspectRatio: '16:9',
+      mirror: true,
+      countdownSeconds: 3,
+      onCountdown: (remaining) => {
+        isCountingDown = remaining > 0;
+        updateCountdownUI(remaining);
+      },
+      onStart: () => {
+        isRecording = true;
+        isCountingDown = false;
+        updateCountdownUI(0);
+        updateRecordingButtonUI(true, '00:00');
+        // Automatically start prompter scrolling for seamless reading!
+        if (!isPlaying) {
+          startAutoScroll();
+        }
+      },
+      onTimeUpdate: (elapsedSeconds, formattedTime) => {
+        updateRecordingButtonUI(true, formattedTime);
+      },
+      onStop: (take) => {
+        isRecording = false;
+        isCountingDown = false;
+        updateRecordingButtonUI(false);
+        currentRecordedBlob = take.blob;
+        currentRecordedUrl = take.url;
+        showRecordingModal(take);
+      },
+      onError: (err) => {
+        console.error('GhostPrompter recording error:', err);
+        isRecording = false;
+        isCountingDown = false;
+        updateCountdownUI(0);
+        updateRecordingButtonUI(false);
+        alert('Could not record webcam video: ' + (err.message || 'Permission denied or camera in use.'));
+      }
+    });
+
+    return videoRecorderInstance;
+  }
+
+  function toggleRecording() {
+    if (!hostEl || hostEl.style.display === 'none') {
+      initOrToggleHUD().then(() => {
+        toggleRecordingInternal();
+      });
+    } else {
+      toggleRecordingInternal();
+    }
+  }
+
+  function toggleRecordingInternal() {
+    const recorder = getOrCreateRecorder();
+    if (!recorder) {
+      alert('Camera recorder module is initializing. Please try again in a moment or reload the page.');
+      return;
+    }
+
+    if (isRecording || isCountingDown) {
+      stopRecordingFlow();
+    } else {
+      startRecordingFlow();
+    }
+  }
+
+  async function startRecordingFlow() {
+    const recorder = getOrCreateRecorder();
+    if (!recorder) return;
+
+    // Dismiss preview modal if currently open
+    closeRecordingModal();
+
+    try {
+      await recorder.startRecordingWithCountdown();
+    } catch (e) {
+      console.warn('Recording start cancelled or error:', e);
+    }
+  }
+
+  function stopRecordingFlow() {
+    if (videoRecorderInstance) {
+      videoRecorderInstance.stopRecording();
+    }
+    if (isPlaying) {
+      pauseAutoScroll();
+    }
+  }
+
+  function updateCountdownUI(remaining) {
+    if (!shadowRoot) return;
+    const overlay = shadowRoot.getElementById('gp-countdown-overlay');
+    const numEl = shadowRoot.getElementById('gp-countdown-num');
+    if (!overlay || !numEl) return;
+
+    if (remaining > 0) {
+      overlay.style.display = 'flex';
+      numEl.textContent = remaining;
+    } else {
+      overlay.style.display = 'none';
+    }
+  }
+
+  function updateRecordingButtonUI(recording, timeStr = '00:00') {
+    if (!shadowRoot) return;
+    const recBtn = shadowRoot.getElementById('gp-btn-rec');
+    if (!recBtn) return;
+
+    const icon = recBtn.querySelector('.gp-rec-icon');
+    const label = recBtn.querySelector('.gp-rec-label');
+
+    if (recording) {
+      recBtn.classList.add('gp-recording');
+      recBtn.title = 'Alt+R: Stop Recording';
+      if (icon) icon.textContent = '⏹';
+      if (label) label.textContent = ` ${timeStr}`;
+    } else {
+      recBtn.classList.remove('gp-recording');
+      recBtn.title = 'Alt+R: Stealth Record Webcam (Prompter is 100% hidden in video!)';
+      if (icon) icon.textContent = '🔴';
+      if (label) label.textContent = ' Rec';
+    }
+  }
+
+  function showRecordingModal(take) {
+    if (!shadowRoot) return;
+    const modal = shadowRoot.getElementById('gp-rec-modal');
+    const video = shadowRoot.getElementById('gp-rec-preview-video');
+    const durEl = shadowRoot.getElementById('gp-rec-stat-duration');
+    const sizeEl = shadowRoot.getElementById('gp-rec-stat-size');
+
+    if (!modal) return;
+
+    if (video && take.url) {
+      video.src = take.url;
+      video.play().catch(() => {});
+    }
+
+    if (durEl) durEl.textContent = `⏱ ${take.formattedTime || '00:00'}`;
+    if (sizeEl) sizeEl.textContent = `💾 ${take.fileSizeFormatted || '0 MB'}`;
+
+    modal.style.display = 'flex';
+  }
+
+  function closeRecordingModal() {
+    if (!shadowRoot) return;
+    const modal = shadowRoot.getElementById('gp-rec-modal');
+    const video = shadowRoot.getElementById('gp-rec-preview-video');
+    if (modal) modal.style.display = 'none';
+    if (video) {
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+    }
+  }
+
+  function saveRecording() {
+    if (!currentRecordedBlob) return;
+    const RecClass = (typeof window !== 'undefined' && window.VideoRecorder) || 
+                     (typeof self !== 'undefined' && self.VideoRecorder) || 
+                     (typeof VideoRecorder !== 'undefined' ? VideoRecorder : null);
+
+    const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `ghostprompter-take-${dateStr}.webm`;
+
+    if (RecClass && RecClass.downloadBlob) {
+      RecClass.downloadBlob(currentRecordedBlob, filename);
+    } else {
+      const a = document.createElement('a');
+      a.href = currentRecordedUrl || URL.createObjectURL(currentRecordedBlob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  }
+
+  function retakeRecording() {
+    closeRecordingModal();
+    if (viewportEl) {
+      viewportEl.scrollTop = 0;
+      scrollAccumulator = 0;
+    }
+    setTimeout(() => {
+      startRecordingFlow();
+    }, 250);
   }
 
   /**
@@ -1568,6 +2060,9 @@
         isPlaying = false;
         updateAutoScrollUI();
         pauseScroll();
+        if (isRecording) {
+          stopRecordingFlow();
+        }
         return;
       }
 
@@ -1676,6 +2171,12 @@
         return true;
       }
 
+      if (message.type === 'TOGGLE_RECORDING') {
+        toggleRecording();
+        sendResponse({ status: 'ok', isRecording });
+        return true;
+      }
+
       if (message.type === 'GAZE_TRACKING_UPDATE') {
         handleGazeUpdate(message);
         return;
@@ -1733,12 +2234,14 @@
     setTransparencyPreset: setTransparencyPreset,
     toggleGhostMode: toggleGhostMode,
     toggleToolbar: toggleToolbar,
+    toggleRecording: toggleRecording,
     nudge: nudgeScroll,
     adjustSpeed: adjustSpeed,
     isPlaying: () => isPlaying,
+    isRecording: () => isRecording,
     isTransparent: () => isTransparentMode,
     isToolbarCollapsed: () => currentSettings ? currentSettings.isToolbarCollapsed : true
   };
 
-  console.log('GhostPrompter content script loaded. Alt+P: Toggle Prompter | Alt+S: Controls | Alt+T: Transparent | Space: Auto-Scroll');
+  console.log('GhostPrompter content script loaded. Alt+P: Toggle Prompter | Alt+R: Record | Alt+S: Controls | Alt+T: Transparent | Space: Auto-Scroll');
 })();

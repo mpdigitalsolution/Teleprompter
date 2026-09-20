@@ -46,6 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const testBtnRec = document.getElementById('test-btn-rec');
+  if (testBtnRec) {
+    testBtnRec.addEventListener('click', () => {
+      if (window.GhostPrompter && window.GhostPrompter.toggleRecording) {
+        window.GhostPrompter.toggleRecording();
+      }
+    });
+  }
+
   if (toggleGhostBtn) {
     toggleGhostBtn.addEventListener('click', () => {
       if (window.GhostPrompter && window.GhostPrompter.toggleGhostMode) {

@@ -115,6 +115,52 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-studio {
+  background: linear-gradient(135deg, #1E293B, #334155);
+  color: #00F0FF;
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
+}
+
+.btn-studio:hover {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: #00F0FF;
+  transform: translateY(-1px);
+}
+
+.btn-rec-pop {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.3));
+  color: #FF6B6B;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.btn-rec-pop:hover {
+  background: rgba(239, 68, 68, 0.4);
+  color: #FFFFFF;
+  border-color: #EF4444;
+  transform: translateY(-1px);
+}
+
 /* Control Sections */
 .section {
   background: var(--card-bg);

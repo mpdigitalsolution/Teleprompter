@@ -46,12 +46,18 @@
         "default": "Alt+Space"
       },
       "description": "Pause or resume teleprompter scroll"
+    },
+    "toggle-recording": {
+      "suggested_key": {
+        "default": "Alt+R"
+      },
+      "description": "Start or stop stealth video recording"
     }
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["src/content/content-script.js"],
+      "js": ["src/modules/video-recorder.js", "src/content/content-script.js"],
       "run_at": "document_idle"
     }
   ],
@@ -60,7 +66,8 @@
       "resources": [
         "icons/*",
         "src/content/overlay.css",
-        "src/modules/*"
+        "src/modules/*",
+        "src/studio/*"
       ],
       "matches": ["<all_urls>"]
     }

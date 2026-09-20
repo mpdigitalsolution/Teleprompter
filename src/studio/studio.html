@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghost Studio — Stealth Half-Body Teleprompter & Video Recorder</title>
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+  <!-- Top Navigation & Configuration Bar -->
+  <header class="studio-header">
+    <div class="header-left">
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 24 24">
+          <path d="M12 2A9 9 0 0 0 3 11c0 3.2 1.6 6 4 7.6V21a1 1 0 0 0 1.5.9L12 20l3.5 1.9A1 1 0 0 0 17 21v-2.4c2.4-1.6 4-4.4 4-7.6A9 9 0 0 0 12 2zm-3 8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+        </svg>
+        <span class="brand-title">Ghost Studio</span>
+      </div>
+      <span class="stealth-badge" title="Teleprompter text is captured from webcam sensor only and never appears in recorded video!">
+        🛡 100% Prompter-Free Video
+      </span>
+    </div>
+
+    <div class="header-center">
+      <!-- Aspect Ratio Switcher -->
+      <div class="ctrl-pill-group">
+        <label class="group-label">Ratio:</label>
+        <button class="ratio-btn active" data-ratio="16:9" title="16:9 Landscape (YouTube / Presentations)">16:9</button>
+        <button class="ratio-btn" data-ratio="9:16" title="9:16 Vertical (TikTok / Reels / Shorts)">9:16</button>
+        <button class="ratio-btn" data-ratio="1:1" title="1:1 Square (LinkedIn / Instagram)">1:1</button>
+      </div>
+
+      <!-- Framing Guides Toggle -->
+      <button class="tool-btn active" id="btn-toggle-guides" title="Toggle Half-Body Framing Guides">
+        <span>📐</span> Guides
+      </button>
+
+      <!-- Mirror Camera Toggle -->
+      <button class="tool-btn active" id="btn-toggle-mirror" title="Mirror Camera Preview">
+        <span>🪞</span> Mirror
+      </button>
+
+      <!-- Audio Level Meter -->
+      <div class="audio-vu-meter" title="Live Microphone Volume Input">
+        <span class="vu-icon">🎤</span>
+        <div class="vu-bar-track">
+          <div class="vu-bar-fill" id="vu-bar-fill"></div>
+        </div>
+        <span class="vu-status" id="vu-status">Mic Active</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="btn-return" id="btn-close-studio" title="Return to Browser">✕ Exit</button>
+    </div>
+  </header>
+
+  <!-- Studio Main Stage -->
+  <main class="studio-stage">
+    <!-- Centered Aspect-Ratio Constrained Camera Container -->
+    <div class="camera-container ratio-16-9" id="camera-container">
+      <!-- Raw Hardware Video Stream -->
+      <video id="studio-camera" class="camera-feed mirrored" autoplay playsinline muted></video>
+
+      <!-- Half-Body Safe-Zone Framing Overlay -->
+      <div class="framing-overlay" id="framing-overlay">
+        <!-- Top Headroom Boundary -->
+        <div class="guide-line guide-headroom">
+          <span class="guide-tag">Headroom Line</span>
+        </div>
+
+        <!-- Eye-Line Level (Presenter looks here for natural eye contact) -->
+        <div class="guide-line guide-eyeline">
+          <span class="guide-tag">👀 Eye-Line Target (Webcam Level)</span>
+        </div>
+
+        <!-- Half-Body Chest / Shoulder Safe Zone -->
+        <div class="guide-box-halfbody">
+          <span class="guide-tag-corner">Upper-Torso Framing Zone</span>
+        </div>
+      </div>
+
+      <!-- Floating Integrated Transparent Teleprompter -->
+      <div class="studio-prompter" id="studio-prompter">
+        <div class="prompter-header">
+          <span class="prompter-title">Script</span>
+          <div class="prompter-speed-pill">
+            <button class="btn-step" id="btn-wpm-dec">-</button>
+            <span id="label-wpm">130 WPM</span>
+            <button class="btn-step" id="btn-wpm-inc">+</button>
+          </div>
+          <button class="prompter-btn-ghost" id="btn-prompter-reset" title="Rewind to Top">⏮ Top</button>
+        </div>
+
+        <div class="prompter-viewport" id="prompter-viewport">
+          <div class="prompter-focus-bar"></div>
+          <div class="prompter-text" id="prompter-text" contenteditable="true" spellcheck="false">
+            Welcome to Ghost Studio! 🎥
+
+Position your eyes along the cyan Eye-Line Guide above.
+When you read this text, your eyes align right next to your webcam lens!
+
+• Click 🔴 Record (or press Alt + R) to start your take.
+• A 3-second countdown gives you time to smile and take a breath.
+• Your script will automatically auto-scroll at your chosen speed.
+• The teleprompter overlay is 100% invisible in your final video!
+          </div>
+        </div>
+      </div>
+
+      <!-- Giant 3-2-1 Countdown Banner -->
+      <div class="studio-countdown-overlay" id="studio-countdown" style="display: none;">
+        <div class="countdown-card">
+          <div class="countdown-digit" id="countdown-digit">3</div>
+          <div class="countdown-label">Get Ready to Present!</div>
+          <div class="countdown-sub">Prompter is 100% hidden from recording</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Recording & Playback Control Bar -->
+  <footer class="studio-controls">
+    <div class="ctrl-left">
+      <div class="script-picker">
+        <label>Script:</label>
+        <select id="select-studio-script" class="studio-select"></select>
+      </div>
+
+      <div class="ctrl-appearance">
+        <label>Font:</label>
+        <button class="btn-step" id="btn-font-dec">-</button>
+        <span id="label-font">26px</span>
+        <button class="btn-step" id="btn-font-inc">+</button>
+
+        <label style="margin-left: 8px;">Color:</label>
+        <select id="select-font-color" class="studio-select" style="width: 120px;">
+          <option value="#00F0FF" selected>⚡ Cyan</option>
+          <option value="#FFEA00">☀️ Yellow</option>
+          <option value="#00FF88">💚 Green</option>
+          <option value="#FFFFFF">⚪ White</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Center Primary Record & Scroll Trigger -->
+    <div class="ctrl-center">
+      <!-- Auto-Scroll Button -->
+      <button class="btn-studio-scroll" id="btn-studio-scroll" title="Spacebar: Play / Pause Auto-Scroll">
+        <span id="scroll-icon">▶</span> <span id="scroll-label">Auto-Scroll</span>
+      </button>
+
+      <!-- Primary Big Record Button -->
+      <button class="btn-studio-rec" id="btn-studio-rec" title="Alt+R: Start Stealth Video Recording">
+        <span class="rec-dot" id="rec-dot">🔴</span>
+        <span class="rec-text" id="rec-text">START RECORDING</span>
+        <span class="rec-timer" id="rec-timer" style="display: none;">00:00</span>
+      </button>
+    </div>
+
+    <div class="ctrl-right">
+      <button class="tool-btn" id="btn-toggle-hud-prompter" title="Open prompter over other tabs">
+        <span>👻</span> Overlay Mode (Alt+P)
+      </button>
+    </div>
+  </footer>
+
+  <!-- Instant Video Take Review Modal -->
+  <div class="review-modal" id="review-modal" style="display: none;">
+    <div class="review-card">
+      <div class="review-header">
+        <div class="review-title">
+          <span>🎬</span> Take Review
+          <span class="stealth-tag">🛡 Clean Video (No Prompter)</span>
+        </div>
+        <button class="btn-step" id="btn-close-review" title="Close">✕</button>
+      </div>
+
+      <div class="review-body">
+        <video id="review-video-player" class="review-player" controls playsinline></video>
+        <div class="review-meta">
+          <span class="meta-pill" id="meta-duration">⏱ 00:00</span>
+          <span class="meta-pill" id="meta-size">💾 0 MB</span>
+          <span class="meta-pill meta-clean">✓ 100% Teleprompter-Free</span>
+        </div>
+      </div>
+
+      <div class="review-footer">
+        <button class="btn-secondary" id="btn-retake">
+          <span>🔄</span> Retake Fresh Take
+        </button>
+        <button class="btn-primary" id="btn-save-video">
+          <span>💾</span> Download Video (.webm)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../modules/storage.js"></script>
+  <script src="../modules/video-recorder.js"></script>
+  <script src="studio.js"></script>
+</body>
+</html>

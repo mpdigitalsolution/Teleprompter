@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const wpmIncBtn = document.getElementById('pop-btn-wpm-inc');
   const setupLink = document.getElementById('link-setup');
   const testLink = document.getElementById('link-mock-test');
+  const studioLink = document.getElementById('link-studio');
+  const studioBtn = document.getElementById('popup-btn-studio');
+  const recordBtn = document.getElementById('popup-btn-record');
   const statusPill = document.getElementById('popup-status');
 
   const presetBtns = {
@@ -174,7 +177,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // Studio Mode button
+  if (studioBtn) {
+    studioBtn.addEventListener('click', () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL('src/studio/studio.html') });
+      window.close();
+    });
+  }
+
+  // Quick Record Button on active tab
+  if (recordBtn) {
+    recordBtn.addEventListener('click', () => {
+      recordBtn.disabled = true;
+      recordBtn.innerHTML = '<span>⏳</span> Starting...';
+
+      chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
+        setTimeout(() => {
+          notifyActiveTab({ type: 'TOGGLE_RECORDING' });
+          recordBtn.innerHTML = '<span>🔴</span> Recording...';
+          setTimeout(() => { window.close(); }, 400);
+        }, 150);
+      });
+    });
+  }
+
   // Links
+  if (studioLink) {
+    studioLink.addEventListener('click', () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL('src/studio/studio.html') });
+    });
+  }
+
   setupLink.addEventListener('click', () => {
     if (chrome.runtime.openOptionsPage) {
       chrome.runtime.openOptionsPage();
