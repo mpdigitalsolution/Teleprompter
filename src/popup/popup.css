@@ -1,0 +1,157 @@
+/* GhostPrompter Extension Popup Styles */
+:root {
+  --bg-color: #0A0D18;
+  --card-bg: #121828;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --accent-cyan: #00F0FF;
+  --accent-glow: rgba(0, 240, 255, 0.35);
+  --accent-green: #00FF88;
+  --text-main: #F8FAFC;
+  --text-sub: #94A3B8;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  background: var(--bg-color);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 14px;
+  user-select: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-icon {
+  width: 24px;
+  height: 24px;
+  fill: var(--accent-cyan);
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFF;
+}
+
+.status-pill {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent-green);
+  background: rgba(0, 255, 136, 0.12);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+
+/* Big Action Button */
+.btn-toggle-hud {
+  width: 100%;
+  background: linear-gradient(135deg, #00F0FF, #7000FF);
+  color: #FFF;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 15px rgba(0, 240, 255, 0.25);
+  margin-bottom: 12px;
+  transition: all 0.15s ease;
+}
+
+.btn-toggle-hud:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+/* Control Rows */
+.section {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.label {
+  color: var(--text-sub);
+}
+
+.select, .input-range {
+  background: #1A2238;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FFF;
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 11px;
+  outline: none;
+}
+
+.select {
+  width: 140px;
+  cursor: pointer;
+}
+
+.input-range {
+  width: 100px;
+  height: 4px;
+  cursor: pointer;
+}
+
+.links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+}
+
+.link-btn {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 11px;
+  font-family: inherit;
+}
+
+.link-btn:hover {
+  text-decoration: underline;
+}

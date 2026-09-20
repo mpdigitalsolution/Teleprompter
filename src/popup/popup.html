@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GhostPrompter</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <svg class="brand-icon" viewBox="0 0 24 24">
+        <path d="M12 2A9 9 0 0 0 3 11c0 3.2 1.6 6 4 7.6V21a1 1 0 0 0 1.5.9L12 20l3.5 1.9A1 1 0 0 0 17 21v-2.4c2.4-1.6 4-4.4 4-7.6A9 9 0 0 0 12 2zm-3 8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+      </svg>
+      <span class="title">GhostPrompter</span>
+    </div>
+    <span class="status-pill" id="popup-status">Ready</span>
+  </div>
+
+  <button class="btn-toggle-hud" id="popup-btn-toggle">
+    <span>👻</span> Toggle Prompter (Alt+P)
+  </button>
+
+  <div class="section">
+    <div class="row">
+      <span class="label">Script:</span>
+      <select class="select" id="popup-select-script"></select>
+    </div>
+    <div class="row">
+      <span class="label">Mode:</span>
+      <select class="select" id="popup-select-mode">
+        <option value="dual">Dual (Gaze + Speech)</option>
+        <option value="gaze">Gaze Only</option>
+        <option value="speech">Speech Sync</option>
+        <option value="auto">Auto-Scroll</option>
+        <option value="manual">Manual</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="row">
+      <span class="label">Opacity:</span>
+      <input type="range" class="input-range" id="popup-range-opacity" min="0" max="1" step="0.05">
+    </div>
+    <div class="row">
+      <span class="label">Font Size:</span>
+      <input type="range" class="input-range" id="popup-range-font" min="14" max="44" step="2">
+    </div>
+    <div class="row">
+      <span class="label">Speed (WPM):</span>
+      <input type="range" class="input-range" id="popup-range-wpm" min="60" max="240" step="10">
+    </div>
+  </div>
+
+  <div class="links">
+    <button class="link-btn" id="link-setup">⚙ Setup & Calibration</button>
+    <button class="link-btn" id="link-mock-test">🧪 Test Meeting Page</button>
+  </div>
+
+  <script src="../modules/storage.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
