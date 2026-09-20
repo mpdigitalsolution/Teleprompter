@@ -128,14 +128,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: calc(6px * var(--gp-scale, 1)) calc(12px * var(--gp-scale, 1));
+      padding: calc(4px * var(--gp-scale, 1)) calc(10px * var(--gp-scale, 1));
       background: #111728;
       border-bottom: 2px solid rgba(0, 240, 255, 0.35);
       cursor: grab;
-      height: calc(42px * var(--gp-scale, 1));
-      min-height: 28px;
+      height: calc(36px * var(--gp-scale, 1));
+      min-height: 24px;
       transition: background 0.2s ease;
-      gap: calc(6px * var(--gp-scale, 1));
+      gap: calc(5px * var(--gp-scale, 1));
       overflow-x: hidden;
       box-sizing: border-box;
     }
@@ -145,19 +145,19 @@
     .gp-brand {
       display: flex;
       align-items: center;
-      gap: calc(6px * var(--gp-scale, 1));
-      flex-shrink: 1;
+      gap: calc(5px * var(--gp-scale, 1));
+      flex-shrink: 0;
       min-width: 0;
     }
     .gp-logo-icon {
-      width: calc(20px * var(--gp-scale, 1));
-      height: calc(20px * var(--gp-scale, 1));
+      width: calc(18px * var(--gp-scale, 1));
+      height: calc(18px * var(--gp-scale, 1));
       flex-shrink: 0;
       fill: #00F0FF;
       filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.7));
     }
     .gp-title {
-      font-size: calc(13px * var(--gp-scale, 1));
+      font-size: calc(12px * var(--gp-scale, 1));
       font-weight: 700;
       letter-spacing: 0.5px;
       color: #FFFFFF;
@@ -168,15 +168,16 @@
     .gp-status-group {
       display: flex;
       align-items: center;
-      gap: calc(5px * var(--gp-scale, 1));
-      margin-left: calc(4px * var(--gp-scale, 1));
+      gap: calc(4px * var(--gp-scale, 1));
+      margin-left: calc(3px * var(--gp-scale, 1));
+      margin-right: calc(4px * var(--gp-scale, 1));
       flex-shrink: 0;
     }
     .gp-badge {
-      font-size: calc(10px * var(--gp-scale, 1));
+      font-size: calc(9.5px * var(--gp-scale, 1));
       font-weight: 700;
-      padding: calc(2px * var(--gp-scale, 1)) calc(6px * var(--gp-scale, 1));
-      border-radius: calc(5px * var(--gp-scale, 1));
+      padding: calc(1.5px * var(--gp-scale, 1)) calc(5px * var(--gp-scale, 1));
+      border-radius: calc(4px * var(--gp-scale, 1));
       text-transform: uppercase;
       letter-spacing: 0.5px;
       background: rgba(0, 240, 255, 0.2);
@@ -190,15 +191,15 @@
     .gp-indicator {
       display: inline-flex;
       align-items: center;
-      gap: calc(3px * var(--gp-scale, 1));
-      font-size: calc(10px * var(--gp-scale, 1));
+      gap: calc(2.5px * var(--gp-scale, 1));
+      font-size: calc(9.5px * var(--gp-scale, 1));
       color: #A0AEC0;
       font-weight: 600;
       white-space: nowrap;
     }
     .gp-dot {
-      width: calc(8px * var(--gp-scale, 1));
-      height: calc(8px * var(--gp-scale, 1));
+      width: calc(7px * var(--gp-scale, 1));
+      height: calc(7px * var(--gp-scale, 1));
       border-radius: 50%;
       background: #4A5568;
       transition: all 0.2s ease;
@@ -219,25 +220,29 @@
     .gp-actions {
       display: flex;
       align-items: center;
-      gap: calc(4px * var(--gp-scale, 1));
+      gap: calc(3px * var(--gp-scale, 1));
       flex-shrink: 0;
+      min-width: 0;
     }
     .gp-btn {
       background: #1C2438;
       border: 1px solid rgba(0, 240, 255, 0.35);
       color: #FFFFFF;
-      border-radius: calc(6px * var(--gp-scale, 1));
-      padding: calc(4px * var(--gp-scale, 1)) calc(8px * var(--gp-scale, 1));
-      font-size: calc(11px * var(--gp-scale, 1));
+      border-radius: calc(5px * var(--gp-scale, 1));
+      padding: calc(2.5px * var(--gp-scale, 1)) calc(6.5px * var(--gp-scale, 1));
+      font-size: calc(10px * var(--gp-scale, 1));
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: calc(3px * var(--gp-scale, 1));
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+      gap: calc(2.5px * var(--gp-scale, 1));
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
       transition: all 0.15s ease;
       white-space: nowrap;
+      height: calc(24px * var(--gp-scale, 1));
+      box-sizing: border-box;
+      line-height: 1;
     }
     .gp-btn:hover {
       background: #28334E;
@@ -251,10 +256,10 @@
       border-color: #00F0FF;
     }
     .gp-btn-icon {
-      width: calc(28px * var(--gp-scale, 1));
-      height: calc(28px * var(--gp-scale, 1));
+      width: calc(24px * var(--gp-scale, 1));
+      height: calc(24px * var(--gp-scale, 1));
       padding: 0;
-      font-size: calc(12px * var(--gp-scale, 1));
+      font-size: calc(11px * var(--gp-scale, 1));
       flex-shrink: 0;
     }
     .gp-btn-autoscroll {
@@ -262,18 +267,31 @@
       color: #051408 !important;
       font-weight: 800 !important;
       border: 1px solid #69F0AE !important;
-      box-shadow: 0 0 10px rgba(0, 230, 118, 0.4) !important;
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.35) !important;
+      padding: calc(2.5px * var(--gp-scale, 1)) calc(7.5px * var(--gp-scale, 1)) !important;
+      font-size: calc(10px * var(--gp-scale, 1)) !important;
+      height: calc(24px * var(--gp-scale, 1)) !important;
     }
     .gp-btn-autoscroll:hover {
       filter: brightness(1.15) !important;
-      box-shadow: 0 0 16px rgba(0, 230, 118, 0.7) !important;
+      box-shadow: 0 0 14px rgba(0, 230, 118, 0.7) !important;
     }
     .gp-btn-autoscroll.gp-scrolling {
       background: linear-gradient(135deg, #FF9100, #FF3D00) !important;
       color: #FFFFFF !important;
       border-color: #FF9E80 !important;
-      box-shadow: 0 0 14px rgba(255, 87, 34, 0.6) !important;
+      box-shadow: 0 0 12px rgba(255, 87, 34, 0.6) !important;
       animation: gp-pulse 1.8s infinite;
+    }
+    .gp-btn-icon-symbol {
+      font-size: calc(9px * var(--gp-scale, 1));
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+    }
+    .gp-btn-label {
+      line-height: 1;
+      display: inline-block;
     }
     @keyframes gp-pulse {
       0% { box-shadow: 0 0 8px rgba(255, 87, 34, 0.5); }
@@ -283,26 +301,28 @@
     .gp-speed-pill {
       display: inline-flex;
       align-items: center;
-      gap: calc(3px * var(--gp-scale, 1));
+      gap: calc(2px * var(--gp-scale, 1));
       background: #0D1424;
       border: 1px solid rgba(0, 240, 255, 0.4);
-      border-radius: calc(6px * var(--gp-scale, 1));
-      padding: calc(2px * var(--gp-scale, 1)) calc(6px * var(--gp-scale, 1));
-      font-size: calc(11px * var(--gp-scale, 1));
+      border-radius: calc(5px * var(--gp-scale, 1));
+      padding: calc(1.5px * var(--gp-scale, 1)) calc(5px * var(--gp-scale, 1));
+      font-size: calc(10px * var(--gp-scale, 1));
       color: #00F0FF;
       font-weight: 700;
       user-select: none;
       white-space: nowrap;
+      height: calc(24px * var(--gp-scale, 1));
+      box-sizing: border-box;
     }
     .gp-btn-tiny {
-      width: calc(18px * var(--gp-scale, 1));
-      height: calc(18px * var(--gp-scale, 1));
+      width: calc(16px * var(--gp-scale, 1));
+      height: calc(16px * var(--gp-scale, 1));
       padding: 0;
       background: rgba(0, 240, 255, 0.15);
       border: 1px solid rgba(0, 240, 255, 0.35);
-      border-radius: calc(4px * var(--gp-scale, 1));
+      border-radius: calc(3px * var(--gp-scale, 1));
       color: #FFFFFF;
-      font-size: calc(11px * var(--gp-scale, 1));
+      font-size: calc(10px * var(--gp-scale, 1));
       font-weight: 800;
       cursor: pointer;
       display: inline-flex;
@@ -521,10 +541,16 @@
     .gp-window.gp-size-xs .gp-popout-label {
       display: none !important;
     }
+    .gp-window.gp-size-xs .gp-status-group {
+      display: none !important;
+    }
     .gp-window.gp-size-xs .gp-btn-nudge {
       display: none !important;
     }
     .gp-window.gp-size-xs .gp-btn-label {
+      display: none !important;
+    }
+    .gp-window.gp-size-xs .gp-rec-label {
       display: none !important;
     }
     .gp-window.gp-size-xs .gp-actions {
@@ -608,14 +634,27 @@
       background: linear-gradient(135deg, rgba(220, 38, 38, 0.25), rgba(185, 28, 28, 0.35)) !important;
       color: #FF6B6B !important;
       border: 1px solid rgba(239, 68, 68, 0.6) !important;
-      box-shadow: 0 0 8px rgba(239, 68, 68, 0.25) !important;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.25) !important;
       font-weight: 800 !important;
+      padding: calc(2.5px * var(--gp-scale, 1)) calc(7px * var(--gp-scale, 1)) !important;
+      font-size: calc(10px * var(--gp-scale, 1)) !important;
+      height: calc(24px * var(--gp-scale, 1)) !important;
+    }
+    .gp-rec-icon {
+      font-size: calc(9.5px * var(--gp-scale, 1));
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+    }
+    .gp-rec-label {
+      line-height: 1;
+      display: inline-block;
     }
     .gp-btn-rec:hover {
       background: linear-gradient(135deg, rgba(239, 68, 68, 0.4), rgba(220, 38, 38, 0.5)) !important;
       color: #FFFFFF !important;
       border-color: #EF4444 !important;
-      box-shadow: 0 0 14px rgba(239, 68, 68, 0.5) !important;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.5) !important;
     }
     .gp-btn-rec.gp-recording {
       background: linear-gradient(135deg, #EF4444, #B91C1C) !important;
@@ -1373,13 +1412,13 @@
     const height = windowEl.offsetHeight;
     if (!width || !height) return;
 
-    // Dampened elastic scale factor: reference width 680px
-    // Range: ~0.72 (at 300px) to ~1.32 (at 1200px+)
+    // Elastic scale factor: reference width 680px
+    // Smooth elastic range: ~0.52 (at 300px) to ~1.25 (at 1200px+)
     const ratio = width / 680;
-    const scale = Math.max(0.72, Math.min(1.32, Math.pow(ratio, 0.65)));
+    const scale = Math.max(0.52, Math.min(1.25, Math.pow(ratio, 0.78)));
 
-    // Font scale factor for script text: range ~0.80 to ~1.25
-    const fontScale = Math.max(0.80, Math.min(1.25, Math.pow(ratio, 0.5)));
+    // Font scale factor for script text: range ~0.72 to ~1.25
+    const fontScale = Math.max(0.72, Math.min(1.25, Math.pow(ratio, 0.52)));
 
     windowEl.style.setProperty('--gp-scale', scale.toFixed(3));
     windowEl.style.setProperty('--gp-font-scale', fontScale.toFixed(3));
