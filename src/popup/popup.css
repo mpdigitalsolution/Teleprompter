@@ -161,6 +161,19 @@ body {
   transform: translateY(-1px);
 }
 
+.btn-rec-screen {
+  background: linear-gradient(135deg, rgba(255, 140, 0, 0.2), rgba(255, 109, 0, 0.35));
+  color: #FFA726;
+  border-color: rgba(255, 167, 38, 0.5);
+}
+
+.btn-rec-screen:hover {
+  background: rgba(255, 140, 0, 0.45);
+  color: #FFFFFF;
+  border-color: #FFA726;
+  transform: translateY(-1px);
+}
+
 .btn-pip-pop {
   grid-column: 1 / -1;
   background: linear-gradient(135deg, rgba(0, 240, 255, 0.22), rgba(0, 255, 136, 0.22));

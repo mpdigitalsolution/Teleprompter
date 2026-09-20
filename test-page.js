@@ -46,6 +46,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const testBtnRecScreen = document.getElementById('test-btn-rec-screen');
+  if (testBtnRecScreen) {
+    testBtnRecScreen.addEventListener('click', () => {
+      if (window.GhostPrompter && window.GhostPrompter.startScreenRecording) {
+        window.GhostPrompter.startScreenRecording();
+      } else if (window.GhostPrompter && window.GhostPrompter.toggleRecording) {
+        window.GhostPrompter.toggleRecording('screen');
+      }
+    });
+  }
+
   const testBtnRec = document.getElementById('test-btn-rec');
   if (testBtnRec) {
     testBtnRec.addEventListener('click', () => {

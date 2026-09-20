@@ -170,6 +170,63 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Source Switcher (Camera vs Screen/Tab)
+  const btnSourceCam = document.getElementById('btn-source-cam');
+  const btnSourceScreen = document.getElementById('btn-source-screen');
+  let currentSource = 'camera';
+
+  async function switchToSource(sourceType) {
+    if (isRecording || isCountingDown) {
+      alert('Please stop recording before switching video source.');
+      return;
+    }
+
+    if (sourceType === 'screen') {
+      try {
+        const stream = await recorder.startScreenCapture();
+        currentSource = 'screen';
+        videoEl.srcObject = stream;
+        videoEl.classList.remove('mirrored');
+        if (btnSourceCam) btnSourceCam.classList.remove('active');
+        if (btnSourceScreen) btnSourceScreen.classList.add('active');
+
+        // Track user clicking Chrome's native "Stop sharing" bar
+        const screenTrack = stream.getVideoTracks()[0];
+        if (screenTrack) {
+          screenTrack.addEventListener('ended', () => {
+            if (!isRecording) {
+              switchToSource('camera');
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Screen capture cancelled or error:', err);
+      }
+    } else {
+      try {
+        const stream = await recorder.startCamera();
+        currentSource = 'camera';
+        videoEl.srcObject = stream;
+        if (isMirror) {
+          videoEl.classList.add('mirrored');
+        } else {
+          videoEl.classList.remove('mirrored');
+        }
+        if (btnSourceScreen) btnSourceScreen.classList.remove('active');
+        if (btnSourceCam) btnSourceCam.classList.add('active');
+      } catch (err) {
+        console.warn('Camera switch error:', err);
+      }
+    }
+  }
+
+  if (btnSourceCam) {
+    btnSourceCam.addEventListener('click', () => switchToSource('camera'));
+  }
+  if (btnSourceScreen) {
+    btnSourceScreen.addEventListener('click', () => switchToSource('screen'));
+  }
+
   // Start Hardware Camera Stream
   try {
     const stream = await recorder.startCamera();
@@ -197,7 +254,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       closeReview();
     }
     try {
-      await recorder.startRecordingWithCountdown();
+      await recorder.startRecordingWithCountdown(currentSource);
     } catch (e) {
       console.warn('Recording start aborted:', e);
     }

@@ -30,7 +30,9 @@
       };
 
       this.state = 'idle'; // 'idle' | 'counting_down' | 'recording' | 'paused' | 'stopped'
+      this.sourceType = options.sourceType || 'camera'; // 'camera' | 'screen'
       this.mediaStream = null;
+      this.micStream = null;
       this.mediaRecorder = null;
       this.recordedChunks = [];
       this.recordedBlob = null;
@@ -43,6 +45,16 @@
       this.audioContext = null;
       this.analyser = null;
       this.audioLevelInterval = null;
+    }
+
+    /**
+     * Switch active source type ('camera' or 'screen')
+     */
+    setSourceType(sourceType) {
+      if (sourceType === 'screen' || sourceType === 'camera') {
+        this.sourceType = sourceType;
+      }
+      return this.sourceType;
     }
 
     /**
@@ -130,6 +142,101 @@
     }
 
     /**
+     * Request Tab, Window, or Screen sharing via Chrome's native getDisplayMedia picker
+     */
+    async startScreenCapture(options = {}) {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        throw new Error('getDisplayMedia is not supported in this environment');
+      }
+
+      if (this.mediaStream && this.mediaStream.active && this.sourceType === 'screen') {
+        return this.mediaStream;
+      }
+
+      const captureMic = options.captureMic !== undefined ? options.captureMic : true;
+      const captureSystemAudio = options.captureSystemAudio !== undefined ? options.captureSystemAudio : true;
+
+      try {
+        // 1. Trigger Chrome's native "Choose what to share" picker
+        const displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            cursor: 'always',
+            displaySurface: 'monitor'
+          },
+          audio: captureSystemAudio
+        });
+
+        const screenVideoTrack = displayStream.getVideoTracks()[0];
+        if (!screenVideoTrack) {
+          throw new Error('No video track acquired from screen capture');
+        }
+
+        // Handle when user clicks Chrome's native "Stop sharing" blue bar
+        screenVideoTrack.addEventListener('ended', () => {
+          if (this.state === 'recording') {
+            this.stopRecording();
+          }
+        });
+
+        let finalAudioTracks = [];
+
+        // 2. Optionally capture presenter's microphone voiceover and mix with tab audio
+        if (captureMic && navigator.mediaDevices.getUserMedia) {
+          try {
+            this.micStream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+              }
+            });
+
+            this.setupAudioAnalyser(this.micStream);
+
+            const displayAudioTracks = displayStream.getAudioTracks();
+            const micAudioTracks = this.micStream.getAudioTracks();
+
+            if (displayAudioTracks.length > 0 && (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined')) {
+              // Mix both tab/system audio and mic audio into a unified audio track
+              const AudioCtx = window.AudioContext || window.webkitAudioContext;
+              const mixCtx = new AudioCtx();
+              const dest = mixCtx.createMediaStreamDestination();
+
+              const displaySource = mixCtx.createMediaStreamSource(new MediaStream([displayAudioTracks[0]]));
+              const micSource = mixCtx.createMediaStreamSource(new MediaStream([micAudioTracks[0]]));
+
+              displaySource.connect(dest);
+              micSource.connect(dest);
+
+              finalAudioTracks = dest.stream.getAudioTracks();
+            } else if (micAudioTracks.length > 0) {
+              finalAudioTracks = micAudioTracks;
+            } else if (displayAudioTracks.length > 0) {
+              finalAudioTracks = displayAudioTracks;
+            }
+          } catch (micErr) {
+            console.warn('Microphone capture failed or denied, recording system audio only:', micErr);
+            finalAudioTracks = displayStream.getAudioTracks();
+          }
+        } else {
+          finalAudioTracks = displayStream.getAudioTracks();
+        }
+
+        // 3. Assemble combined MediaStream (Screen video + mixed/mic audio)
+        if (typeof MediaStream !== 'undefined') {
+          this.mediaStream = new MediaStream([screenVideoTrack, ...finalAudioTracks]);
+        } else {
+          this.mediaStream = displayStream;
+        }
+        this.sourceType = 'screen';
+        return this.mediaStream;
+      } catch (err) {
+        this.options.onError(err);
+        throw err;
+      }
+    }
+
+    /**
      * Setup audio visualizer analyzer using Web Audio API
      */
     setupAudioAnalyser(stream) {
@@ -168,12 +275,21 @@
 
     /**
      * Start recording with a 3... 2... 1... countdown
+     * @param {string|null} sourceType - 'camera' | 'screen' | null
      */
-    async startRecordingWithCountdown() {
+    async startRecordingWithCountdown(sourceType = null) {
       if (this.state === 'recording' || this.state === 'counting_down') return;
 
+      if (sourceType) {
+        this.sourceType = sourceType;
+      }
+
       if (!this.mediaStream || !this.mediaStream.active) {
-        await this.startCamera();
+        if (this.sourceType === 'screen') {
+          await this.startScreenCapture();
+        } else {
+          await this.startCamera();
+        }
       }
 
       this.state = 'counting_down';
@@ -343,6 +459,15 @@
         this.mediaStream.getTracks().forEach(track => track.stop());
         this.mediaStream = null;
       }
+
+      if (this.micStream) {
+        this.micStream.getTracks().forEach(track => track.stop());
+        this.micStream = null;
+      }
+    }
+
+    stopCapture() {
+      this.stopCamera();
     }
 
     destroy() {

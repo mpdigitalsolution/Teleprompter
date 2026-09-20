@@ -193,8 +193,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
         setTimeout(() => {
-          notifyActiveTab({ type: 'TOGGLE_RECORDING' });
-          recordBtn.innerHTML = '<span>🔴</span> Recording...';
+          notifyActiveTab({ type: 'START_CAMERA_RECORDING' });
+          recordBtn.innerHTML = '<span>📹</span> Recording...';
+          setTimeout(() => { window.close(); }, 400);
+        }, 150);
+      });
+    });
+  }
+
+  // Quick Screen / Tab Record Button on active tab
+  const recScreenBtn = document.getElementById('popup-btn-rec-screen');
+  if (recScreenBtn) {
+    recScreenBtn.addEventListener('click', () => {
+      recScreenBtn.disabled = true;
+      recScreenBtn.innerHTML = '<span>⏳</span> Starting...';
+
+      chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
+        setTimeout(() => {
+          notifyActiveTab({ type: 'START_SCREEN_RECORDING' });
+          recScreenBtn.innerHTML = '<span>🖥️</span> Sharing...';
           setTimeout(() => { window.close(); }, 400);
         }, 150);
       });

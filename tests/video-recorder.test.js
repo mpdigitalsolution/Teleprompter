@@ -33,9 +33,100 @@ function testVideoRecorder() {
 
   // Test state initialization
   assert.strictEqual(rec16x9.state, 'idle');
-  console.log('✓ State transitions passed.');
+  assert.strictEqual(rec16x9.sourceType, 'camera');
+  rec16x9.setSourceType('screen');
+  assert.strictEqual(rec16x9.sourceType, 'screen');
+  rec16x9.setSourceType('camera');
+  assert.strictEqual(rec16x9.sourceType, 'camera');
+  console.log('✓ State transitions and sourceType switching passed.');
 
-  console.log('✅ All VideoRecorder unit tests passed successfully!');
+  // Test screen capture and audio mixing mock
+  let displayMediaCalled = false;
+  let userMediaCalled = false;
+  let trackEndedListener = null;
+
+  const mockVideoTrack = {
+    kind: 'video',
+    readyState: 'live',
+    stop: () => {},
+    addEventListener: (evt, cb) => {
+      if (evt === 'ended') trackEndedListener = cb;
+    }
+  };
+  const mockAudioTrack = {
+    kind: 'audio',
+    readyState: 'live',
+    stop: () => {}
+  };
+
+  const mockDisplayStream = {
+    getTracks: () => [mockVideoTrack],
+    getVideoTracks: () => [mockVideoTrack],
+    getAudioTracks: () => []
+  };
+
+  const mockMicStream = {
+    getTracks: () => [mockAudioTrack],
+    getAudioTracks: () => [mockAudioTrack]
+  };
+
+  global.MediaStream = class MockMediaStream {
+    constructor(tracks = []) {
+      this.tracks = tracks;
+    }
+    getTracks() { return this.tracks; }
+    getVideoTracks() { return this.tracks.filter(t => t.kind === 'video'); }
+    getAudioTracks() { return this.tracks.filter(t => t.kind === 'audio'); }
+  };
+
+  const mockMediaDevices = {
+    getDisplayMedia: async (constraints) => {
+      displayMediaCalled = true;
+      assert.ok(constraints.video, 'getDisplayMedia must request video');
+      return mockDisplayStream;
+    },
+    getUserMedia: async (constraints) => {
+      userMediaCalled = true;
+      assert.ok(constraints.audio, 'getUserMedia must request microphone audio');
+      return mockMicStream;
+    }
+  };
+
+  if (typeof navigator !== 'undefined') {
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: mockMediaDevices,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    global.navigator = { mediaDevices: mockMediaDevices };
+  }
+
+  const screenRec = new VideoRecorder({
+    videoQuality: '1080p',
+    sourceType: 'screen'
+  });
+
+  screenRec.startScreenCapture().then((stream) => {
+    assert.strictEqual(displayMediaCalled, true, 'getDisplayMedia was called');
+    assert.strictEqual(userMediaCalled, true, 'getUserMedia for mic audio was called');
+    assert.ok(stream, 'Returned active media stream');
+    assert.strictEqual(screenRec.sourceType, 'screen');
+    assert.strictEqual(screenRec.state, 'idle');
+
+    // Test stopCapture
+    screenRec.stopCapture();
+    assert.strictEqual(screenRec.mediaStream, null);
+    assert.strictEqual(screenRec.micStream, null);
+    assert.strictEqual(screenRec.state, 'idle');
+    console.log('✓ Screen capture & audio mixing mock passed.');
+
+    console.log('✅ All VideoRecorder unit tests passed successfully!');
+  }).catch((err) => {
+    console.error('Test failed:', err);
+    process.exit(1);
+  });
 }
 
 testVideoRecorder();
+

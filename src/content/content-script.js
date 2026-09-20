@@ -804,6 +804,111 @@
       background: rgba(255, 255, 255, 0.16) !important;
       color: #FFFFFF !important;
     }
+    /* Recording Source Choice Modal */
+    .gp-rec-choice-modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(8, 11, 20, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 210;
+      border-radius: 12px;
+      padding: calc(12px * var(--gp-scale, 1));
+      box-sizing: border-box;
+      animation: gp-fade-in 0.2s ease-out;
+    }
+    .gp-rec-choice-card {
+      width: 100%;
+      max-width: 440px;
+      background: #10162A;
+      border: 1.5px solid rgba(0, 240, 255, 0.6);
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.95), 0 0 24px rgba(0, 240, 255, 0.3);
+      border-radius: calc(10px * var(--gp-scale, 1));
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .gp-rec-choice-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: calc(10px * var(--gp-scale, 1)) calc(14px * var(--gp-scale, 1));
+      background: #141C34;
+      border-bottom: 1px solid rgba(0, 240, 255, 0.3);
+    }
+    .gp-rec-choice-title {
+      font-size: calc(13px * var(--gp-scale, 1));
+      font-weight: 700;
+      color: #00F0FF;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .gp-rec-choice-desc {
+      padding: calc(12px * var(--gp-scale, 1)) calc(14px * var(--gp-scale, 1)) calc(4px * var(--gp-scale, 1));
+      font-size: calc(11px * var(--gp-scale, 1));
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.4;
+    }
+    .gp-rec-choice-grid {
+      display: flex;
+      flex-direction: column;
+      gap: calc(8px * var(--gp-scale, 1));
+      padding: calc(10px * var(--gp-scale, 1)) calc(14px * var(--gp-scale, 1)) calc(14px * var(--gp-scale, 1));
+    }
+    .gp-rec-choice-btn {
+      display: flex;
+      align-items: center;
+      gap: calc(12px * var(--gp-scale, 1));
+      background: rgba(20, 28, 52, 0.85);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: calc(8px * var(--gp-scale, 1));
+      padding: calc(10px * var(--gp-scale, 1)) calc(12px * var(--gp-scale, 1));
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      color: #FFFFFF;
+      font-family: inherit;
+    }
+    .gp-rec-choice-btn:hover {
+      background: rgba(0, 240, 255, 0.18);
+      border-color: #00F0FF;
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+      transform: translateY(-1px);
+    }
+    .gp-rec-choice-btn.gp-choice-highlight {
+      border-color: rgba(0, 255, 136, 0.5);
+    }
+    .gp-rec-choice-btn.gp-choice-highlight:hover {
+      background: rgba(0, 255, 136, 0.18);
+      border-color: #00FF88;
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.4);
+    }
+    .gp-choice-icon {
+      font-size: calc(22px * var(--gp-scale, 1));
+      flex-shrink: 0;
+    }
+    .gp-choice-info {
+      display: flex;
+      flex-direction: column;
+      gap: calc(2px * var(--gp-scale, 1));
+    }
+    .gp-choice-name {
+      font-size: calc(12px * var(--gp-scale, 1));
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .gp-choice-sub {
+      font-size: calc(10px * var(--gp-scale, 1));
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.3;
+    }
     @keyframes gp-fade-in {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -1075,6 +1180,37 @@
             </button>
             <button class="gp-btn gp-btn-save" id="gp-rec-btn-save" title="Save recording to computer">
               <span>💾</span> Save Video (.webm)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recording Source Choice Modal: Screen, Tab, or Window vs Webcam -->
+      <div class="gp-rec-choice-modal" id="gp-rec-choice-modal" style="display: none;">
+        <div class="gp-rec-choice-card">
+          <div class="gp-rec-choice-header">
+            <div class="gp-rec-choice-title">
+              <span>🎙️ Choose Recording Mode</span>
+            </div>
+            <button class="gp-btn gp-btn-icon" id="gp-rec-choice-close" title="Cancel">✕</button>
+          </div>
+          <div class="gp-rec-choice-desc">
+            Your teleprompter stays on top and auto-scrolls while recording!
+          </div>
+          <div class="gp-rec-choice-grid">
+            <button class="gp-rec-choice-btn gp-choice-highlight" id="gp-choice-screen" title="Share Screen, Chrome Tab, or App Window">
+              <span class="gp-choice-icon">🖥️</span>
+              <div class="gp-choice-info">
+                <span class="gp-choice-name">Share Screen, Tab, or Window</span>
+                <span class="gp-choice-sub">Present slides, websites, or apps with prompter + microphone audio mixed</span>
+              </div>
+            </button>
+            <button class="gp-rec-choice-btn" id="gp-choice-cam" title="Record Webcam Only">
+              <span class="gp-choice-icon">📹</span>
+              <div class="gp-choice-info">
+                <span class="gp-choice-name">Camera Only (Stealth Webcam)</span>
+                <span class="gp-choice-sub">Record yourself speaking while reading the prompter (100% prompter-free)</span>
+              </div>
             </button>
           </div>
         </div>
@@ -1386,6 +1522,31 @@
     if (recModalSave) {
       recModalSave.addEventListener('click', () => {
         saveRecording();
+      });
+    }
+
+    // Recording Source Choice Modal Controls
+    const choiceScreenBtn = shadowRoot.getElementById('gp-choice-screen');
+    const choiceCamBtn = shadowRoot.getElementById('gp-choice-cam');
+    const choiceCloseBtn = shadowRoot.getElementById('gp-rec-choice-close');
+
+    if (choiceScreenBtn) {
+      choiceScreenBtn.addEventListener('click', () => {
+        closeRecordingChoiceModal();
+        startRecordingFlow('screen');
+      });
+    }
+
+    if (choiceCamBtn) {
+      choiceCamBtn.addEventListener('click', () => {
+        closeRecordingChoiceModal();
+        startRecordingFlow('camera');
+      });
+    }
+
+    if (choiceCloseBtn) {
+      choiceCloseBtn.addEventListener('click', () => {
+        closeRecordingChoiceModal();
       });
     }
 
@@ -1832,52 +1993,73 @@
     return videoRecorderInstance;
   }
 
-  function toggleRecording() {
-    if (!hostEl || hostEl.style.display === 'none') {
-      initOrToggleHUD().then(() => {
-        toggleRecordingInternal();
-      });
-    } else {
-      toggleRecordingInternal();
-    }
-  }
+    let activeRecordingSource = 'camera';
 
-  function toggleRecordingInternal() {
-    const recorder = getOrCreateRecorder();
-    if (!recorder) {
-      alert('Camera recorder module is initializing. Please try again in a moment or reload the page.');
-      return;
+    function toggleRecording(preferredSource) {
+      if (!hostEl || hostEl.style.display === 'none') {
+        initOrToggleHUD().then(() => {
+          toggleRecordingInternal(preferredSource);
+        });
+      } else {
+        toggleRecordingInternal(preferredSource);
+      }
     }
 
-    if (isRecording || isCountingDown) {
-      stopRecordingFlow();
-    } else {
-      startRecordingFlow();
-    }
-  }
+    function toggleRecordingInternal(preferredSource) {
+      const recorder = getOrCreateRecorder();
+      if (!recorder) {
+        alert('Video recorder module is initializing. Please try again in a moment or reload the page.');
+        return;
+      }
 
-  async function startRecordingFlow() {
-    const recorder = getOrCreateRecorder();
-    if (!recorder) return;
+      if (isRecording || isCountingDown) {
+        stopRecordingFlow();
+        return;
+      }
 
-    // Dismiss preview modal if currently open
-    closeRecordingModal();
+      if (preferredSource === 'screen' || preferredSource === 'camera') {
+        startRecordingFlow(preferredSource);
+      } else {
+        showRecordingChoiceModal();
+      }
+    }
 
-    try {
-      await recorder.startRecordingWithCountdown();
-    } catch (e) {
-      console.warn('Recording start cancelled or error:', e);
+    function showRecordingChoiceModal() {
+      if (!shadowRoot) return;
+      const modal = shadowRoot.getElementById('gp-rec-choice-modal');
+      if (modal) modal.style.display = 'flex';
     }
-  }
 
-  function stopRecordingFlow() {
-    if (videoRecorderInstance) {
-      videoRecorderInstance.stopRecording();
+    function closeRecordingChoiceModal() {
+      if (!shadowRoot) return;
+      const modal = shadowRoot.getElementById('gp-rec-choice-modal');
+      if (modal) modal.style.display = 'none';
     }
-    if (isPlaying) {
-      pauseAutoScroll();
+
+    async function startRecordingFlow(sourceType = 'camera') {
+      closeRecordingChoiceModal();
+      const recorder = getOrCreateRecorder();
+      if (!recorder) return;
+
+      activeRecordingSource = sourceType;
+      // Dismiss preview modal if currently open
+      closeRecordingModal();
+
+      try {
+        await recorder.startRecordingWithCountdown(sourceType);
+      } catch (e) {
+        console.warn('Recording start cancelled or error:', e);
+      }
     }
-  }
+
+    function stopRecordingFlow() {
+      if (videoRecorderInstance) {
+        videoRecorderInstance.stopRecording();
+      }
+      if (isPlaying) {
+        pauseAutoScroll();
+      }
+    }
 
   function updateCountdownUI(remaining) {
     if (!shadowRoot) return;
@@ -1974,7 +2156,7 @@
       scrollAccumulator = 0;
     }
     setTimeout(() => {
-      startRecordingFlow();
+      startRecordingFlow(activeRecordingSource);
     }, 250);
   }
 
@@ -2254,8 +2436,34 @@
       }
 
       if (message.type === 'TOGGLE_RECORDING') {
-        toggleRecording();
+        toggleRecording(message.sourceType);
         sendResponse({ status: 'ok', isRecording });
+        return true;
+      }
+
+      if (message.type === 'START_SCREEN_RECORDING') {
+        if (!hostEl || hostEl.style.display === 'none') {
+          initOrToggleHUD().then(() => {
+            startRecordingFlow('screen');
+            sendResponse({ status: 'ok', isRecording: true });
+          });
+        } else {
+          startRecordingFlow('screen');
+          sendResponse({ status: 'ok', isRecording: true });
+        }
+        return true;
+      }
+
+      if (message.type === 'START_CAMERA_RECORDING') {
+        if (!hostEl || hostEl.style.display === 'none') {
+          initOrToggleHUD().then(() => {
+            startRecordingFlow('camera');
+            sendResponse({ status: 'ok', isRecording: true });
+          });
+        } else {
+          startRecordingFlow('camera');
+          sendResponse({ status: 'ok', isRecording: true });
+        }
         return true;
       }
 
@@ -2389,6 +2597,8 @@
     toggleGhostMode: toggleGhostMode,
     toggleToolbar: toggleToolbar,
     toggleRecording: toggleRecording,
+    startScreenRecording: () => toggleRecording('screen'),
+    startCameraRecording: () => toggleRecording('camera'),
     nudge: nudgeScroll,
     adjustSpeed: adjustSpeed,
     isPlaying: () => isPlaying,
