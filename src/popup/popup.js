@@ -14,10 +14,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const statusPill = document.getElementById('popup-status');
 
   // Load storage
-  if (window.StorageManager) {
-    const settings = await window.StorageManager.getSettings();
-    const scripts = await window.StorageManager.getScripts();
-    const activeScriptId = await window.StorageManager.getActiveScriptId();
+  const Storage = window.GhostStorage;
+  if (Storage) {
+    const settings = await Storage.getSettings();
+    const scripts = await Storage.getScripts();
+    const activeScriptId = await Storage.getActiveScriptId();
 
     // Populate scripts
     scriptSelect.innerHTML = scripts.map(s => 
@@ -32,25 +33,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Listeners
     scriptSelect.addEventListener('change', async (e) => {
-      await window.StorageManager.setActiveScript(e.target.value);
+      await Storage.setActiveScript(e.target.value);
       sendToActiveTab({ type: 'SCRIPT_CHANGED', scriptId: e.target.value });
     });
 
     modeSelect.addEventListener('change', async (e) => {
-      await window.StorageManager.saveSettings({ trackingMode: e.target.value });
+      await Storage.saveSettings({ trackingMode: e.target.value });
       chrome.runtime.sendMessage({ type: 'SET_TRACKING_MODE', mode: e.target.value });
     });
 
     opacityRange.addEventListener('input', async (e) => {
-      await window.StorageManager.saveSettings({ opacity: parseFloat(e.target.value) });
+      await Storage.saveSettings({ opacity: parseFloat(e.target.value) });
     });
 
     fontRange.addEventListener('input', async (e) => {
-      await window.StorageManager.saveSettings({ fontSize: parseInt(e.target.value, 10) });
+      await Storage.saveSettings({ fontSize: parseInt(e.target.value, 10) });
     });
 
     wpmRange.addEventListener('input', async (e) => {
-      await window.StorageManager.saveSettings({ wpm: parseInt(e.target.value, 10) });
+      await Storage.saveSettings({ wpm: parseInt(e.target.value, 10) });
     });
   }
 

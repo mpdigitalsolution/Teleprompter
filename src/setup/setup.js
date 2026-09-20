@@ -170,8 +170,8 @@ async function startCalibration() {
       clearInterval(interval);
       const avg = samples.length ? samples.reduce((a, b) => a + b, 0) / samples.length : 0.5;
       if (window.GazeTracker) window.GazeTracker.setBaseline(avg);
-      if (window.StorageManager) {
-        window.StorageManager.saveSettings({ baselineGazeRatio: avg });
+      if (window.GhostStorage) {
+        window.GhostStorage.saveSettings({ baselineGazeRatio: avg });
       }
       btn.textContent = '✓ Calibration Saved!';
       setTimeout(() => {
@@ -220,16 +220,17 @@ function toggleSpeechTest() {
  * Script Library Manager UI
  */
 async function initScriptManager() {
-  if (!window.StorageManager) return;
-  currentScripts = await window.StorageManager.getScripts();
-  selectedScript = await window.StorageManager.getActiveScript();
+  const Storage = window.GhostStorage;
+  if (!Storage) return;
+  currentScripts = await Storage.getScripts();
+  selectedScript = await Storage.getActiveScript();
   renderScriptList();
   renderActiveScript();
 
   // Script actions
   document.getElementById('btn-new-script').addEventListener('click', async () => {
-    const newScript = await window.StorageManager.createScript('New Script ' + (currentScripts.length + 1), '');
-    currentScripts = await window.StorageManager.getScripts();
+    const newScript = await Storage.createScript('New Script ' + (currentScripts.length + 1), '');
+    currentScripts = await Storage.getScripts();
     selectedScript = newScript;
     renderScriptList();
     renderActiveScript();
@@ -241,8 +242,8 @@ async function initScriptManager() {
     const contentInput = document.getElementById('script-content').value;
     selectedScript.title = titleInput.trim() || 'Untitled Script';
     selectedScript.content = contentInput;
-    await window.StorageManager.saveScript(selectedScript);
-    currentScripts = await window.StorageManager.getScripts();
+    await Storage.saveScript(selectedScript);
+    currentScripts = await Storage.getScripts();
     renderScriptList();
     const saveBtn = document.getElementById('btn-save-script');
     saveBtn.textContent = '✓ Saved!';
@@ -252,7 +253,7 @@ async function initScriptManager() {
   document.getElementById('btn-delete-script').addEventListener('click', async () => {
     if (!selectedScript) return;
     if (confirm(`Delete "${selectedScript.title}"?`)) {
-      currentScripts = await window.StorageManager.deleteScript(selectedScript.id);
+      currentScripts = await Storage.deleteScript(selectedScript.id);
       selectedScript = currentScripts[0] || null;
       renderScriptList();
       renderActiveScript();
@@ -269,8 +270,8 @@ async function initScriptManager() {
     reader.onload = async (evt) => {
       const text = evt.target.result;
       const title = file.name.replace(/\.[^/.]+$/, '');
-      const newScript = await window.StorageManager.createScript(title, text);
-      currentScripts = await window.StorageManager.getScripts();
+      const newScript = await Storage.createScript(title, text);
+      currentScripts = await Storage.getScripts();
       selectedScript = newScript;
       renderScriptList();
       renderActiveScript();
@@ -299,7 +300,9 @@ function renderScriptList() {
     item.innerHTML = `<span>${script.title}</span>`;
     item.addEventListener('click', async () => {
       selectedScript = script;
-      await window.StorageManager.setActiveScript(script.id);
+      if (window.GhostStorage) {
+        await window.GhostStorage.setActiveScript(script.id);
+      }
       renderScriptList();
       renderActiveScript();
     });
