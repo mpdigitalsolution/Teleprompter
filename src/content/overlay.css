@@ -312,17 +312,68 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 11px;
   color: #CBD5E1;
-  transition: max-height 0.25s ease, opacity 0.25s ease, padding 0.25s ease;
+  transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
   overflow: hidden;
-  max-height: 90px;
+  max-height: 220px;
 }
 
 .gp-toolbar.collapsed {
-  max-height: 0;
-  opacity: 0;
-  padding: 0 14px;
-  pointer-events: none;
-  border-bottom: none;
+  max-height: 0 !important;
+  opacity: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  pointer-events: none !important;
+  border-bottom: none !important;
+  overflow: hidden !important;
+}
+
+.gp-btn-tools {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 4px 9px !important;
+  border-radius: 6px !important;
+  color: #CBD5E1 !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.gp-btn-tools:hover {
+  background: rgba(0, 240, 255, 0.15) !important;
+  color: #00F0FF !important;
+  border-color: rgba(0, 240, 255, 0.5) !important;
+}
+
+.gp-btn-tools.active {
+  background: rgba(0, 240, 255, 0.25) !important;
+  color: #00F0FF !important;
+  border-color: #00F0FF !important;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.3) !important;
+}
+
+.gp-btn-collapse {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #00F0FF !important;
+  border: 1px solid rgba(0, 240, 255, 0.5) !important;
+  font-weight: 700 !important;
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.gp-btn-collapse:hover {
+  background: rgba(0, 240, 255, 0.2) !important;
+  border-color: #00F0FF !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
 }
 
 .gp-ctrl-group {

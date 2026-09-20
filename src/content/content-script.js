@@ -39,6 +39,7 @@
     trackingMode: 'auto',
     isTransparentMode: false,
     transparencyPreset: 'solid',
+    isToolbarCollapsed: true,
     window: { x: null, y: 24, width: 680, height: 290 }
   };
 
@@ -316,16 +317,62 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 11px;
       color: #CBD5E1;
-      transition: max-height 0.25s ease, opacity 0.25s ease, padding 0.25s ease;
+      transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
       overflow: hidden;
-      max-height: 90px;
+      max-height: 220px;
     }
     .gp-toolbar.collapsed {
-      max-height: 0;
-      opacity: 0;
-      padding: 0 14px;
-      pointer-events: none;
-      border-bottom: none;
+      max-height: 0 !important;
+      opacity: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      pointer-events: none !important;
+      border-bottom: none !important;
+      overflow: hidden !important;
+    }
+    .gp-btn-tools {
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      padding: 4px 9px !important;
+      border-radius: 6px !important;
+      color: #CBD5E1 !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      background: rgba(255, 255, 255, 0.06) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+    }
+    .gp-btn-tools:hover {
+      background: rgba(0, 240, 255, 0.15) !important;
+      color: #00F0FF !important;
+      border-color: rgba(0, 240, 255, 0.5) !important;
+    }
+    .gp-btn-tools.active {
+      background: rgba(0, 240, 255, 0.25) !important;
+      color: #00F0FF !important;
+      border-color: #00F0FF !important;
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3) !important;
+    }
+    .gp-btn-collapse {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #00F0FF !important;
+      border: 1px solid rgba(0, 240, 255, 0.5) !important;
+      font-weight: 700 !important;
+      padding: 4px 10px !important;
+      font-size: 11px !important;
+      border-radius: 6px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+    }
+    .gp-btn-collapse:hover {
+      background: rgba(0, 240, 255, 0.2) !important;
+      border-color: #00F0FF !important;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4) !important;
+      color: #FFFFFF !important;
+      transform: translateY(-1px);
     }
     .gp-ctrl-group {
       display: flex;
@@ -589,6 +636,8 @@
     windowEl.style.top = `${initialTop}px`;
     windowEl.style.left = `${initialLeft}px`;
 
+    const isToolbarCollapsed = currentSettings.isToolbarCollapsed !== false;
+
     // Markup with high-visibility auto-scroll & transparent mode controls
     windowEl.innerHTML = `
       <!-- Click-through Ghost Mode exit badge -->
@@ -625,13 +674,13 @@
           <button class="gp-btn gp-btn-icon" id="gp-btn-reset-top" title="Reset to Top">⏮</button>
           <button class="gp-btn" id="gp-btn-ghost" title="Alt+C: Ghost Click-Through Mode">👻 Ghost</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-mirror" title="Mirror text for glass prompter">🪞</button>
-          <button class="gp-btn gp-btn-icon" id="gp-btn-tools" title="Toggle control sliders">⚙</button>
+          <button class="gp-btn gp-btn-tools ${!isToolbarCollapsed ? 'active' : ''}" id="gp-btn-tools" title="Alt+S: Toggle Settings Toolbar">${isToolbarCollapsed ? '⚙ Controls ▼' : '⚙ Controls ▲'}</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-close" title="Close HUD (Alt+P)">✕</button>
         </div>
       </div>
 
       <!-- Collapsible Settings Toolbar -->
-      <div class="gp-toolbar" id="gp-toolbar">
+      <div class="gp-toolbar ${isToolbarCollapsed ? 'collapsed' : ''}" id="gp-toolbar">
         <div class="gp-ctrl-group">
           <label>Script:</label>
           <select class="gp-select" id="gp-select-script">
@@ -682,6 +731,10 @@
             <option value="gaze" ${currentSettings.trackingMode === 'gaze' ? 'selected' : ''}>Gaze Only</option>
             <option value="speech" ${currentSettings.trackingMode === 'speech' ? 'selected' : ''}>Speech Sync</option>
           </select>
+        </div>
+
+        <div class="gp-ctrl-group" style="margin-left: auto;">
+          <button class="gp-btn gp-btn-collapse" id="gp-btn-collapse-toolbar" title="Hide this section (Alt+S)">▲ Hide Controls</button>
         </div>
       </div>
 
@@ -910,6 +963,7 @@
     const ghostPill = shadowRoot.getElementById('gp-ghost-pill');
     const mirrorBtn = shadowRoot.getElementById('gp-btn-mirror');
     const toolsBtn = shadowRoot.getElementById('gp-btn-tools');
+    const collapseToolbarBtn = shadowRoot.getElementById('gp-btn-collapse-toolbar');
     const closeBtn = shadowRoot.getElementById('gp-btn-close');
     const toolbar = shadowRoot.getElementById('gp-toolbar');
     const opacitySlider = shadowRoot.getElementById('gp-range-opacity');
@@ -1011,11 +1065,19 @@
       });
     }
 
-    // Toggle Toolbar
+    // Toggle Toolbar Header Button
     if (toolsBtn) {
-      toolsBtn.addEventListener('click', () => {
-        toolbar.classList.toggle('collapsed');
-        toolsBtn.classList.toggle('active', !toolbar.classList.contains('collapsed'));
+      toolsBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleToolbar();
+      });
+    }
+
+    // Collapse Toolbar Button (inside settings section)
+    if (collapseToolbarBtn) {
+      collapseToolbarBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleToolbar(true);
       });
     }
 
@@ -1146,6 +1208,28 @@
   }
 
   /**
+   * Toolbar Collapse / Expand Controller
+   */
+  function toggleToolbar(forceState) {
+    if (!shadowRoot) return;
+    const toolbar = shadowRoot.getElementById('gp-toolbar');
+    const toolsBtn = shadowRoot.getElementById('gp-btn-tools');
+    if (!toolbar) return;
+
+    const isCurrentlyCollapsed = toolbar.classList.contains('collapsed');
+    const shouldCollapse = forceState !== undefined ? forceState : !isCurrentlyCollapsed;
+
+    toolbar.classList.toggle('collapsed', shouldCollapse);
+    if (toolsBtn) {
+      toolsBtn.classList.toggle('active', !shouldCollapse);
+      toolsBtn.innerHTML = shouldCollapse ? '⚙ Controls ▼' : '⚙ Controls ▲';
+      toolsBtn.title = shouldCollapse ? 'Show Controls Toolbar (Alt+S)' : 'Hide Controls Toolbar (Alt+S)';
+    }
+    currentSettings.isToolbarCollapsed = shouldCollapse;
+    saveData({ settings: currentSettings });
+  }
+
+  /**
    * Hotkey Controller
    */
   function setupHotkeys() {
@@ -1171,6 +1255,13 @@
       if (e.altKey && (e.key === 't' || e.key === 'T')) {
         e.preventDefault();
         toggleTransparency();
+        return;
+      }
+
+      // Global toggle Controls Toolbar hotkey: Alt + S
+      if (e.altKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        toggleToolbar();
         return;
       }
 
@@ -1464,6 +1555,12 @@
         return true;
       }
 
+      if (message.type === 'TOGGLE_TOOLBAR') {
+        toggleToolbar(message.forceState);
+        sendResponse({ status: 'ok', isToolbarCollapsed: currentSettings.isToolbarCollapsed });
+        return true;
+      }
+
       if (message.type === 'GAZE_TRACKING_UPDATE') {
         handleGazeUpdate(message);
         return;
@@ -1481,12 +1578,15 @@
     const dot = shadowRoot.getElementById('gp-gaze-dot');
     if (!dot) return;
 
-    if (data.glanceZone === 'lower') {
+    if (data.direction === 'down' || data.glanceZone === 'lower') {
       dot.className = 'gp-dot active-green';
       scrollVelocity = 25;
+    } else if (data.direction === 'up' || data.glanceZone === 'top') {
+      dot.className = 'gp-dot active-green';
+      scrollVelocity = -15;
     } else if (data.glanceZone === 'away') {
       dot.className = 'gp-dot active-amber';
-      scrollVelocity = -15;
+      scrollVelocity = 0;
     } else {
       dot.className = 'gp-dot active-cyan';
       scrollVelocity = 0;
@@ -1517,11 +1617,13 @@
     toggleTransparency: toggleTransparency,
     setTransparencyPreset: setTransparencyPreset,
     toggleGhostMode: toggleGhostMode,
+    toggleToolbar: toggleToolbar,
     nudge: nudgeScroll,
     adjustSpeed: adjustSpeed,
     isPlaying: () => isPlaying,
-    isTransparent: () => isTransparentMode
+    isTransparent: () => isTransparentMode,
+    isToolbarCollapsed: () => currentSettings ? currentSettings.isToolbarCollapsed : true
   };
 
-  console.log('GhostPrompter content script loaded. Alt+P: Toggle Prompter | Alt+T: Transparent Mode | Space: Auto-Scroll');
+  console.log('GhostPrompter content script loaded. Alt+P: Toggle Prompter | Alt+S: Controls | Alt+T: Transparent | Space: Auto-Scroll');
 })();

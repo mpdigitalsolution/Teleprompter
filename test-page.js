@@ -37,6 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const toggleToolbarBtn = document.getElementById('test-btn-toolbar');
+  if (toggleToolbarBtn) {
+    toggleToolbarBtn.addEventListener('click', () => {
+      if (window.GhostPrompter && window.GhostPrompter.toggleToolbar) {
+        window.GhostPrompter.toggleToolbar();
+      }
+    });
+  }
+
   if (toggleGhostBtn) {
     toggleGhostBtn.addEventListener('click', () => {
       if (window.GhostPrompter && window.GhostPrompter.toggleGhostMode) {
