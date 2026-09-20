@@ -1027,29 +1027,35 @@
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (!message || !message.type) return;
 
-      switch (message.type) {
-        case 'TOGGLE_PROMPTER':
-          initOrToggleHUD();
+      if (message.type === 'TOGGLE_PROMPTER') {
+        initOrToggleHUD().then(() => {
           sendResponse({ status: 'ok' });
-          break;
+        }).catch(err => {
+          sendResponse({ status: 'error', error: err.message });
+        });
+        return true; // Crucial: keep message port open for async sendResponse!
+      }
 
-        case 'TOGGLE_GHOST_MODE':
-          toggleGhostMode();
-          sendResponse({ status: 'ok', ghostMode: isGhostMode });
-          break;
+      if (message.type === 'TOGGLE_GHOST_MODE') {
+        toggleGhostMode();
+        sendResponse({ status: 'ok', ghostMode: isGhostMode });
+        return true;
+      }
 
-        case 'TOGGLE_PAUSE':
-          togglePlay();
-          sendResponse({ status: 'ok', isPlaying });
-          break;
+      if (message.type === 'TOGGLE_PAUSE') {
+        togglePlay();
+        sendResponse({ status: 'ok', isPlaying });
+        return true;
+      }
 
-        case 'GAZE_TRACKING_UPDATE':
-          handleGazeUpdate(message);
-          break;
+      if (message.type === 'GAZE_TRACKING_UPDATE') {
+        handleGazeUpdate(message);
+        return;
+      }
 
-        case 'SPEECH_SYNC_UPDATE':
-          handleSpeechUpdate(message);
-          break;
+      if (message.type === 'SPEECH_SYNC_UPDATE') {
+        handleSpeechUpdate(message);
+        return;
       }
     });
   }

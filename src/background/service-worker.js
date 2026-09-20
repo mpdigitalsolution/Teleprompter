@@ -69,8 +69,22 @@ async function closeOffscreenDocument() {
  * Launch or Toggle Prompter on a specific tab with automatic fallback
  */
 async function togglePrompterOnTab(tabId, tabUrl) {
+  // If user is on our own test-page, directly toggle it without reopening
+  if (tabUrl && tabUrl.includes('test-page.html')) {
+    try {
+      await chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_PROMPTER' });
+      return { status: 'toggled' };
+    } catch (e) {}
+  }
+
   // If user is on an internal browser URL where scripting is prohibited, open test page
-  if (!tabUrl || tabUrl.startsWith('chrome://') || tabUrl.startsWith('chrome-extension://') || tabUrl.startsWith('edge://') || tabUrl.startsWith('about:')) {
+  const isRestrictedUrl = !tabUrl || 
+    tabUrl.startsWith('chrome://') || 
+    tabUrl.startsWith('edge://') || 
+    tabUrl.startsWith('about:') || 
+    (tabUrl.startsWith('chrome-extension://') && !tabUrl.includes(chrome.runtime.id));
+
+  if (isRestrictedUrl) {
     const testPageUrl = chrome.runtime.getURL('test-page.html');
     await chrome.tabs.create({ url: testPageUrl });
     return { status: 'opened_test_page' };
@@ -93,7 +107,17 @@ async function togglePrompterOnTab(tabId, tabUrl) {
     await chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_PROMPTER' });
     return { status: 'toggled' };
   } catch (err) {
-    console.warn('Could not message content script:', err);
+    // If connection failed on first attempt, reinject and retry once
+    if (chrome.scripting) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tabId },
+          files: ['src/content/content-script.js']
+        });
+        await chrome.tabs.sendMessage(tabId, { type: 'TOGGLE_PROMPTER' });
+        return { status: 'toggled' };
+      } catch (retryErr) {}
+    }
     return { status: 'error', error: err.message };
   }
 }

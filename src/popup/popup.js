@@ -61,6 +61,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     toggleBtn.innerHTML = '<span>⏳</span> Launching...';
 
     chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, (res) => {
+      if (chrome.runtime.lastError) {
+        console.warn('Launch message notice:', chrome.runtime.lastError.message);
+      }
       if (res && res.status === 'opened_test_page') {
         toggleBtn.innerHTML = '<span>🧪</span> Opened in Test Tab!';
       } else {
