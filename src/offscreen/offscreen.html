@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GhostPrompter Media Host</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
+    }
+    video, canvas {
+      display: none; /* Offscreen background processing */
+    }
+  </style>
+</head>
+<body>
+  <video id="gp-offscreen-video" width="320" height="240" autoplay playsinline muted></video>
+  <canvas id="gp-offscreen-canvas" width="320" height="240"></canvas>
+
+  <script src="../modules/gaze-tracker.js"></script>
+  <script src="../modules/speech-tracker.js"></script>
+  <script src="offscreen.js"></script>
+</body>
+</html>

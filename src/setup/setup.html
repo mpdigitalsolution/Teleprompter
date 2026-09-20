@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostPrompter — Onboarding & Calibration</title>
+  <link rel="stylesheet" href="setup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2A9 9 0 0 0 3 11c0 3.2 1.6 6 4 7.6V21a1 1 0 0 0 1.5.9L12 20l3.5 1.9A1 1 0 0 0 17 21v-2.4c2.4-1.6 4-4.4 4-7.6A9 9 0 0 0 12 2zm-3 8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+          </svg>
+        </div>
+        <div>
+          <h1>GhostPrompter Setup</h1>
+          <p>Stealth Eye-Tracking & Speech-Sync Teleprompter</p>
+        </div>
+      </div>
+      <div class="header-badge" id="perm-status-badge">● Permissions Needed</div>
+    </header>
+
+    <div class="card-grid">
+      <!-- Step 1: Permissions -->
+      <div class="card">
+        <div class="card-title">
+          <span class="card-title-icon">📷</span>
+          <h3>1. Device Permissions</h3>
+        </div>
+        <p class="card-desc">
+          Allow camera & microphone access for GhostPrompter. Chrome requires granting permission here once for the background offscreen tracking engine.
+        </p>
+        <div style="flex:1;"></div>
+        <button class="btn" id="btn-request-perm">Grant Camera & Mic Access</button>
+      </div>
+
+      <!-- Step 2: Gaze Calibration -->
+      <div class="card">
+        <div class="card-title">
+          <span class="card-title-icon">👁️</span>
+          <h3>2. Gaze Calibration</h3>
+        </div>
+        <p class="card-desc">
+          Look straight into your webcam lens and click Calibrate. This zeroes your neutral eye pitch for accurate glance detection.
+        </p>
+
+        <div class="preview-box">
+          <video id="setup-video" autoplay playsinline muted></video>
+          <canvas id="setup-canvas"></canvas>
+          <div class="preview-placeholder" id="video-placeholder">Camera inactive. Click Grant Access to preview.</div>
+        </div>
+
+        <div class="zone-meter" id="zone-meter">
+          <span id="zone-high">High / Lens</span>
+          <span id="zone-mid" class="active">Reading Center</span>
+          <span id="zone-low">Lower Zone (Scroll)</span>
+          <span id="zone-away">Away (Hold)</span>
+        </div>
+
+        <button class="btn btn-secondary" id="btn-calibrate" disabled>Calibrate Baseline (3s)</button>
+      </div>
+
+      <!-- Step 3: Speech-Sync Test -->
+      <div class="card">
+        <div class="card-title">
+          <span class="card-title-icon">🎙️</span>
+          <h3>3. Speech-Sync Test</h3>
+        </div>
+        <p class="card-desc">
+          Test speech pacing. Speak any sentence below to test the browser's speech recognition engine.
+        </p>
+
+        <div class="speech-box" id="speech-preview">
+          Click "Test Microphone" and say: "GhostPrompter keeps my eye contact natural."
+        </div>
+
+        <button class="btn btn-secondary" id="btn-test-speech" disabled>Test Microphone</button>
+      </div>
+
+      <!-- Quick Launch -->
+      <div class="card">
+        <div class="card-title">
+          <span class="card-title-icon">🚀</span>
+          <h3>4. Ready to Prompt</h3>
+        </div>
+        <p class="card-desc">
+          GhostPrompter runs on any active webpage. Press <strong>Alt + P</strong> anytime to toggle the floating HUD beneath your webcam.
+        </p>
+        <ul style="font-size:13px; color:#94A3B8; margin-left: 20px; line-height: 1.8; margin-bottom: 20px;">
+          <li><code>Alt + P</code> — Show / Hide HUD</li>
+          <li><code>Alt + C</code> — Toggle Click-Through Ghost Mode</li>
+          <li><code>Spacebar</code> — Instant Pause / Resume</li>
+          <li><code>↑ / ↓</code> — Nudge scroll line by line</li>
+        </ul>
+        <div style="flex:1;"></div>
+        <a href="../../test-page.html" class="btn" style="text-decoration:none;">Open Mock Meeting Test Tab</a>
+      </div>
+
+      <!-- Script Library Manager (Full Width) -->
+      <div class="card card-full">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="card-title">
+            <span class="card-title-icon">📝</span>
+            <h3>Script Library</h3>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary" id="btn-new-script">+ New Script</button>
+            <button class="btn btn-secondary" id="btn-import-script">Import File</button>
+            <input type="file" id="file-import" accept=".txt,.md" style="display:none;">
+            <button class="btn btn-secondary" id="btn-export-script">Export</button>
+          </div>
+        </div>
+
+        <div class="script-editor-container">
+          <div class="script-list" id="script-list"></div>
+
+          <div class="editor-form">
+            <input type="text" class="input-text" id="script-title" placeholder="Script Title">
+            <textarea class="textarea-script" id="script-content" placeholder="Paste or type your script here..."></textarea>
+            <div class="editor-actions">
+              <button class="btn btn-secondary" id="btn-delete-script" style="color:#FF5555;">Delete</button>
+              <button class="btn" id="btn-save-script">Save Script</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../modules/storage.js"></script>
+  <script src="../modules/gaze-tracker.js"></script>
+  <script src="../modules/speech-tracker.js"></script>
+  <script src="setup.js"></script>
+</body>
+</html>
