@@ -1,0 +1,73 @@
+{
+  "manifest_version": 3,
+  "name": "GhostPrompter: Eye-Tracking Stealth Teleprompter",
+  "version": "1.0.0",
+  "description": "Lightweight, low-resource eye-tracking & speech-sync Chrome teleprompter with a transparent HUD overlay.",
+  "permissions": [
+    "storage",
+    "offscreen",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_title": "GhostPrompter Settings & Status",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_ui": {
+    "page": "src/setup/setup.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "toggle-prompter": {
+      "suggested_key": {
+        "default": "Alt+P"
+      },
+      "description": "Toggle GhostPrompter HUD visibility"
+    },
+    "toggle-ghost-mode": {
+      "suggested_key": {
+        "default": "Alt+C"
+      },
+      "description": "Toggle click-through Ghost Mode"
+    },
+    "toggle-pause": {
+      "suggested_key": {
+        "default": "Alt+Space"
+      },
+      "description": "Pause or resume teleprompter scroll"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/content/content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*",
+        "src/content/overlay.css",
+        "src/modules/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "ghost-prompter",
+  "version": "1.0.0",
+  "description": "Low-resource eye-tracking and speech-sync Chrome teleprompter extension with stealth heads-up display",
+  "scripts": {
+    "test": "node -e \"console.log('Validating extension structure...'); require('./manifest.json'); console.log('Manifest JSON is valid!');\""
+  },
+  "keywords": [
+    "teleprompter",
+    "chrome-extension",
+    "eye-tracking",
+    "speech-sync",
+    "heads-up-display",
+    "stealth"
+  ],
+  "author": "GhostPrompter Team",
+  "license": "MIT"
+}
