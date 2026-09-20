@@ -231,8 +231,15 @@ class PiPPrompterManager {
 
     // Elastic Dynamic UI Resizer - adjusts scale and responsive layout in sync with window resize
     const updatePipScale = () => {
-      const w = pipWin.innerWidth || 600;
-      const scale = Math.max(0.55, Math.min(1.25, Math.pow(w / 600, 0.72)));
+      const w = pipWin.innerWidth || doc.documentElement.clientWidth || 600;
+      const h = pipWin.innerHeight || doc.documentElement.clientHeight || 300;
+
+      // Calculate responsive ratio from baseline 620w x 300h
+      const ratioW = w / 620;
+      const ratioH = h / 300;
+      // Fluid responsive factor blending width and height
+      const blendedRatio = (ratioW * 0.75) + (ratioH * 0.25);
+      const scale = Math.max(0.48, Math.min(1.45, Math.pow(blendedRatio, 0.82)));
       doc.documentElement.style.setProperty('--pip-scale', scale.toFixed(3));
 
       if (w < 440) {
@@ -246,12 +253,20 @@ class PiPPrompterManager {
         container.classList.remove('pip-size-xs', 'pip-size-sm');
       }
     };
+
+    if (typeof pipWin.ResizeObserver !== 'undefined') {
+      const ro = new pipWin.ResizeObserver(() => {
+        updatePipScale();
+      });
+      ro.observe(doc.documentElement);
+      ro.observe(doc.body);
+    }
     pipWin.addEventListener('resize', updatePipScale);
     updatePipScale();
 
-    // Populate script content
+    // Populate script content & set initial responsive font size
     textEl.innerText = this.currentScript.content || '';
-    textEl.style.fontSize = `${this.currentFontSize}px`;
+    textEl.style.setProperty('--pip-font-size', `${this.currentFontSize}px`);
 
     // Restore scroll position
     if (initialScrollTop > 0) {
@@ -354,14 +369,14 @@ class PiPPrompterManager {
     // Font size controls
     btnFontDec.addEventListener('click', () => {
       this.currentFontSize = Math.max(16, this.currentFontSize - 2);
-      textEl.style.fontSize = `${this.currentFontSize}px`;
+      textEl.style.setProperty('--pip-font-size', `${this.currentFontSize}px`);
       labelFont.textContent = `${this.currentFontSize}px`;
       this.syncStorage({ fontSize: this.currentFontSize });
     });
 
     btnFontInc.addEventListener('click', () => {
       this.currentFontSize = Math.min(48, this.currentFontSize + 2);
-      textEl.style.fontSize = `${this.currentFontSize}px`;
+      textEl.style.setProperty('--pip-font-size', `${this.currentFontSize}px`);
       labelFont.textContent = `${this.currentFontSize}px`;
       this.syncStorage({ fontSize: this.currentFontSize });
     });
@@ -449,7 +464,7 @@ class PiPPrompterManager {
           }
           if (s.fontSize && s.fontSize !== this.currentFontSize) {
             this.currentFontSize = s.fontSize;
-            textEl.style.fontSize = `${this.currentFontSize}px`;
+            textEl.style.setProperty('--pip-font-size', `${this.currentFontSize}px`);
             labelFont.textContent = `${this.currentFontSize}px`;
           }
           if (typeof s.isTransparentMode === 'boolean' && s.isTransparentMode !== this.isTransparent) {
@@ -609,12 +624,13 @@ class PiPPrompterManager {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: calc(6px * var(--pip-scale, 1)) calc(10px * var(--pip-scale, 1));
+        padding: calc(4px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1));
         background: rgba(16, 22, 38, 0.95);
         border: none !important;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        gap: calc(6px * var(--pip-scale, 1));
+        gap: calc(4px * var(--pip-scale, 1));
         flex-shrink: 0;
+        min-height: calc(32px * var(--pip-scale, 1));
       }
       .pip-transparent .pip-header {
         background: rgba(12, 16, 30, 0.75);
@@ -622,21 +638,21 @@ class PiPPrompterManager {
       .pip-brand {
         display: flex;
         align-items: center;
-        gap: calc(5px * var(--pip-scale, 1));
-        font-size: calc(12px * var(--pip-scale, 1));
+        gap: calc(4px * var(--pip-scale, 1));
+        font-size: calc(11px * var(--pip-scale, 1));
         font-weight: 800;
         color: #00F0FF;
         white-space: nowrap;
       }
       .pip-logo {
-        font-size: calc(14px * var(--pip-scale, 1));
+        font-size: calc(13px * var(--pip-scale, 1));
       }
       .pip-pill {
         background: rgba(0, 255, 136, 0.15);
         border: none !important;
         color: #00FF88;
-        font-size: calc(9px * var(--pip-scale, 1));
-        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1));
+        font-size: calc(8.5px * var(--pip-scale, 1));
+        padding: calc(1.5px * var(--pip-scale, 1)) calc(5px * var(--pip-scale, 1));
         border-radius: 20px;
         text-transform: uppercase;
         font-weight: 700;
@@ -644,7 +660,7 @@ class PiPPrompterManager {
       .pip-actions {
         display: flex;
         align-items: center;
-        gap: calc(5px * var(--pip-scale, 1));
+        gap: calc(4px * var(--pip-scale, 1));
         flex-wrap: nowrap;
         overflow-x: auto;
         scrollbar-width: none;
@@ -659,9 +675,9 @@ class PiPPrompterManager {
         background: rgba(255, 255, 255, 0.1);
         border: none !important;
         color: #FFF;
-        font-size: calc(11px * var(--pip-scale, 1));
+        font-size: calc(10.5px * var(--pip-scale, 1));
         font-weight: 700;
-        padding: calc(4px * var(--pip-scale, 1)) calc(9px * var(--pip-scale, 1));
+        padding: calc(2.5px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1));
         border-radius: 20px;
         cursor: pointer;
         display: inline-flex;
@@ -670,15 +686,23 @@ class PiPPrompterManager {
         gap: calc(4px * var(--pip-scale, 1));
         white-space: nowrap;
         transition: all 0.15s ease;
+        height: calc(22px * var(--pip-scale, 1));
       }
       .pip-btn:hover {
         background: rgba(0, 240, 255, 0.25);
         color: #00F0FF;
       }
-      .pip-btn-rec {
-        background: rgba(239, 68, 68, 0.2);
-        color: #FF6B6B;
+      /* Compact Rec & Play Buttons */
+      .pip-btn-rec, .pip-btn-play {
+        padding: calc(2px * var(--pip-scale, 1)) calc(6.5px * var(--pip-scale, 1));
+        font-size: calc(9.5px * var(--pip-scale, 1));
+        height: calc(20.5px * var(--pip-scale, 1));
         font-weight: 800;
+        gap: calc(3px * var(--pip-scale, 1));
+      }
+      .pip-btn-rec {
+        background: rgba(239, 68, 68, 0.22);
+        color: #FF6B6B;
       }
       .pip-btn-rec:hover {
         background: rgba(239, 68, 68, 0.4);
@@ -687,7 +711,7 @@ class PiPPrompterManager {
       .pip-btn-rec.pip-recording {
         background: #EF4444 !important;
         color: #FFF !important;
-        box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
         animation: pipPulseRec 1.2s infinite ease-in-out;
       }
       @keyframes pipPulseRec {
@@ -697,7 +721,6 @@ class PiPPrompterManager {
       .pip-btn-play {
         background: #00F0FF;
         color: #080C16;
-        font-weight: 800;
       }
       .pip-btn-play:hover {
         background: #33F5FF;
@@ -707,28 +730,43 @@ class PiPPrompterManager {
         background: #FF0055;
         color: #FFF;
       }
+      #pip-rec-icon {
+        font-size: calc(8px * var(--pip-scale, 1));
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #pip-play-icon {
+        font-size: calc(8px * var(--pip-scale, 1));
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
       .pip-speed-pill, .pip-font-steppers {
         display: flex;
         align-items: center;
-        gap: calc(3px * var(--pip-scale, 1));
+        gap: calc(2.5px * var(--pip-scale, 1));
         background: rgba(255, 255, 255, 0.08);
         border: none !important;
-        padding: calc(3px * var(--pip-scale, 1)) calc(7px * var(--pip-scale, 1));
+        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1));
         border-radius: 20px;
-        font-size: calc(11px * var(--pip-scale, 1));
+        font-size: calc(10px * var(--pip-scale, 1));
         color: #00F0FF;
         font-weight: 700;
         white-space: nowrap;
+        height: calc(20.5px * var(--pip-scale, 1));
       }
       .pip-btn-step {
-        width: calc(18px * var(--pip-scale, 1));
-        height: calc(18px * var(--pip-scale, 1));
+        width: calc(16px * var(--pip-scale, 1));
+        height: calc(16px * var(--pip-scale, 1));
         background: rgba(255, 255, 255, 0.12);
         border: none !important;
         color: #FFF;
         border-radius: 50%;
         cursor: pointer;
-        font-size: calc(10px * var(--pip-scale, 1));
+        font-size: calc(9.5px * var(--pip-scale, 1));
         font-weight: 800;
         display: inline-flex;
         align-items: center;
@@ -743,10 +781,11 @@ class PiPPrompterManager {
         background: rgba(255, 255, 255, 0.08);
         border: none !important;
         color: #FFF;
-        font-size: calc(11px * var(--pip-scale, 1));
-        padding: calc(3px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1));
+        font-size: calc(10px * var(--pip-scale, 1));
+        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1));
         border-radius: 16px;
-        max-width: calc(120px * var(--pip-scale, 1));
+        max-width: calc(115px * var(--pip-scale, 1));
+        height: calc(20.5px * var(--pip-scale, 1));
         outline: none;
         cursor: pointer;
       }
@@ -754,12 +793,16 @@ class PiPPrompterManager {
         background: transparent;
         border: none !important;
         color: #94A3B8;
-        font-size: calc(13px * var(--pip-scale, 1));
+        font-size: calc(11px * var(--pip-scale, 1));
         font-weight: 800;
         cursor: pointer;
-        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1));
+        padding: calc(1px * var(--pip-scale, 1)) calc(5px * var(--pip-scale, 1));
         border-radius: 50%;
         transition: all 0.15s ease;
+        height: calc(20.5px * var(--pip-scale, 1));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
       .pip-btn-close:hover {
         background: rgba(239, 68, 68, 0.3);
@@ -771,7 +814,7 @@ class PiPPrompterManager {
         overflow-y: scroll;
         overflow-x: hidden;
         scrollbar-width: none;
-        padding: calc(16px * var(--pip-scale, 1)) calc(20px * var(--pip-scale, 1)) calc(120px * var(--pip-scale, 1)) calc(20px * var(--pip-scale, 1));
+        padding: calc(14px * var(--pip-scale, 1)) calc(18px * var(--pip-scale, 1)) calc(120px * var(--pip-scale, 1)) calc(18px * var(--pip-scale, 1));
         border: none !important;
       }
       .pip-viewport::-webkit-scrollbar {
@@ -780,16 +823,17 @@ class PiPPrompterManager {
       .pip-focus-line {
         position: sticky;
         top: calc(24px * var(--pip-scale, 1));
-        height: calc(38px * var(--pip-scale, 1));
+        height: calc(1.5 * var(--pip-font-size, 24px) * var(--pip-scale, 1));
         border: none !important;
         background: rgba(0, 240, 255, 0.1);
         box-shadow: 0 0 calc(12px * var(--pip-scale, 1)) rgba(0, 240, 255, 0.25);
         border-radius: calc(8px * var(--pip-scale, 1));
         pointer-events: none;
-        margin-bottom: calc(-38px * var(--pip-scale, 1));
+        margin-bottom: calc(-1.5 * var(--pip-font-size, 24px) * var(--pip-scale, 1));
         z-index: 10;
       }
       .pip-text {
+        font-size: calc(var(--pip-font-size, 24px) * var(--pip-scale, 1));
         font-weight: 800;
         line-height: 1.6;
         color: #00F0FF;
@@ -909,14 +953,16 @@ class PiPPrompterManager {
       .pip-size-xs .pip-title-text,
       .pip-size-xs .pip-pill,
       .pip-size-xs #pip-play-label,
+      .pip-size-xs #pip-rec-label,
       .pip-size-xs #pip-trans-label {
         display: none !important;
       }
       .pip-size-xs .pip-header {
-        padding: 4px 6px;
+        padding: calc(3px * var(--pip-scale, 1)) calc(5px * var(--pip-scale, 1));
+        gap: calc(3px * var(--pip-scale, 1));
       }
       .pip-size-xs .pip-select-script {
-        max-width: 85px;
+        max-width: 80px;
       }
       .pip-size-sm .pip-pill {
         display: none !important;
