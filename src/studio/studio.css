@@ -345,68 +345,109 @@ body {
   text-transform: uppercase;
 }
 
-/* Floating Integrated Studio Teleprompter */
+/* Floating Integrated Studio Teleprompter (Draggable & Elastic Resizable) */
 .studio-prompter {
   position: absolute;
-  top: 28%;
+  top: 100px;
   left: 50%;
   transform: translateX(-50%);
   width: 78%;
-  max-width: 640px;
-  height: 220px;
-  background: rgba(12, 16, 28, 0.32);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1.5px solid rgba(0, 240, 255, 0.65);
-  border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 240, 255, 0.3);
+  max-width: 680px;
+  min-width: 260px;
+  height: 230px;
+  min-height: 120px;
+  background: rgba(12, 16, 28, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(0, 240, 255, 0.7);
+  border-radius: calc(14px * var(--sp-scale, 1));
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(0, 240, 255, 0.35);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   z-index: 20;
+  touch-action: none;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.studio-prompter.dragging {
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.95), 0 0 32px rgba(0, 240, 255, 0.6) !important;
+  border-color: #00F0FF !important;
+  user-select: none !important;
+}
+
+.studio-prompter.resizing {
+  user-select: none !important;
+  border-color: #00FF88 !important;
 }
 
 .prompter-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
-  background: rgba(14, 20, 36, 0.7);
-  border-bottom: 1px solid rgba(0, 240, 255, 0.35);
-  font-size: 11px;
+  padding: calc(6px * var(--sp-scale, 1)) calc(12px * var(--sp-scale, 1));
+  background: rgba(14, 20, 36, 0.85);
+  border-bottom: 1.5px solid rgba(0, 240, 255, 0.35);
+  font-size: calc(11px * var(--sp-scale, 1));
+  height: calc(38px * var(--sp-scale, 1));
+  min-height: 28px;
+  cursor: grab;
+  flex-shrink: 0;
+  gap: calc(6px * var(--sp-scale, 1));
+}
+
+.prompter-header:active {
+  cursor: grabbing;
+}
+
+.prompter-brand-group {
+  display: flex;
+  align-items: center;
+  gap: calc(6px * var(--sp-scale, 1));
+  color: #FFFFFF;
+}
+
+.prompter-drag-handle {
+  font-size: calc(13px * var(--sp-scale, 1));
+  color: var(--accent-cyan);
+  opacity: 0.85;
+  cursor: grab;
 }
 
 .prompter-title {
   font-weight: 700;
   color: #FFFFFF;
+  font-size: calc(12px * var(--sp-scale, 1));
+  white-space: nowrap;
 }
 
 .prompter-speed-pill {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(0, 240, 255, 0.3);
-  border-radius: 6px;
-  padding: 2px 6px;
+  gap: calc(3px * var(--sp-scale, 1));
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  border-radius: calc(6px * var(--sp-scale, 1));
+  padding: calc(2px * var(--sp-scale, 1)) calc(6px * var(--sp-scale, 1));
   color: var(--accent-cyan);
   font-weight: 700;
-  font-size: 11px;
+  font-size: calc(11px * var(--sp-scale, 1));
+  white-space: nowrap;
 }
 
 .btn-step {
-  width: 20px;
-  height: 20px;
+  width: calc(20px * var(--sp-scale, 1));
+  height: calc(20px * var(--sp-scale, 1));
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #FFFFFF;
-  border-radius: 4px;
+  border-radius: calc(4px * var(--sp-scale, 1));
   font-weight: 800;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: calc(11px * var(--sp-scale, 1));
 }
 
 .btn-step:hover {
@@ -419,11 +460,12 @@ body {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #E2E8F0;
-  font-size: 11px;
+  font-size: calc(11px * var(--sp-scale, 1));
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: calc(3px * var(--sp-scale, 1)) calc(8px * var(--sp-scale, 1));
+  border-radius: calc(4px * var(--sp-scale, 1));
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .prompter-btn-ghost:hover {
@@ -437,7 +479,7 @@ body {
   position: relative;
   overflow-y: scroll;
   scrollbar-width: none;
-  padding: 16px 20px 80px 20px;
+  padding: calc(14px * var(--sp-scale, 1)) calc(18px * var(--sp-scale, 1)) calc(80px * var(--sp-scale, 1)) calc(18px * var(--sp-scale, 1));
 }
 
 .prompter-viewport::-webkit-scrollbar {
@@ -446,18 +488,18 @@ body {
 
 .prompter-focus-bar {
   position: sticky;
-  top: 24px;
-  height: 38px;
+  top: calc(20px * var(--sp-scale, 1));
+  height: calc(36px * var(--sp-scale, 1));
   border-top: 1.5px solid rgba(0, 240, 255, 0.5);
   border-bottom: 1.5px solid rgba(0, 240, 255, 0.5);
   background: rgba(0, 240, 255, 0.08);
-  border-radius: 6px;
+  border-radius: calc(6px * var(--sp-scale, 1));
   pointer-events: none;
-  margin-bottom: -38px;
+  margin-bottom: calc(-36px * var(--sp-scale, 1));
 }
 
 .prompter-text {
-  font-size: 26px;
+  font-size: calc(var(--sp-base-font-size, 26px) * var(--sp-font-scale, 1));
   font-weight: 800;
   line-height: 1.55;
   color: var(--accent-cyan);
@@ -473,6 +515,58 @@ body {
      1.5px -1.5px 0 #000,
     -1.5px  1.5px 0 #000,
      1.5px  1.5px 0 #000;
+  transition: font-size 0.05s ease;
+}
+
+/* Resize Handles for Elastic Scaling */
+.prompter-resize-handle {
+  position: absolute;
+  pointer-events: auto;
+  z-index: 50;
+}
+
+.prompter-resize-se {
+  right: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: se-resize;
+  background: linear-gradient(135deg, transparent 50%, #00F0FF 50%);
+  border-bottom-right-radius: calc(14px * var(--sp-scale, 1));
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.8));
+}
+
+.prompter-resize-sw {
+  left: 0;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  cursor: sw-resize;
+  border-bottom-left-radius: calc(14px * var(--sp-scale, 1));
+}
+
+.prompter-resize-s {
+  left: 18px;
+  right: 18px;
+  bottom: 0;
+  height: 6px;
+  cursor: s-resize;
+}
+
+.prompter-resize-e {
+  top: 38px;
+  bottom: 18px;
+  right: 0;
+  width: 6px;
+  cursor: e-resize;
+}
+
+.prompter-resize-w {
+  top: 38px;
+  bottom: 18px;
+  left: 0;
+  width: 6px;
+  cursor: w-resize;
 }
 
 /* 3-2-1 Countdown Banner */

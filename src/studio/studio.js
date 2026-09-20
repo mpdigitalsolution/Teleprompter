@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const vuStatus = document.getElementById('vu-status');
   const prompterViewport = document.getElementById('prompter-viewport');
   const prompterText = document.getElementById('prompter-text');
+  const studioPrompter = document.getElementById('studio-prompter');
+  const prompterHeader = document.getElementById('prompter-header');
+  const prompterResizeHandles = document.querySelectorAll('.prompter-resize-handle');
   const countdownOverlay = document.getElementById('studio-countdown');
   const countdownDigit = document.getElementById('countdown-digit');
 
@@ -97,9 +100,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initialize UI Values
   labelWpm.textContent = `${currentWpm} WPM`;
   labelFont.textContent = `${currentFontSize}px`;
-  prompterText.style.fontSize = `${currentFontSize}px`;
+  if (studioPrompter) {
+    studioPrompter.style.setProperty('--sp-base-font-size', `${currentFontSize}px`);
+  }
   prompterText.style.color = currentColor;
   selectColor.value = currentColor;
+
+  updateStudioPrompterScale();
+  setupStudioPrompterDrag();
+  setupStudioPrompterResize();
 
   // Instantiate VideoRecorder Engine
   recorder = new VideoRecorder({
@@ -308,14 +317,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   btnFontDec.addEventListener('click', () => {
     currentFontSize = Math.max(16, currentFontSize - 2);
     labelFont.textContent = `${currentFontSize}px`;
-    prompterText.style.fontSize = `${currentFontSize}px`;
+    if (studioPrompter) {
+      studioPrompter.style.setProperty('--sp-base-font-size', `${currentFontSize}px`);
+    }
+    updateStudioPrompterScale();
     if (Storage) Storage.saveSettings({ fontSize: currentFontSize });
   });
 
   btnFontInc.addEventListener('click', () => {
     currentFontSize = Math.min(48, currentFontSize + 2);
     labelFont.textContent = `${currentFontSize}px`;
-    prompterText.style.fontSize = `${currentFontSize}px`;
+    if (studioPrompter) {
+      studioPrompter.style.setProperty('--sp-base-font-size', `${currentFontSize}px`);
+    }
+    updateStudioPrompterScale();
     if (Storage) Storage.saveSettings({ fontSize: currentFontSize });
   });
 
@@ -365,6 +380,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (recorder) {
         recorder.setAspectRatio(currentRatio);
       }
+
+      // Re-center prompter inside new aspect container and adapt size
+      setTimeout(() => {
+        if (studioPrompter && cameraContainer) {
+          const containerW = cameraContainer.clientWidth;
+          const containerH = cameraContainer.clientHeight;
+          if (studioPrompter.offsetWidth > containerW - 20) {
+            studioPrompter.style.width = Math.max(260, containerW - 30) + 'px';
+          }
+          studioPrompter.style.transform = 'none';
+          studioPrompter.dataset.positioned = 'true';
+          const newLeft = Math.max(10, (containerW - studioPrompter.offsetWidth) / 2);
+          const currentTop = parseInt(studioPrompter.style.top, 10) || 100;
+          const newTop = Math.max(20, Math.min(containerH - studioPrompter.offsetHeight - 20, currentTop));
+          studioPrompter.style.left = `${newLeft}px`;
+          studioPrompter.style.top = `${newTop}px`;
+          updateStudioPrompterScale();
+        }
+      }, 100);
     });
   });
 
@@ -438,6 +472,167 @@ document.addEventListener('DOMContentLoaded', async () => {
       startRecording();
     }, 200);
   });
+
+  // ==========================================================================
+  // Studio Teleprompter Dragging & Elastic Resizing
+  // ==========================================================================
+
+  function setupStudioPrompterDrag() {
+    if (!prompterHeader || !studioPrompter || !cameraContainer) return;
+
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let initialLeft = 0, initialTop = 0;
+
+    prompterHeader.addEventListener('mousedown', (e) => {
+      // Ignore clicks on buttons or input controls inside header
+      if (e.target.tagName.toLowerCase() === 'button' || e.target.closest('button')) {
+        return;
+      }
+      e.preventDefault();
+
+      isDragging = true;
+      studioPrompter.classList.add('dragging');
+
+      // Normalize CSS transform if still present
+      if (studioPrompter.style.transform !== 'none' && !studioPrompter.dataset.positioned) {
+        const rect = studioPrompter.getBoundingClientRect();
+        const parentRect = cameraContainer.getBoundingClientRect();
+        studioPrompter.style.transform = 'none';
+        studioPrompter.style.left = `${rect.left - parentRect.left}px`;
+        studioPrompter.style.top = `${rect.top - parentRect.top}px`;
+        studioPrompter.dataset.positioned = 'true';
+      }
+
+      startX = e.clientX;
+      startY = e.clientY;
+      initialLeft = studioPrompter.offsetLeft;
+      initialTop = studioPrompter.offsetTop;
+
+      const onMouseMove = (moveEvent) => {
+        if (!isDragging) return;
+        const dx = moveEvent.clientX - startX;
+        const dy = moveEvent.clientY - startY;
+
+        const maxLeft = Math.max(10, cameraContainer.clientWidth - studioPrompter.offsetWidth - 10);
+        const maxTop = Math.max(10, cameraContainer.clientHeight - studioPrompter.offsetHeight - 10);
+
+        const newLeft = Math.max(10, Math.min(maxLeft, initialLeft + dx));
+        const newTop = Math.max(10, Math.min(maxTop, initialTop + dy));
+
+        studioPrompter.style.left = `${newLeft}px`;
+        studioPrompter.style.top = `${newTop}px`;
+      };
+
+      const onMouseUp = () => {
+        isDragging = false;
+        studioPrompter.classList.remove('dragging');
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
+  }
+
+  function setupStudioPrompterResize() {
+    if (!studioPrompter || !cameraContainer) return;
+
+    prompterResizeHandles.forEach(handle => {
+      handle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const dir = handle.dataset.dir; // 'se', 's', 'e', 'sw', 'w'
+        let isResizing = true;
+        studioPrompter.classList.add('resizing');
+
+        // Normalize transform
+        if (studioPrompter.style.transform !== 'none' && !studioPrompter.dataset.positioned) {
+          const rect = studioPrompter.getBoundingClientRect();
+          const parentRect = cameraContainer.getBoundingClientRect();
+          studioPrompter.style.transform = 'none';
+          studioPrompter.style.left = `${rect.left - parentRect.left}px`;
+          studioPrompter.style.top = `${rect.top - parentRect.top}px`;
+          studioPrompter.dataset.positioned = 'true';
+        }
+
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const startWidth = studioPrompter.offsetWidth;
+        const startHeight = studioPrompter.offsetHeight;
+        const startLeft = studioPrompter.offsetLeft;
+        const startTop = studioPrompter.offsetTop;
+
+        const onMouseMove = (moveEvent) => {
+          if (!isResizing) return;
+          const dx = moveEvent.clientX - startX;
+          const dy = moveEvent.clientY - startY;
+
+          const maxW = Math.max(260, cameraContainer.clientWidth - 20);
+          const maxH = Math.max(120, cameraContainer.clientHeight - 20);
+
+          if (dir === 'se' || dir === 'e') {
+            const newW = Math.max(260, Math.min(maxW - startLeft, startWidth + dx));
+            studioPrompter.style.width = `${newW}px`;
+          }
+          if (dir === 'se' || dir === 's' || dir === 'sw') {
+            const newH = Math.max(120, Math.min(maxH - startTop, startHeight + dy));
+            studioPrompter.style.height = `${newH}px`;
+          }
+          if (dir === 'w' || dir === 'sw') {
+            const targetW = startWidth - dx;
+            if (targetW >= 260 && startLeft + dx >= 10) {
+              studioPrompter.style.width = `${targetW}px`;
+              studioPrompter.style.left = `${startLeft + dx}px`;
+            }
+          }
+
+          updateStudioPrompterScale();
+        };
+
+        const onMouseUp = () => {
+          isResizing = false;
+          studioPrompter.classList.remove('resizing');
+          updateStudioPrompterScale();
+          window.removeEventListener('mousemove', onMouseMove);
+          window.removeEventListener('mouseup', onMouseUp);
+        };
+
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+      });
+    });
+
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => {
+        updateStudioPrompterScale();
+      });
+      ro.observe(studioPrompter);
+      ro.observe(cameraContainer);
+    }
+  }
+
+  function updateStudioPrompterScale() {
+    if (!studioPrompter) return;
+    const w = studioPrompter.offsetWidth || 600;
+    const h = studioPrompter.offsetHeight || 220;
+
+    const baseWidth = 600;
+    const baseHeight = 220;
+
+    const widthRatio = w / baseWidth;
+    const heightRatio = h / baseHeight;
+
+    // Responsive elastic dampening factor
+    const scale = Math.max(0.68, Math.min(1.40, (widthRatio * 0.65 + heightRatio * 0.35)));
+    const fontScale = Math.max(0.68, Math.min(1.45, widthRatio));
+
+    studioPrompter.style.setProperty('--sp-scale', scale.toFixed(3));
+    studioPrompter.style.setProperty('--sp-font-scale', fontScale.toFixed(3));
+    studioPrompter.style.setProperty('--sp-base-font-size', `${currentFontSize}px`);
+  }
 
   // Global Keyboard Shortcuts inside Studio
   window.addEventListener('keydown', (e) => {

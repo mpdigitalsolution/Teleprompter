@@ -80,10 +80,13 @@
         </div>
       </div>
 
-      <!-- Floating Integrated Transparent Teleprompter -->
+      <!-- Floating Integrated Transparent Teleprompter (Draggable & Elastic Resizable) -->
       <div class="studio-prompter" id="studio-prompter">
-        <div class="prompter-header">
-          <span class="prompter-title">Script</span>
+        <div class="prompter-header" id="prompter-header" title="Drag to move teleprompter up, down, or anywhere">
+          <div class="prompter-brand-group">
+            <span class="prompter-drag-handle">⠿</span>
+            <span class="prompter-title">Teleprompter</span>
+          </div>
           <div class="prompter-speed-pill">
             <button class="btn-step" id="btn-wpm-dec">-</button>
             <span id="label-wpm">130 WPM</span>
@@ -106,6 +109,13 @@ When you read this text, your eyes align right next to your webcam lens!
 • The teleprompter overlay is 100% invisible in your final video!
           </div>
         </div>
+
+        <!-- Corner & Edge Elastic Resize Handles -->
+        <div class="prompter-resize-handle prompter-resize-se" data-dir="se" title="Drag corner to resize elastically"></div>
+        <div class="prompter-resize-handle prompter-resize-s" data-dir="s" title="Drag bottom edge to resize height"></div>
+        <div class="prompter-resize-handle prompter-resize-e" data-dir="e" title="Drag right edge to resize width"></div>
+        <div class="prompter-resize-handle prompter-resize-sw" data-dir="sw" title="Drag corner to resize elastically"></div>
+        <div class="prompter-resize-handle prompter-resize-w" data-dir="w" title="Drag left edge to resize width"></div>
       </div>
 
       <!-- Giant 3-2-1 Countdown Banner -->
