@@ -397,6 +397,7 @@
       line-height: 1.6;
       outline: none;
       min-height: 140px;
+      padding-bottom: 240px;
     }
     .gp-script-body.gp-mirrored {
       transform: scaleX(-1);
@@ -612,7 +613,7 @@
         </div>
 
         <div class="gp-actions">
-          <button class="gp-btn gp-btn-autoscroll" id="gp-btn-autoscroll" title="Spacebar: Start / Pause Auto-Scroll">▶ Auto-Scroll</button>
+          <button class="gp-btn gp-btn-autoscroll" id="gp-btn-play" title="Spacebar: Play / Pause Auto-Scroll">▶ Play</button>
           <div class="gp-speed-pill" title="Live Auto-Scroll Speed (WPM)">
             <button class="gp-btn-tiny" id="gp-btn-hdr-wpm-dec" title="Slower (-10 WPM)">-</button>
             <span id="gp-hdr-wpm-val">${currentSettings.wpm} WPM</span>
@@ -898,7 +899,7 @@
    * UI Controls & Handlers
    */
   function setupUIControls() {
-    const autoscrollBtn = shadowRoot.getElementById('gp-btn-autoscroll');
+    const playBtn = shadowRoot.getElementById('gp-btn-play') || shadowRoot.getElementById('gp-btn-autoscroll');
     const hdrWpmDec = shadowRoot.getElementById('gp-btn-hdr-wpm-dec');
     const hdrWpmInc = shadowRoot.getElementById('gp-btn-hdr-wpm-inc');
     const transBtn = shadowRoot.getElementById('gp-btn-transparency');
@@ -920,9 +921,12 @@
     const colorSelect = shadowRoot.getElementById('gp-select-color');
     const presetBtns = shadowRoot.querySelectorAll('.gp-preset-btn');
 
-    // Auto-Scroll Toggle
-    if (autoscrollBtn) {
-      autoscrollBtn.addEventListener('click', toggleAutoScroll);
+    // Play / Auto-Scroll Toggle
+    if (playBtn) {
+      playBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        toggleAutoScroll();
+      });
     }
 
     // Header Fast Speed Adjusters
@@ -950,7 +954,10 @@
     if (nudgeDownBtn) nudgeDownBtn.addEventListener('click', () => nudgeScroll(40));
     if (resetTopBtn) {
       resetTopBtn.addEventListener('click', () => {
-        if (viewportEl) viewportEl.scrollTop = 0;
+        if (viewportEl) {
+          viewportEl.scrollTop = 0;
+          scrollAccumulator = 0;
+        }
       });
     }
 
@@ -1196,6 +1203,15 @@
    * Auto-Scroll Engine & Pacing
    */
   function toggleAutoScroll() {
+    if (!hostEl || hostEl.style.display === 'none') {
+      initOrToggleHUD().then(() => {
+        isPlaying = true;
+        updateAutoScrollUI();
+        startScrollLoop();
+      });
+      return;
+    }
+
     isPlaying = !isPlaying;
     updateAutoScrollUI();
     if (isPlaying) {
@@ -1206,6 +1222,15 @@
   }
 
   function startAutoScroll() {
+    if (!hostEl || hostEl.style.display === 'none') {
+      initOrToggleHUD().then(() => {
+        isPlaying = true;
+        updateAutoScrollUI();
+        startScrollLoop();
+      });
+      return;
+    }
+
     if (!isPlaying) {
       isPlaying = true;
       updateAutoScrollUI();
@@ -1223,7 +1248,7 @@
 
   function updateAutoScrollUI() {
     if (!shadowRoot) return;
-    const scrollBtn = shadowRoot.getElementById('gp-btn-autoscroll');
+    const playBtn = shadowRoot.getElementById('gp-btn-play') || shadowRoot.getElementById('gp-btn-autoscroll');
     const modeBadge = shadowRoot.getElementById('gp-mode-badge');
     const hdrWpm = shadowRoot.getElementById('gp-hdr-wpm-val');
 
@@ -1231,15 +1256,17 @@
       hdrWpm.textContent = `${currentSettings.wpm || 130} WPM`;
     }
 
-    if (scrollBtn) {
+    if (playBtn) {
       if (isPlaying) {
-        scrollBtn.textContent = '⏸ Pause';
-        scrollBtn.classList.add('gp-scrolling');
-        scrollBtn.title = 'Spacebar: Pause Auto-Scroll';
+        playBtn.innerHTML = '<span>⏸</span> Pause';
+        playBtn.classList.add('gp-scrolling');
+        playBtn.classList.add('active');
+        playBtn.title = 'Spacebar: Pause Auto-Scroll';
       } else {
-        scrollBtn.textContent = '▶ Auto-Scroll';
-        scrollBtn.classList.remove('gp-scrolling');
-        scrollBtn.title = 'Spacebar: Start Auto-Scroll';
+        playBtn.innerHTML = '<span>▶</span> Play';
+        playBtn.classList.remove('gp-scrolling');
+        playBtn.classList.remove('active');
+        playBtn.title = 'Spacebar: Start Auto-Scroll';
       }
     }
 
@@ -1262,10 +1289,13 @@
     applyWindowAppearance();
   }
 
+  let scrollAccumulator = 0;
+
   function nudgeScroll(pixels) {
     if (!viewportEl) return;
     viewportEl.style.scrollBehavior = 'smooth';
     viewportEl.scrollTop += pixels;
+    scrollAccumulator = viewportEl.scrollTop + pixels;
   }
 
   function adjustSpeed(deltaWpm) {
@@ -1289,30 +1319,46 @@
 
     viewportEl.style.scrollBehavior = 'auto';
 
+    // If user is already near the bottom, rewind to top so they can play smoothly
+    const maxScroll = viewportEl.scrollHeight - viewportEl.clientHeight;
+    if (maxScroll > 20 && viewportEl.scrollTop >= maxScroll - 20) {
+      viewportEl.scrollTop = 0;
+    }
+
+    scrollAccumulator = viewportEl.scrollTop;
     let lastTime = performance.now();
 
     function frame(time) {
       if (!isPlaying || !viewportEl) return;
 
-      const dt = (time - lastTime) / 1000;
+      const dt = Math.min((time - lastTime) / 1000, 0.1);
       lastTime = time;
 
-      // Base pixels per second based on WPM:
-      // ~4.2 px per second gives smooth natural reading pacing
-      const wps = (currentSettings.wpm || 130) / 60;
-      const basePixelsPerSec = wps * 4.2;
+      // Teleprompter pacing:
+      // At 130 WPM (standard conversational pace), speed is ~22 pixels per second.
+      // Formula: (wpm / 60) * pixelsPerWord
+      const wpm = currentSettings.wpm || 130;
+      const fontSize = currentSettings.fontSize || 24;
+      const basePixelsPerSec = (wpm / 60) * (fontSize * 0.42);
 
-      let speed = basePixelsPerSec;
+      let speed = Math.max(8, basePixelsPerSec);
       if (scrollVelocity !== 0) {
         speed += scrollVelocity;
       }
 
-      if (speed > 0) {
-        viewportEl.scrollTop += speed * dt;
+      // Sync accumulator if user manually scrolled (mouse wheel, touch, or drag)
+      if (Math.abs(viewportEl.scrollTop - scrollAccumulator) > 6) {
+        scrollAccumulator = viewportEl.scrollTop;
       }
 
-      // Check if reached end of script
-      if (viewportEl.scrollTop + viewportEl.clientHeight >= viewportEl.scrollHeight - 2) {
+      if (speed > 0) {
+        scrollAccumulator += speed * dt;
+        viewportEl.scrollTop = scrollAccumulator;
+      }
+
+      // Check if reached end of script (only when there is actual scrollable overflow)
+      const currentMax = viewportEl.scrollHeight - viewportEl.clientHeight;
+      if (currentMax > 20 && viewportEl.scrollTop >= currentMax - 3) {
         isPlaying = false;
         updateAutoScrollUI();
         pauseScroll();
