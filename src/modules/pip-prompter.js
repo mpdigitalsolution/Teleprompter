@@ -139,7 +139,7 @@ class PiPPrompterManager {
         <header class="pip-header" id="pip-header">
           <div class="pip-brand">
             <span class="pip-logo">👻</span>
-            <span class="pip-title"><span class="pip-title-text">GhostPrompter</span> <span class="pip-pill">Always-On-Top</span></span>
+            <span class="pip-title"><span class="pip-title-text">GhostPrompter</span></span>
           </div>
 
           <div class="pip-actions">
