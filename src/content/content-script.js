@@ -1704,6 +1704,9 @@
             wpm: currentSettings.wpm || 130,
             fontSize: currentSettings.fontSize || 24,
             isTransparent: isTransparentMode,
+            opacity: typeof currentSettings.opacity === 'number' ? currentSettings.opacity : (isTransparentMode ? 0.35 : 0.94),
+            textColor: currentSettings.textColor || '#00F0FF',
+            trackingMode: currentSettings.trackingMode || 'auto',
             script: currentScript,
             scripts: scripts,
             initialScrollTop: viewportEl ? viewportEl.scrollTop : 0,
@@ -1724,14 +1727,34 @@
                   currentSettings.wpm = res.wpm;
                   const wpmVal = shadowRoot.getElementById('gp-val-wpm');
                   const hdrWpmVal = shadowRoot.getElementById('gp-hdr-wpm-val');
+                  const rangeWpm = shadowRoot.getElementById('gp-range-wpm');
                   if (wpmVal) wpmVal.textContent = res.wpm;
                   if (hdrWpmVal) hdrWpmVal.textContent = `${res.wpm} WPM`;
+                  if (rangeWpm) rangeWpm.value = res.wpm;
                 }
                 if (typeof res.isTransparent === 'boolean' && res.isTransparent !== isTransparentMode) {
                   isTransparentMode = res.isTransparent;
                   isSolidMode = !isTransparentMode;
                   applyWindowAppearance();
                 }
+                if (res.textColor && res.textColor !== currentSettings.textColor) {
+                  currentSettings.textColor = res.textColor;
+                  const colorSel = shadowRoot.getElementById('gp-select-color');
+                  if (colorSel) colorSel.value = res.textColor;
+                  applyWindowAppearance();
+                }
+                if (res.trackingMode && res.trackingMode !== currentSettings.trackingMode) {
+                  currentSettings.trackingMode = res.trackingMode;
+                  const modeSel = shadowRoot.getElementById('gp-select-mode');
+                  if (modeSel) modeSel.value = res.trackingMode;
+                }
+                if (typeof res.fontSize === 'number' && res.fontSize !== currentSettings.fontSize) {
+                  currentSettings.fontSize = res.fontSize;
+                  const fontRange = shadowRoot.getElementById('gp-range-font');
+                  if (fontRange) fontRange.value = res.fontSize;
+                  applyWindowAppearance();
+                }
+                saveData({ settings: currentSettings });
               }
             }
           });

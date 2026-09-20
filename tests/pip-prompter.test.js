@@ -15,6 +15,11 @@ async function testPiPPrompter() {
   assert.strictEqual(mgr.isTransparent, false);
   assert.strictEqual(mgr.isScrolling, false);
   assert.strictEqual(mgr.activePiPWindow, null);
+  assert.strictEqual(mgr.currentTextColor, '#00F0FF', 'Default text color should be cyan');
+  assert.strictEqual(mgr.currentTrackingMode, 'auto', 'Default tracking mode should be auto');
+  assert.strictEqual(mgr.currentOpacity, 0.94, 'Default opacity should be 0.94');
+  assert.strictEqual(mgr.isGhostMode, false, 'Default ghost mode should be false');
+  assert.strictEqual(mgr.isToolbarCollapsed, true, 'Default toolbar should be collapsed');
   console.log('✓ Instance initialization & defaults passed.');
 
   // 3. Test styles generation
@@ -27,6 +32,13 @@ async function testPiPPrompter() {
   assert(css.includes('.pip-btn-rec'), 'Should contain record button styles');
   assert(css.includes('.pip-recording'), 'Should contain recording pulse styles');
   assert(css.includes('.pip-choice-card'), 'Should contain choice modal card styles');
+  assert(css.includes('.pip-toolbar'), 'Should contain collapsible toolbar styles');
+  assert(css.includes('.pip-toolbar-collapsed'), 'Should contain collapsed toolbar state');
+  assert(css.includes('.pip-preset-btn'), 'Should contain opacity preset button styles');
+  assert(css.includes('.pip-range'), 'Should contain slider range styles');
+  assert(css.includes('.pip-ghost-pill'), 'Should contain ghost mode pill styles');
+  assert(css.includes('.pip-btn-ghost-toggle'), 'Should contain ghost toggle button styles');
+  assert(css.includes('.pip-btn-controls'), 'Should contain controls toggle button styles');
   console.log('✓ Dynamic CSS stylesheet & elastic borderless styling generation passed.');
 
   // 4. Test scrolling state toggle
@@ -53,12 +65,18 @@ async function testPiPPrompter() {
   mgr.currentWpm = 170;
   mgr.currentFontSize = 28;
   mgr.isTransparent = true;
+  mgr.currentTextColor = '#FFEA00';
+  mgr.currentTrackingMode = 'gaze';
+  mgr.currentOpacity = 0.35;
   mgr.handlePiPClose();
 
   assert(closeResult !== null, 'onCloseCallback should be invoked');
   assert.strictEqual(closeResult.wpm, 170);
   assert.strictEqual(closeResult.fontSize, 28);
   assert.strictEqual(closeResult.isTransparent, true);
+  assert.strictEqual(closeResult.textColor, '#FFEA00', 'Should return textColor');
+  assert.strictEqual(closeResult.trackingMode, 'gaze', 'Should return trackingMode');
+  assert.strictEqual(closeResult.opacity, 0.35, 'Should return opacity');
   console.log('✓ PiP window close and state sync passed.');
 
   // 6. Test fallback mechanism when PiP API is unavailable

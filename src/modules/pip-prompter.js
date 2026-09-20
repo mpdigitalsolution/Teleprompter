@@ -14,6 +14,11 @@ class PiPPrompterManager {
     this.currentWpm = 130;
     this.currentFontSize = 24;
     this.isTransparent = false;
+    this.currentOpacity = 0.94;
+    this.currentTextColor = '#00F0FF';
+    this.currentTrackingMode = 'auto';
+    this.isGhostMode = false;
+    this.isToolbarCollapsed = true;
     this.currentScript = null;
     this.scriptsList = [];
     this.onCloseCallback = null;
@@ -50,6 +55,11 @@ class PiPPrompterManager {
       this.currentWpm = options.wpm || 130;
       this.currentFontSize = options.fontSize || 24;
       this.isTransparent = !!options.isTransparent;
+      this.currentOpacity = typeof options.opacity === 'number' ? options.opacity : (this.isTransparent ? 0.35 : 0.94);
+      this.currentTextColor = options.textColor || '#00F0FF';
+      this.currentTrackingMode = options.trackingMode || 'auto';
+      this.isGhostMode = false;
+      this.isToolbarCollapsed = options.isToolbarCollapsed !== false;
       this.currentScript = options.script || {
         id: 'default',
         title: 'GhostPrompter Script',
@@ -124,7 +134,7 @@ class PiPPrompterManager {
 
     // Render HTML structure
     doc.body.innerHTML = `
-      <div class="pip-prompter ${this.isTransparent ? 'pip-transparent' : 'pip-solid'}" id="pip-container">
+      <div class="pip-prompter ${this.isTransparent ? 'pip-transparent' : 'pip-solid'}${this.isGhostMode ? ' pip-ghost' : ''}" id="pip-container">
         <!-- Floating Header -->
         <header class="pip-header" id="pip-header">
           <div class="pip-brand">
@@ -152,21 +162,77 @@ class PiPPrompterManager {
               <span id="pip-trans-label">${this.isTransparent ? 'Solid' : 'Glass'}</span>
             </button>
 
-            <div class="pip-font-steppers" title="Adjust Text Size">
-              <button class="pip-btn-step" id="pip-btn-font-dec" title="Smaller Font">A-</button>
-              <span id="pip-label-font">${this.currentFontSize}px</span>
-              <button class="pip-btn-step" id="pip-btn-font-inc" title="Larger Font">A+</button>
-            </div>
+            <button class="pip-btn pip-btn-nudge" id="pip-btn-nudge-up" title="Nudge Up (↑)">▲</button>
+            <button class="pip-btn pip-btn-nudge" id="pip-btn-nudge-down" title="Nudge Down (↓)">▼</button>
+            <button class="pip-btn pip-btn-rewind" id="pip-btn-rewind" title="Rewind to Top">⏮</button>
 
-            <button class="pip-btn pip-btn-ghost" id="pip-btn-rewind" title="Rewind to Top">⏮ Top</button>
+            <button class="pip-btn pip-btn-ghost-toggle ${this.isGhostMode ? 'active' : ''}" id="pip-btn-ghost" title="Ghost Click-Through Mode">
+              👻 <span class="pip-ghost-label">Ghost</span>
+            </button>
 
-            <select class="pip-select-script" id="pip-select-script" title="Switch Presentation Script">
-              ${this.scriptsList.map(s => `<option value="${s.id}" ${s.id === this.currentScript.id ? 'selected' : ''}>${s.title}</option>`).join('')}
-            </select>
+            <button class="pip-btn pip-btn-controls ${!this.isToolbarCollapsed ? 'active' : ''}" id="pip-btn-controls" title="Toggle Settings (Alt+S)">
+              ⚙ <span class="pip-ctrl-label">Controls</span> <span id="pip-ctrl-arrow">${this.isToolbarCollapsed ? '▼' : '▲'}</span>
+            </button>
 
             <button class="pip-btn-close" id="pip-btn-close" title="Close and Return to Tab">✕</button>
           </div>
         </header>
+
+        <!-- Collapsible Settings Toolbar -->
+        <div class="pip-toolbar ${this.isToolbarCollapsed ? 'pip-toolbar-collapsed' : ''}" id="pip-toolbar">
+          <div class="pip-tb-group">
+            <span class="pip-tb-label">Script:</span>
+            <select class="pip-select-script" id="pip-select-script" title="Switch Presentation Script">
+              ${this.scriptsList.map(s => `<option value="${s.id}" ${s.id === this.currentScript.id ? 'selected' : ''}>${s.title}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="pip-tb-group">
+            <span class="pip-tb-label">Speed:</span>
+            <button class="pip-btn-step" id="pip-btn-wpm-dec2">-</button>
+            <input type="range" class="pip-range" id="pip-range-wpm" min="50" max="300" step="10" value="${this.currentWpm}">
+            <button class="pip-btn-step" id="pip-btn-wpm-inc2">+</button>
+            <span id="pip-val-wpm" class="pip-tb-val">${this.currentWpm}</span>
+          </div>
+
+          <div class="pip-tb-group">
+            <span class="pip-tb-label">Opacity:</span>
+            <button class="pip-btn pip-preset-btn ${this.currentOpacity >= 0.85 && !this.isTransparent ? 'active' : ''}" id="pip-preset-solid" data-preset="solid">⬛ Solid</button>
+            <button class="pip-btn pip-preset-btn ${this.currentOpacity >= 0.65 && this.currentOpacity < 0.85 ? 'active' : ''}" id="pip-preset-dark" data-preset="dark">🌓 Dark</button>
+            <button class="pip-btn pip-preset-btn ${this.currentOpacity >= 0.2 && this.currentOpacity < 0.65 && this.isTransparent ? 'active' : ''}" id="pip-preset-glass" data-preset="glass">🪟 Glass</button>
+            <button class="pip-btn pip-preset-btn ${this.currentOpacity < 0.2 && this.isTransparent ? 'active' : ''}" id="pip-preset-clear" data-preset="clear">👻 Clear</button>
+            <input type="range" class="pip-range" id="pip-range-opacity" min="0" max="1" step="0.05" value="${this.currentOpacity}">
+          </div>
+
+          <div class="pip-tb-group">
+            <span class="pip-tb-label">Font:</span>
+            <button class="pip-btn-step" id="pip-btn-font-dec">A-</button>
+            <input type="range" class="pip-range" id="pip-range-font" min="16" max="44" step="2" value="${this.currentFontSize}">
+            <button class="pip-btn-step" id="pip-btn-font-inc">A+</button>
+            <span id="pip-val-font" class="pip-tb-val">${this.currentFontSize}px</span>
+          </div>
+
+          <div class="pip-tb-group">
+            <span class="pip-tb-label">Color:</span>
+            <select class="pip-select" id="pip-select-color">
+              <option value="#00F0FF" ${this.currentTextColor === '#00F0FF' ? 'selected' : ''}>⚡ Neon Cyan</option>
+              <option value="#FFEA00" ${this.currentTextColor === '#FFEA00' ? 'selected' : ''}>☀️ Yellow</option>
+              <option value="#00FF88" ${this.currentTextColor === '#00FF88' ? 'selected' : ''}>💚 Green</option>
+              <option value="#FFFFFF" ${this.currentTextColor === '#FFFFFF' ? 'selected' : ''}>⚪ White</option>
+            </select>
+          </div>
+
+          <div class="pip-tb-group">
+            <span class="pip-tb-label">Mode:</span>
+            <select class="pip-select" id="pip-select-mode">
+              <option value="auto" ${this.currentTrackingMode === 'auto' ? 'selected' : ''}>Auto-Scroll (WPM)</option>
+              <option value="manual" ${this.currentTrackingMode === 'manual' ? 'selected' : ''}>Manual (Keys)</option>
+              <option value="dual" ${this.currentTrackingMode === 'dual' ? 'selected' : ''}>Dual (Gaze + Speech)</option>
+              <option value="gaze" ${this.currentTrackingMode === 'gaze' ? 'selected' : ''}>Gaze Only</option>
+              <option value="speech" ${this.currentTrackingMode === 'speech' ? 'selected' : ''}>Speech Sync</option>
+            </select>
+          </div>
+        </div>
 
         <!-- Recording Source Selection Modal -->
         <div class="pip-modal-overlay" id="pip-choice-modal" style="display:none;">
@@ -199,6 +265,9 @@ class PiPPrompterManager {
           <div class="pip-focus-line" id="pip-focus-line"></div>
           <div class="pip-text" id="pip-text" contenteditable="true" spellcheck="false"></div>
         </main>
+
+        <!-- Ghost pill shown when ghost mode is on -->
+        <button class="pip-ghost-pill" id="pip-ghost-pill">👻 Ghost Mode (Click to Exit)</button>
       </div>
     `;
 
@@ -222,12 +291,30 @@ class PiPPrompterManager {
     const btnTrans = doc.getElementById('pip-btn-trans');
     const transIcon = doc.getElementById('pip-trans-icon');
     const transLabel = doc.getElementById('pip-trans-label');
-    const btnFontDec = doc.getElementById('pip-btn-font-dec');
-    const btnFontInc = doc.getElementById('pip-btn-font-inc');
-    const labelFont = doc.getElementById('pip-label-font');
+    const btnNudgeUp = doc.getElementById('pip-btn-nudge-up');
+    const btnNudgeDown = doc.getElementById('pip-btn-nudge-down');
     const btnRewind = doc.getElementById('pip-btn-rewind');
+    const btnGhost = doc.getElementById('pip-btn-ghost');
+    const ghostPill = doc.getElementById('pip-ghost-pill');
+    const btnControls = doc.getElementById('pip-btn-controls');
+    const ctrlArrow = doc.getElementById('pip-ctrl-arrow');
+    const toolbar = doc.getElementById('pip-toolbar');
     const selectScript = doc.getElementById('pip-select-script');
     const btnClose = doc.getElementById('pip-btn-close');
+    // Toolbar controls
+    const btnWpmDec2 = doc.getElementById('pip-btn-wpm-dec2');
+    const btnWpmInc2 = doc.getElementById('pip-btn-wpm-inc2');
+    const rangeWpm = doc.getElementById('pip-range-wpm');
+    const valWpm = doc.getElementById('pip-val-wpm');
+    const btnFontDec = doc.getElementById('pip-btn-font-dec');
+    const btnFontInc = doc.getElementById('pip-btn-font-inc');
+    const rangeFont = doc.getElementById('pip-range-font');
+    const valFont = doc.getElementById('pip-val-font');
+    const rangeOpacity = doc.getElementById('pip-range-opacity');
+    const selectColor = doc.getElementById('pip-select-color');
+    const selectMode = doc.getElementById('pip-select-mode');
+    const presetBtns = doc.querySelectorAll('.pip-preset-btn');
+
 
     // Elastic Dynamic UI Resizer - adjusts scale and responsive layout in sync with window resize
     const updatePipScale = () => {
@@ -353,43 +440,201 @@ class PiPPrompterManager {
       });
     }
 
-    // Speed controls
+    // Helper: update container class reflecting transparent/ghost state
+    const updateContainerClass = () => {
+      let cls = `pip-prompter ${this.isTransparent ? 'pip-transparent' : 'pip-solid'}`;
+      if (this.isGhostMode) cls += ' pip-ghost';
+      container.className = cls;
+    };
+
+    // Helper: sync all preset button active states
+    const syncPresetBtns = () => {
+      presetBtns.forEach(b => b.classList.remove('active'));
+      if (!this.isTransparent && this.currentOpacity >= 0.85) {
+        const btn = doc.getElementById('pip-preset-solid');
+        if (btn) btn.classList.add('active');
+      } else if (this.currentOpacity >= 0.65 && this.currentOpacity < 0.85) {
+        const btn = doc.getElementById('pip-preset-dark');
+        if (btn) btn.classList.add('active');
+      } else if (this.isTransparent && this.currentOpacity >= 0.2 && this.currentOpacity < 0.65) {
+        const btn = doc.getElementById('pip-preset-glass');
+        if (btn) btn.classList.add('active');
+      } else if (this.isTransparent && this.currentOpacity < 0.2) {
+        const btn = doc.getElementById('pip-preset-clear');
+        if (btn) btn.classList.add('active');
+      }
+    };
+
+    // Speed controls (header steppers)
     btnWpmDec.addEventListener('click', () => {
       this.currentWpm = Math.max(50, this.currentWpm - 10);
       labelWpm.textContent = `${this.currentWpm} WPM`;
+      if (rangeWpm) rangeWpm.value = this.currentWpm;
+      if (valWpm) valWpm.textContent = this.currentWpm;
       this.syncStorage({ wpm: this.currentWpm });
     });
 
     btnWpmInc.addEventListener('click', () => {
       this.currentWpm = Math.min(350, this.currentWpm + 10);
       labelWpm.textContent = `${this.currentWpm} WPM`;
+      if (rangeWpm) rangeWpm.value = this.currentWpm;
+      if (valWpm) valWpm.textContent = this.currentWpm;
       this.syncStorage({ wpm: this.currentWpm });
     });
 
+    // Toolbar WPM slider & steppers
+    if (rangeWpm) {
+      rangeWpm.addEventListener('input', () => {
+        this.currentWpm = parseInt(rangeWpm.value, 10);
+        labelWpm.textContent = `${this.currentWpm} WPM`;
+        if (valWpm) valWpm.textContent = this.currentWpm;
+        this.syncStorage({ wpm: this.currentWpm });
+      });
+    }
+    if (btnWpmDec2) {
+      btnWpmDec2.addEventListener('click', () => { btnWpmDec.click(); });
+    }
+    if (btnWpmInc2) {
+      btnWpmInc2.addEventListener('click', () => { btnWpmInc.click(); });
+    }
+
     // Font size controls
-    btnFontDec.addEventListener('click', () => {
-      this.currentFontSize = Math.max(16, this.currentFontSize - 2);
+    const applyFontSize = () => {
       textEl.style.setProperty('--pip-font-size', `${this.currentFontSize}px`);
-      labelFont.textContent = `${this.currentFontSize}px`;
+      if (valFont) valFont.textContent = `${this.currentFontSize}px`;
+      if (rangeFont) rangeFont.value = this.currentFontSize;
       this.syncStorage({ fontSize: this.currentFontSize });
-    });
+    };
 
-    btnFontInc.addEventListener('click', () => {
-      this.currentFontSize = Math.min(48, this.currentFontSize + 2);
-      textEl.style.setProperty('--pip-font-size', `${this.currentFontSize}px`);
-      labelFont.textContent = `${this.currentFontSize}px`;
-      this.syncStorage({ fontSize: this.currentFontSize });
-    });
+    if (btnFontDec) {
+      btnFontDec.addEventListener('click', () => {
+        this.currentFontSize = Math.max(16, this.currentFontSize - 2);
+        applyFontSize();
+      });
+    }
 
-    // Transparency toggle
+    if (btnFontInc) {
+      btnFontInc.addEventListener('click', () => {
+        this.currentFontSize = Math.min(48, this.currentFontSize + 2);
+        applyFontSize();
+      });
+    }
+
+    if (rangeFont) {
+      rangeFont.addEventListener('input', () => {
+        this.currentFontSize = parseInt(rangeFont.value, 10);
+        applyFontSize();
+      });
+    }
+
+    // Transparency toggle (header button)
     btnTrans.addEventListener('click', () => {
       this.isTransparent = !this.isTransparent;
-      container.className = `pip-prompter ${this.isTransparent ? 'pip-transparent' : 'pip-solid'}`;
+      this.currentOpacity = this.isTransparent ? 0.35 : 0.94;
+      updateContainerClass();
       btnTrans.classList.toggle('active', this.isTransparent);
       transIcon.textContent = this.isTransparent ? '⬛' : '🪟';
       transLabel.textContent = this.isTransparent ? 'Solid' : 'Glass';
-      this.syncStorage({ isTransparentMode: this.isTransparent });
+      if (rangeOpacity) rangeOpacity.value = this.currentOpacity;
+      syncPresetBtns();
+      this.syncStorage({ isTransparentMode: this.isTransparent, opacity: this.currentOpacity });
     });
+
+    // Opacity presets
+    presetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const preset = btn.dataset.preset;
+        switch (preset) {
+          case 'solid':
+            this.isTransparent = false;
+            this.currentOpacity = 0.94;
+            break;
+          case 'dark':
+            this.isTransparent = false;
+            this.currentOpacity = 0.75;
+            break;
+          case 'glass':
+            this.isTransparent = true;
+            this.currentOpacity = 0.35;
+            break;
+          case 'clear':
+            this.isTransparent = true;
+            this.currentOpacity = 0.05;
+            break;
+        }
+        updateContainerClass();
+        btnTrans.classList.toggle('active', this.isTransparent);
+        transIcon.textContent = this.isTransparent ? '⬛' : '🪟';
+        transLabel.textContent = this.isTransparent ? 'Solid' : 'Glass';
+        if (rangeOpacity) rangeOpacity.value = this.currentOpacity;
+        syncPresetBtns();
+        this.syncStorage({ isTransparentMode: this.isTransparent, opacity: this.currentOpacity });
+      });
+    });
+
+    // Opacity slider
+    if (rangeOpacity) {
+      rangeOpacity.addEventListener('input', () => {
+        this.currentOpacity = parseFloat(rangeOpacity.value);
+        this.isTransparent = this.currentOpacity < 0.65;
+        updateContainerClass();
+        btnTrans.classList.toggle('active', this.isTransparent);
+        transIcon.textContent = this.isTransparent ? '⬛' : '🪟';
+        transLabel.textContent = this.isTransparent ? 'Solid' : 'Glass';
+        syncPresetBtns();
+        this.syncStorage({ isTransparentMode: this.isTransparent, opacity: this.currentOpacity });
+      });
+    }
+
+    // Color picker
+    if (selectColor) {
+      selectColor.addEventListener('change', () => {
+        this.currentTextColor = selectColor.value;
+        textEl.style.color = this.currentTextColor;
+        this.syncStorage({ textColor: this.currentTextColor });
+      });
+      // Apply initial color
+      textEl.style.color = this.currentTextColor;
+    }
+
+    // Mode dropdown
+    if (selectMode) {
+      selectMode.addEventListener('change', () => {
+        this.currentTrackingMode = selectMode.value;
+        this.syncStorage({ trackingMode: this.currentTrackingMode });
+      });
+    }
+
+    // Ghost mode toggle
+    const toggleGhost = () => {
+      this.isGhostMode = !this.isGhostMode;
+      updateContainerClass();
+      if (btnGhost) btnGhost.classList.toggle('active', this.isGhostMode);
+    };
+    if (btnGhost) btnGhost.addEventListener('click', toggleGhost);
+    if (ghostPill) ghostPill.addEventListener('click', toggleGhost);
+
+    // Toolbar toggle
+    if (btnControls) {
+      btnControls.addEventListener('click', () => {
+        this.isToolbarCollapsed = !this.isToolbarCollapsed;
+        if (toolbar) toolbar.classList.toggle('pip-toolbar-collapsed', this.isToolbarCollapsed);
+        if (ctrlArrow) ctrlArrow.textContent = this.isToolbarCollapsed ? '▼' : '▲';
+        btnControls.classList.toggle('active', !this.isToolbarCollapsed);
+      });
+    }
+
+    // Nudge up / down
+    if (btnNudgeUp) {
+      btnNudgeUp.addEventListener('click', () => {
+        viewport.scrollTop = Math.max(0, viewport.scrollTop - 40);
+      });
+    }
+    if (btnNudgeDown) {
+      btnNudgeDown.addEventListener('click', () => {
+        viewport.scrollTop += 40;
+      });
+    }
 
     // Rewind
     btnRewind.addEventListener('click', () => {
@@ -446,6 +691,9 @@ class PiPPrompterManager {
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         viewport.scrollTop += 40;
+      } else if (e.altKey && e.key === 's') {
+        e.preventDefault();
+        if (btnControls) btnControls.click();
       } else if (e.key === 'Escape') {
         pipWin.close();
       }
@@ -461,18 +709,30 @@ class PiPPrompterManager {
           if (s.wpm && s.wpm !== this.currentWpm) {
             this.currentWpm = s.wpm;
             labelWpm.textContent = `${this.currentWpm} WPM`;
+            if (rangeWpm) rangeWpm.value = this.currentWpm;
+            if (valWpm) valWpm.textContent = this.currentWpm;
           }
           if (s.fontSize && s.fontSize !== this.currentFontSize) {
             this.currentFontSize = s.fontSize;
             textEl.style.setProperty('--pip-font-size', `${this.currentFontSize}px`);
-            labelFont.textContent = `${this.currentFontSize}px`;
+            if (rangeFont) rangeFont.value = this.currentFontSize;
+            if (valFont) valFont.textContent = `${this.currentFontSize}px`;
           }
           if (typeof s.isTransparentMode === 'boolean' && s.isTransparentMode !== this.isTransparent) {
             this.isTransparent = s.isTransparentMode;
-            container.className = `pip-prompter ${this.isTransparent ? 'pip-transparent' : 'pip-solid'}`;
+            updateContainerClass();
             btnTrans.classList.toggle('active', this.isTransparent);
             transIcon.textContent = this.isTransparent ? '⬛' : '🪟';
             transLabel.textContent = this.isTransparent ? 'Solid' : 'Glass';
+          }
+          if (s.textColor && s.textColor !== this.currentTextColor) {
+            this.currentTextColor = s.textColor;
+            textEl.style.color = this.currentTextColor;
+            if (selectColor) selectColor.value = this.currentTextColor;
+          }
+          if (s.trackingMode && s.trackingMode !== this.currentTrackingMode) {
+            this.currentTrackingMode = s.trackingMode;
+            if (selectMode) selectMode.value = this.currentTrackingMode;
           }
         }
 
@@ -557,19 +817,26 @@ class PiPPrompterManager {
         script: this.currentScript,
         wpm: this.currentWpm,
         fontSize: this.currentFontSize,
-        isTransparent: this.isTransparent
+        isTransparent: this.isTransparent,
+        opacity: this.currentOpacity,
+        textColor: this.currentTextColor,
+        trackingMode: this.currentTrackingMode
       });
     }
   }
 
   syncStorage(data) {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      if (data.wpm || data.fontSize || typeof data.isTransparentMode === 'boolean') {
+      if (data.wpm || data.fontSize || typeof data.isTransparentMode === 'boolean' ||
+          data.textColor || data.trackingMode || typeof data.opacity === 'number') {
         chrome.storage.local.get('settings', (res) => {
           const settings = res.settings || {};
           if (data.wpm) settings.wpm = data.wpm;
           if (data.fontSize) settings.fontSize = data.fontSize;
           if (typeof data.isTransparentMode === 'boolean') settings.isTransparentMode = data.isTransparentMode;
+          if (data.textColor) settings.textColor = data.textColor;
+          if (data.trackingMode) settings.trackingMode = data.trackingMode;
+          if (typeof data.opacity === 'number') settings.opacity = data.opacity;
           chrome.storage.local.set({ settings });
         });
       }
@@ -954,7 +1221,9 @@ class PiPPrompterManager {
       .pip-size-xs .pip-pill,
       .pip-size-xs #pip-play-label,
       .pip-size-xs #pip-rec-label,
-      .pip-size-xs #pip-trans-label {
+      .pip-size-xs #pip-trans-label,
+      .pip-size-xs .pip-ghost-label,
+      .pip-size-xs .pip-ctrl-label {
         display: none !important;
       }
       .pip-size-xs .pip-header {
@@ -969,6 +1238,170 @@ class PiPPrompterManager {
       }
       .pip-size-sm .pip-select-script {
         max-width: 100px;
+      }
+
+      /* Nudge + Rewind buttons */
+      .pip-btn-nudge, .pip-btn-rewind {
+        width: calc(22px * var(--pip-scale, 1));
+        height: calc(22px * var(--pip-scale, 1));
+        padding: 0;
+        font-size: calc(10px * var(--pip-scale, 1));
+      }
+
+      /* Ghost Mode Toggle Button */
+      .pip-btn-ghost-toggle {
+        background: rgba(255, 255, 255, 0.08);
+        color: #CBD5E1;
+      }
+      .pip-btn-ghost-toggle:hover {
+        background: rgba(0, 240, 255, 0.15);
+        color: #00F0FF;
+      }
+      .pip-btn-ghost-toggle.active {
+        background: rgba(0, 240, 255, 0.2);
+        color: #00F0FF;
+        box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+      }
+
+      /* Controls Toggle Button */
+      .pip-btn-controls {
+        background: rgba(255, 255, 255, 0.08);
+        color: #CBD5E1;
+        font-size: calc(10px * var(--pip-scale, 1));
+      }
+      .pip-btn-controls:hover {
+        background: rgba(0, 240, 255, 0.15);
+        color: #00F0FF;
+      }
+      .pip-btn-controls.active {
+        background: rgba(0, 240, 255, 0.22);
+        color: #00F0FF;
+        box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+      }
+
+      /* Collapsible Toolbar */
+      .pip-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: calc(8px * var(--pip-scale, 1));
+        padding: calc(7px * var(--pip-scale, 1)) calc(12px * var(--pip-scale, 1));
+        background: rgba(14, 20, 34, 0.96);
+        border-bottom: 1px solid rgba(0, 240, 255, 0.12);
+        flex-shrink: 0;
+        overflow: hidden;
+        max-height: 200px;
+        transition: max-height 0.25s ease, opacity 0.2s ease, padding 0.25s ease;
+      }
+      .pip-toolbar.pip-toolbar-collapsed {
+        max-height: 0 !important;
+        opacity: 0 !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        pointer-events: none !important;
+        border-bottom: none !important;
+        overflow: hidden !important;
+      }
+      .pip-tb-group {
+        display: flex;
+        align-items: center;
+        gap: calc(5px * var(--pip-scale, 1));
+      }
+      .pip-tb-label {
+        font-size: calc(10px * var(--pip-scale, 1));
+        color: #94A3B8;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .pip-tb-val {
+        font-size: calc(10px * var(--pip-scale, 1));
+        color: #00F0FF;
+        font-weight: 700;
+        min-width: 30px;
+      }
+
+      /* Range Sliders */
+      .pip-range {
+        -webkit-appearance: none;
+        appearance: none;
+        width: calc(64px * var(--pip-scale, 1));
+        height: calc(4px * var(--pip-scale, 1));
+        border-radius: 2px;
+        background: #334155;
+        outline: none;
+        cursor: pointer;
+        border: none !important;
+      }
+      .pip-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: calc(12px * var(--pip-scale, 1));
+        height: calc(12px * var(--pip-scale, 1));
+        border-radius: 50%;
+        background: #00F0FF;
+        box-shadow: 0 0 6px rgba(0, 240, 255, 0.7);
+        cursor: pointer;
+      }
+
+      /* Preset Buttons */
+      .pip-preset-btn {
+        height: calc(20px * var(--pip-scale, 1)) !important;
+        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1)) !important;
+        font-size: calc(9.5px * var(--pip-scale, 1)) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #CBD5E1 !important;
+      }
+      .pip-preset-btn:hover {
+        background: rgba(0, 240, 255, 0.18) !important;
+        color: #00F0FF !important;
+      }
+      .pip-preset-btn.active {
+        background: #00F0FF !important;
+        color: #0A0E1A !important;
+        box-shadow: 0 0 8px rgba(0, 240, 255, 0.5) !important;
+        font-weight: 800 !important;
+      }
+
+      /* Toolbar Selects */
+      .pip-select {
+        background: rgba(255, 255, 255, 0.08);
+        border: none !important;
+        color: #E2E8F0;
+        font-size: calc(10px * var(--pip-scale, 1));
+        border-radius: calc(10px * var(--pip-scale, 1));
+        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1));
+        outline: none;
+        cursor: pointer;
+        height: calc(22px * var(--pip-scale, 1));
+      }
+
+      /* Ghost Mode click-through styles */
+      .pip-ghost {
+        pointer-events: none !important;
+      }
+      .pip-ghost .pip-header,
+      .pip-ghost .pip-toolbar {
+        pointer-events: none !important;
+      }
+      .pip-ghost-pill {
+        display: none;
+        position: absolute;
+        top: calc(8px * var(--pip-scale, 1));
+        right: calc(12px * var(--pip-scale, 1));
+        background: #111728;
+        border: none !important;
+        border-radius: 20px;
+        padding: calc(4px * var(--pip-scale, 1)) calc(12px * var(--pip-scale, 1));
+        font-size: calc(10px * var(--pip-scale, 1));
+        font-weight: 700;
+        color: #00F0FF;
+        cursor: pointer;
+        box-shadow: 0 0 12px rgba(0, 240, 255, 0.5);
+        z-index: 999;
+        pointer-events: auto !important;
+      }
+      .pip-ghost .pip-ghost-pill {
+        display: block;
       }
     `;
   }
