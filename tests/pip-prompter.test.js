@@ -22,7 +22,12 @@ async function testPiPPrompter() {
   assert(css.includes('.pip-prompter'), 'Should contain container styles');
   assert(css.includes('.pip-focus-line'), 'Should contain focus bar styles');
   assert(css.includes('.pip-transparent'), 'Should contain transparency rules');
-  console.log('✓ Dynamic CSS stylesheet generation passed.');
+  assert(css.includes('--pip-scale'), 'Should contain elastic scaling variable');
+  assert(css.includes('border: none !important'), 'Should contain borderless styling');
+  assert(css.includes('.pip-btn-rec'), 'Should contain record button styles');
+  assert(css.includes('.pip-recording'), 'Should contain recording pulse styles');
+  assert(css.includes('.pip-choice-card'), 'Should contain choice modal card styles');
+  console.log('✓ Dynamic CSS stylesheet & elastic borderless styling generation passed.');
 
   // 4. Test scrolling state toggle
   const mockBtn = { classList: { toggle: (cls, val) => {} } };
@@ -65,6 +70,43 @@ async function testPiPPrompter() {
   assert.strictEqual(win, null);
   assert.strictEqual(fallbackInvoked, true);
   console.log('✓ Fallback to standalone floating window passed.');
+
+  // 7. Test recording state updater in PiP window
+  let addedClass = false;
+  let removedClass = false;
+  const mockRecBtn = {
+    classList: {
+      add: (c) => { if (c === 'pip-recording') addedClass = true; },
+      remove: (c) => { if (c === 'pip-recording') removedClass = true; }
+    },
+    title: ''
+  };
+  const mockRecIcon = { textContent: '' };
+  const mockRecLabel = { textContent: '' };
+  mgr.activePiPWindow = {
+    closed: false,
+    document: {
+      getElementById: (id) => {
+        if (id === 'pip-btn-rec') return mockRecBtn;
+        if (id === 'pip-rec-icon') return mockRecIcon;
+        if (id === 'pip-rec-label') return mockRecLabel;
+        return null;
+      }
+    }
+  };
+
+  mgr.updateRecordingState(true, '00:15');
+  assert.strictEqual(mgr.isRecording, true);
+  assert.strictEqual(addedClass, true);
+  assert.strictEqual(mockRecIcon.textContent, '⏹');
+  assert.strictEqual(mockRecLabel.textContent, ' 00:15');
+
+  mgr.updateRecordingState(false);
+  assert.strictEqual(mgr.isRecording, false);
+  assert.strictEqual(removedClass, true);
+  assert.strictEqual(mockRecIcon.textContent, '🔴');
+  assert.strictEqual(mockRecLabel.textContent, 'Rec');
+  console.log('✓ Recording status UI synchronization in PiP passed.');
 
   console.log('✅ All PiPPrompterManager unit tests passed successfully!');
 }

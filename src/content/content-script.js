@@ -29,6 +29,7 @@
   let scrollAnimFrame = null;
   let scrollVelocity = 0;
   let videoRecorderInstance = null;
+  let activePiPInstance = null;
   let isRecording = false;
   let isCountingDown = false;
   let currentRecordedBlob = null;
@@ -1689,6 +1690,7 @@
 
         if (typeof PiPPrompterManager !== 'undefined' && PiPPrompterManager.isSupported()) {
           pipInstance = new PiPPrompterManager();
+          activePiPInstance = pipInstance;
 
           // Temporarily hide in-tab prompter while floating in PiP
           windowEl.style.display = 'none';
@@ -1705,7 +1707,13 @@
             script: currentScript,
             scripts: scripts,
             initialScrollTop: viewportEl ? viewportEl.scrollTop : 0,
+            onToggleRecord: (source) => toggleRecording(source),
+            onStartScreenRecording: () => startRecordingFlow('screen'),
+            onStartCameraRecording: () => startRecordingFlow('camera'),
+            onStopRecording: () => stopRecordingFlow(),
+            isRecording: () => isRecording,
             onClose: (res) => {
+              activePiPInstance = null;
               // Restore in-tab prompter when PiP closes
               windowEl.style.display = 'flex';
               if (res) {
@@ -2115,6 +2123,14 @@
   }
 
   function updateRecordingButtonUI(recording, timeStr = '00:00') {
+    if (activePiPInstance) {
+      try {
+        activePiPInstance.updateRecordingState(recording, timeStr);
+      } catch (e) {
+        console.warn('Could not update PiP recording state:', e);
+      }
+    }
+
     if (!shadowRoot) return;
     const recBtn = shadowRoot.getElementById('gp-btn-rec');
     if (!recBtn) return;

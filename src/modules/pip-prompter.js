@@ -57,6 +57,11 @@ class PiPPrompterManager {
       };
       this.scriptsList = options.scripts || [this.currentScript];
       this.onCloseCallback = options.onClose || null;
+      this.onToggleRecord = options.onToggleRecord || null;
+      this.onStartScreenRecording = options.onStartScreenRecording || null;
+      this.onStartCameraRecording = options.onStartCameraRecording || null;
+      this.onStopRecording = options.onStopRecording || null;
+      this.isRecordingFn = options.isRecording || (() => false);
 
       const pipWin = await window.documentPictureInPicture.requestWindow({
         width,
@@ -124,10 +129,14 @@ class PiPPrompterManager {
         <header class="pip-header" id="pip-header">
           <div class="pip-brand">
             <span class="pip-logo">👻</span>
-            <span class="pip-title">GhostPrompter <span class="pip-pill">Always-On-Top</span></span>
+            <span class="pip-title"><span class="pip-title-text">GhostPrompter</span> <span class="pip-pill">Always-On-Top</span></span>
           </div>
 
           <div class="pip-actions">
+            <button class="pip-btn pip-btn-rec" id="pip-btn-rec" title="Record Screen / Window / Tab or Camera">
+              <span id="pip-rec-icon">🔴</span> <span id="pip-rec-label">Rec</span>
+            </button>
+
             <button class="pip-btn pip-btn-play" id="pip-btn-play" title="Spacebar: Play/Pause Auto-Scroll">
               <span id="pip-play-icon">▶</span> <span id="pip-play-label">Play</span>
             </button>
@@ -159,6 +168,32 @@ class PiPPrompterManager {
           </div>
         </header>
 
+        <!-- Recording Source Selection Modal -->
+        <div class="pip-modal-overlay" id="pip-choice-modal" style="display:none;">
+          <div class="pip-choice-card">
+            <div class="pip-choice-header">
+              <span class="pip-choice-title">🎥 Select Recording Source</span>
+              <button class="pip-choice-close" id="pip-choice-close" title="Close">✕</button>
+            </div>
+            <div class="pip-choice-grid">
+              <button class="pip-source-btn" id="pip-choice-screen">
+                <span class="pip-source-icon">🖥️</span>
+                <div class="pip-source-text">
+                  <div class="pip-source-name">Screen / Window / Tab</div>
+                  <div class="pip-source-desc">Share multi-tab, window, or full screen</div>
+                </div>
+              </button>
+              <button class="pip-source-btn" id="pip-choice-cam">
+                <span class="pip-source-icon">📷</span>
+                <div class="pip-source-text">
+                  <div class="pip-source-name">Webcam Camera</div>
+                  <div class="pip-source-desc">Prompter is 100% invisible in recording</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Scrolling Body & Eye-Line Guide -->
         <main class="pip-viewport" id="pip-viewport">
           <div class="pip-focus-line" id="pip-focus-line"></div>
@@ -171,6 +206,13 @@ class PiPPrompterManager {
     const container = doc.getElementById('pip-container');
     const viewport = doc.getElementById('pip-viewport');
     const textEl = doc.getElementById('pip-text');
+    const btnRec = doc.getElementById('pip-btn-rec');
+    const recIcon = doc.getElementById('pip-rec-icon');
+    const recLabel = doc.getElementById('pip-rec-label');
+    const choiceModal = doc.getElementById('pip-choice-modal');
+    const choiceScreen = doc.getElementById('pip-choice-screen');
+    const choiceCam = doc.getElementById('pip-choice-cam');
+    const choiceClose = doc.getElementById('pip-choice-close');
     const btnPlay = doc.getElementById('pip-btn-play');
     const playIcon = doc.getElementById('pip-play-icon');
     const playLabel = doc.getElementById('pip-play-label');
@@ -186,6 +228,26 @@ class PiPPrompterManager {
     const btnRewind = doc.getElementById('pip-btn-rewind');
     const selectScript = doc.getElementById('pip-select-script');
     const btnClose = doc.getElementById('pip-btn-close');
+
+    // Elastic Dynamic UI Resizer - adjusts scale and responsive layout in sync with window resize
+    const updatePipScale = () => {
+      const w = pipWin.innerWidth || 600;
+      const scale = Math.max(0.55, Math.min(1.25, Math.pow(w / 600, 0.72)));
+      doc.documentElement.style.setProperty('--pip-scale', scale.toFixed(3));
+
+      if (w < 440) {
+        container.classList.add('pip-size-xs');
+        container.classList.remove('pip-size-sm', 'pip-size-md');
+      } else if (w < 600) {
+        container.classList.add('pip-size-sm');
+        container.classList.remove('pip-size-xs', 'pip-size-md');
+      } else {
+        container.classList.add('pip-size-md');
+        container.classList.remove('pip-size-xs', 'pip-size-sm');
+      }
+    };
+    pipWin.addEventListener('resize', updatePipScale);
+    updatePipScale();
 
     // Populate script content
     textEl.innerText = this.currentScript.content || '';
@@ -226,6 +288,55 @@ class PiPPrompterManager {
     };
 
     btnPlay.addEventListener('click', togglePlay);
+
+    // Recording controls & Screen Share Flow
+    if (this.isRecordingFn && this.isRecordingFn()) {
+      this.updateRecordingState(true, '00:00');
+    }
+
+    if (btnRec) {
+      btnRec.addEventListener('click', () => {
+        const isRec = this.isRecordingFn ? this.isRecordingFn() : this.isRecording;
+        if (isRec) {
+          if (this.onStopRecording) {
+            this.onStopRecording();
+          } else if (this.onToggleRecord) {
+            this.onToggleRecord();
+          }
+        } else {
+          // Open source choice modal
+          if (choiceModal) choiceModal.style.display = 'flex';
+        }
+      });
+    }
+
+    if (choiceClose) {
+      choiceClose.addEventListener('click', () => {
+        if (choiceModal) choiceModal.style.display = 'none';
+      });
+    }
+
+    if (choiceScreen) {
+      choiceScreen.addEventListener('click', () => {
+        if (choiceModal) choiceModal.style.display = 'none';
+        if (this.onStartScreenRecording) {
+          this.onStartScreenRecording();
+        } else if (this.onToggleRecord) {
+          this.onToggleRecord('screen');
+        }
+      });
+    }
+
+    if (choiceCam) {
+      choiceCam.addEventListener('click', () => {
+        if (choiceModal) choiceModal.style.display = 'none';
+        if (this.onStartCameraRecording) {
+          this.onStartCameraRecording();
+        } else if (this.onToggleRecord) {
+          this.onToggleRecord('camera');
+        }
+      });
+    }
 
     // Speed controls
     btnWpmDec.addEventListener('click', () => {
@@ -390,6 +501,31 @@ class PiPPrompterManager {
     }
   }
 
+  /**
+   * Update recording status indicator in Document PiP window
+   */
+  updateRecordingState(isRecording, timeStr = '00:00') {
+    this.isRecording = isRecording;
+    if (!this.activePiPWindow || this.activePiPWindow.closed) return;
+    const doc = this.activePiPWindow.document;
+    const recBtn = doc.getElementById('pip-btn-rec');
+    const icon = doc.getElementById('pip-rec-icon');
+    const label = doc.getElementById('pip-rec-label');
+
+    if (!recBtn) return;
+    if (isRecording) {
+      recBtn.classList.add('pip-recording');
+      recBtn.title = 'Stop Recording';
+      if (icon) icon.textContent = '⏹';
+      if (label) label.textContent = ` ${timeStr}`;
+    } else {
+      recBtn.classList.remove('pip-recording');
+      recBtn.title = 'Record Screen / Window / Tab or Camera';
+      if (icon) icon.textContent = '🔴';
+      if (label) label.textContent = 'Rec';
+    }
+  }
+
   handlePiPClose() {
     let finalScroll = 0;
     if (this.activePiPWindow && this.activePiPWindow.document) {
@@ -433,10 +569,14 @@ class PiPPrompterManager {
 
   getPiPStyles() {
     return `
+      :root {
+        --pip-scale: 1;
+      }
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
+        border: none;
       }
       html, body {
         width: 100%;
@@ -452,6 +592,10 @@ class PiPPrompterManager {
         width: 100%;
         height: 100%;
         transition: background 0.25s ease;
+        border: none !important;
+        border-radius: calc(14px * var(--pip-scale, 1));
+        overflow: hidden;
+        position: relative;
       }
       .pip-prompter.pip-solid {
         background: #0A0D18;
@@ -465,10 +609,11 @@ class PiPPrompterManager {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 6px 12px;
+        padding: calc(6px * var(--pip-scale, 1)) calc(10px * var(--pip-scale, 1));
         background: rgba(16, 22, 38, 0.95);
-        border-bottom: 1.5px solid rgba(0, 240, 255, 0.4);
-        gap: 8px;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        gap: calc(6px * var(--pip-scale, 1));
         flex-shrink: 0;
       }
       .pip-transparent .pip-header {
@@ -477,25 +622,29 @@ class PiPPrompterManager {
       .pip-brand {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 12px;
+        gap: calc(5px * var(--pip-scale, 1));
+        font-size: calc(12px * var(--pip-scale, 1));
         font-weight: 800;
         color: #00F0FF;
         white-space: nowrap;
       }
+      .pip-logo {
+        font-size: calc(14px * var(--pip-scale, 1));
+      }
       .pip-pill {
         background: rgba(0, 255, 136, 0.15);
-        border: 1px solid rgba(0, 255, 136, 0.4);
+        border: none !important;
         color: #00FF88;
-        font-size: 9px;
-        padding: 2px 6px;
-        border-radius: 10px;
+        font-size: calc(9px * var(--pip-scale, 1));
+        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1));
+        border-radius: 20px;
         text-transform: uppercase;
+        font-weight: 700;
       }
       .pip-actions {
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: calc(5px * var(--pip-scale, 1));
         flex-wrap: nowrap;
         overflow-x: auto;
         scrollbar-width: none;
@@ -508,28 +657,46 @@ class PiPPrompterManager {
       }
       .pip-btn {
         background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: none !important;
         color: #FFF;
-        font-size: 11px;
+        font-size: calc(11px * var(--pip-scale, 1));
         font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 5px;
+        padding: calc(4px * var(--pip-scale, 1)) calc(9px * var(--pip-scale, 1));
+        border-radius: 20px;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        justify-content: center;
+        gap: calc(4px * var(--pip-scale, 1));
         white-space: nowrap;
         transition: all 0.15s ease;
       }
       .pip-btn:hover {
-        background: rgba(0, 240, 255, 0.2);
-        border-color: #00F0FF;
+        background: rgba(0, 240, 255, 0.25);
         color: #00F0FF;
+      }
+      .pip-btn-rec {
+        background: rgba(239, 68, 68, 0.2);
+        color: #FF6B6B;
+        font-weight: 800;
+      }
+      .pip-btn-rec:hover {
+        background: rgba(239, 68, 68, 0.4);
+        color: #FFF;
+      }
+      .pip-btn-rec.pip-recording {
+        background: #EF4444 !important;
+        color: #FFF !important;
+        box-shadow: 0 0 12px rgba(239, 68, 68, 0.8);
+        animation: pipPulseRec 1.2s infinite ease-in-out;
+      }
+      @keyframes pipPulseRec {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.88; transform: scale(0.97); }
       }
       .pip-btn-play {
         background: #00F0FF;
         color: #080C16;
-        border-color: #00F0FF;
         font-weight: 800;
       }
       .pip-btn-play:hover {
@@ -538,60 +705,61 @@ class PiPPrompterManager {
       }
       .pip-btn-play.active {
         background: #FF0055;
-        border-color: #FF0055;
         color: #FFF;
       }
       .pip-speed-pill, .pip-font-steppers {
         display: flex;
         align-items: center;
-        gap: 3px;
-        background: rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(0, 240, 255, 0.4);
-        padding: 2px 6px;
-        border-radius: 5px;
-        font-size: 11px;
+        gap: calc(3px * var(--pip-scale, 1));
+        background: rgba(255, 255, 255, 0.08);
+        border: none !important;
+        padding: calc(3px * var(--pip-scale, 1)) calc(7px * var(--pip-scale, 1));
+        border-radius: 20px;
+        font-size: calc(11px * var(--pip-scale, 1));
         color: #00F0FF;
         font-weight: 700;
         white-space: nowrap;
       }
       .pip-btn-step {
-        width: 18px;
-        height: 18px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        width: calc(18px * var(--pip-scale, 1));
+        height: calc(18px * var(--pip-scale, 1));
+        background: rgba(255, 255, 255, 0.12);
+        border: none !important;
         color: #FFF;
-        border-radius: 3px;
+        border-radius: 50%;
         cursor: pointer;
-        font-size: 11px;
+        font-size: calc(10px * var(--pip-scale, 1));
         font-weight: 800;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.15s ease;
       }
       .pip-btn-step:hover {
         background: #00F0FF;
         color: #0A0D18;
       }
       .pip-select-script {
-        background: #151C2F;
-        border: 1px solid rgba(0, 240, 255, 0.35);
+        background: rgba(255, 255, 255, 0.08);
+        border: none !important;
         color: #FFF;
-        font-size: 11px;
-        padding: 2px 6px;
-        border-radius: 5px;
-        max-width: 130px;
+        font-size: calc(11px * var(--pip-scale, 1));
+        padding: calc(3px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1));
+        border-radius: 16px;
+        max-width: calc(120px * var(--pip-scale, 1));
         outline: none;
         cursor: pointer;
       }
       .pip-btn-close {
         background: transparent;
-        border: none;
+        border: none !important;
         color: #94A3B8;
-        font-size: 14px;
+        font-size: calc(13px * var(--pip-scale, 1));
         font-weight: 800;
         cursor: pointer;
-        padding: 2px 6px;
-        border-radius: 4px;
+        padding: calc(2px * var(--pip-scale, 1)) calc(6px * var(--pip-scale, 1));
+        border-radius: 50%;
+        transition: all 0.15s ease;
       }
       .pip-btn-close:hover {
         background: rgba(239, 68, 68, 0.3);
@@ -603,21 +771,22 @@ class PiPPrompterManager {
         overflow-y: scroll;
         overflow-x: hidden;
         scrollbar-width: none;
-        padding: 16px 20px 120px 20px;
+        padding: calc(16px * var(--pip-scale, 1)) calc(20px * var(--pip-scale, 1)) calc(120px * var(--pip-scale, 1)) calc(20px * var(--pip-scale, 1));
+        border: none !important;
       }
       .pip-viewport::-webkit-scrollbar {
         display: none;
       }
       .pip-focus-line {
         position: sticky;
-        top: 24px;
-        height: 40px;
-        border-top: 1.5px solid rgba(0, 240, 255, 0.6);
-        border-bottom: 1.5px solid rgba(0, 240, 255, 0.6);
-        background: rgba(0, 240, 255, 0.08);
-        border-radius: 6px;
+        top: calc(24px * var(--pip-scale, 1));
+        height: calc(38px * var(--pip-scale, 1));
+        border: none !important;
+        background: rgba(0, 240, 255, 0.1);
+        box-shadow: 0 0 calc(12px * var(--pip-scale, 1)) rgba(0, 240, 255, 0.25);
+        border-radius: calc(8px * var(--pip-scale, 1));
         pointer-events: none;
-        margin-bottom: -40px;
+        margin-bottom: calc(-38px * var(--pip-scale, 1));
         z-index: 10;
       }
       .pip-text {
@@ -646,6 +815,114 @@ class PiPPrompterManager {
            2px -2px 0 #000,
           -2px  2px 0 #000,
            2px  2px 0 #000 !important;
+      }
+
+      /* Modal Overlay & Card (Borderless Rounded Glass) */
+      .pip-modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.78);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: calc(12px * var(--pip-scale, 1));
+        border: none !important;
+      }
+      .pip-choice-card {
+        background: #101626;
+        border-radius: calc(14px * var(--pip-scale, 1));
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+        width: 100%;
+        max-width: calc(340px * var(--pip-scale, 1));
+        padding: calc(14px * var(--pip-scale, 1));
+        display: flex;
+        flex-direction: column;
+        gap: calc(10px * var(--pip-scale, 1));
+        border: none !important;
+      }
+      .pip-choice-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .pip-choice-title {
+        font-size: calc(12px * var(--pip-scale, 1));
+        font-weight: 700;
+        color: #00F0FF;
+      }
+      .pip-choice-close {
+        background: transparent;
+        border: none !important;
+        color: #94A3B8;
+        font-size: calc(13px * var(--pip-scale, 1));
+        cursor: pointer;
+        border-radius: 50%;
+        padding: 2px 6px;
+      }
+      .pip-choice-close:hover {
+        color: #FFF;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .pip-choice-grid {
+        display: flex;
+        flex-direction: column;
+        gap: calc(8px * var(--pip-scale, 1));
+      }
+      .pip-source-btn {
+        display: flex;
+        align-items: center;
+        gap: calc(10px * var(--pip-scale, 1));
+        background: rgba(255, 255, 255, 0.06);
+        border: none !important;
+        border-radius: calc(10px * var(--pip-scale, 1));
+        padding: calc(9px * var(--pip-scale, 1)) calc(12px * var(--pip-scale, 1));
+        color: #FFF;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.15s ease;
+      }
+      .pip-source-btn:hover {
+        background: rgba(0, 240, 255, 0.2);
+        transform: translateY(-1px);
+      }
+      .pip-source-icon {
+        font-size: calc(20px * var(--pip-scale, 1));
+      }
+      .pip-source-name {
+        font-size: calc(12px * var(--pip-scale, 1));
+        font-weight: 700;
+        color: #FFF;
+      }
+      .pip-source-desc {
+        font-size: calc(10px * var(--pip-scale, 1));
+        color: #94A3B8;
+        margin-top: 2px;
+      }
+
+      /* Responsive Elastic Classes */
+      .pip-size-xs .pip-title-text,
+      .pip-size-xs .pip-pill,
+      .pip-size-xs #pip-play-label,
+      .pip-size-xs #pip-trans-label {
+        display: none !important;
+      }
+      .pip-size-xs .pip-header {
+        padding: 4px 6px;
+      }
+      .pip-size-xs .pip-select-script {
+        max-width: 85px;
+      }
+      .pip-size-sm .pip-pill {
+        display: none !important;
+      }
+      .pip-size-sm .pip-select-script {
+        max-width: 100px;
       }
     `;
   }

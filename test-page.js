@@ -73,7 +73,26 @@ document.addEventListener('DOMContentLoaded', () => {
         window.GhostPrompter.openPiP();
       } else if (typeof PiPPrompterManager !== 'undefined' && PiPPrompterManager.isSupported()) {
         const mgr = new PiPPrompterManager();
-        mgr.openPiP();
+        mgr.openPiP({
+          onStartScreenRecording: () => {
+            if (window.GhostPrompter && window.GhostPrompter.startScreenRecording) {
+              window.GhostPrompter.startScreenRecording();
+            }
+          },
+          onStartCameraRecording: () => {
+            if (window.GhostPrompter && window.GhostPrompter.startCameraRecording) {
+              window.GhostPrompter.startCameraRecording();
+            }
+          },
+          onStopRecording: () => {
+            if (window.GhostPrompter && window.GhostPrompter.toggleRecording) {
+              window.GhostPrompter.toggleRecording();
+            }
+          },
+          isRecording: () => {
+            return window.GhostPrompter && window.GhostPrompter.isRecording ? window.GhostPrompter.isRecording() : false;
+          }
+        });
       } else {
         window.open('src/floating/floating.html', 'GhostPrompterFloating', 'width=700,height=360,menubar=no,toolbar=no');
       }
