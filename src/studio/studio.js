@@ -106,9 +106,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   prompterText.style.color = currentColor;
   selectColor.value = currentColor;
 
-  updateStudioPrompterScale();
   setupStudioPrompterDrag();
   setupStudioPrompterResize();
+  applyRatioToPrompter(currentRatio, true);
+  setTimeout(() => {
+    applyRatioToPrompter(currentRatio, true);
+  }, 100);
 
   // Instantiate VideoRecorder Engine
   recorder = new VideoRecorder({
@@ -381,24 +384,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         recorder.setAspectRatio(currentRatio);
       }
 
-      // Re-center prompter inside new aspect container and adapt size
+      // Reset manual overrides so prompter dynamically snaps and elastically follows the new aspect ratio
+      if (studioPrompter) {
+        delete studioPrompter.dataset.manualSized;
+        delete studioPrompter.dataset.manualMoved;
+      }
+
+      // Apply immediately and on subsequent layout paint frames for fluid elastic adaptation
+      applyRatioToPrompter(currentRatio, true);
       setTimeout(() => {
-        if (studioPrompter && cameraContainer) {
-          const containerW = cameraContainer.clientWidth;
-          const containerH = cameraContainer.clientHeight;
-          if (studioPrompter.offsetWidth > containerW - 20) {
-            studioPrompter.style.width = Math.max(260, containerW - 30) + 'px';
-          }
-          studioPrompter.style.transform = 'none';
-          studioPrompter.dataset.positioned = 'true';
-          const newLeft = Math.max(10, (containerW - studioPrompter.offsetWidth) / 2);
-          const currentTop = parseInt(studioPrompter.style.top, 10) || 100;
-          const newTop = Math.max(20, Math.min(containerH - studioPrompter.offsetHeight - 20, currentTop));
-          studioPrompter.style.left = `${newLeft}px`;
-          studioPrompter.style.top = `${newTop}px`;
-          updateStudioPrompterScale();
-        }
-      }, 100);
+        applyRatioToPrompter(currentRatio, true);
+      }, 50);
+      setTimeout(() => {
+        applyRatioToPrompter(currentRatio, true);
+      }, 180);
     });
   });
 
@@ -474,8 +473,77 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ==========================================================================
-  // Studio Teleprompter Dragging & Elastic Resizing
+  // Studio Teleprompter Dragging & Elastic Resizing (Bidirectional Elastic)
   // ==========================================================================
+
+  /**
+   * Bidirectional elastic sizing and positioning for Studio Prompter.
+   * Dynamically adapts to aspect ratios (16:9, 9:16, 1:1) and container size changes.
+   * Shrinks on narrow/mobile ratios and expands on wider landscape/square ratios.
+   * @param {string} ratio - '16:9', '9:16', or '1:1'
+   * @param {boolean} forceReset - whether to reset to ratio defaults (e.g. on ratio button click)
+   */
+  function applyRatioToPrompter(ratio, forceReset = false) {
+    if (!studioPrompter || !cameraContainer) return;
+
+    const containerW = cameraContainer.clientWidth;
+    const containerH = cameraContainer.clientHeight;
+    if (!containerW || !containerH) return;
+
+    let targetW, targetH, targetTop, targetLeft;
+
+    if (ratio === '9:16') {
+      // Portrait / Shorts / Reels (e.g. 350x620)
+      // Narrow canvas: prompter occupies ~92% width, centered
+      targetW = Math.max(240, Math.min(containerW - 16, Math.round(containerW * 0.92)));
+      targetH = Math.max(140, Math.min(220, Math.round(containerH * 0.30)));
+      targetTop = Math.max(10, Math.round(containerH * 0.20));
+    } else if (ratio === '1:1') {
+      // Square / Feed (e.g. 620x620)
+      // Medium canvas: prompter occupies ~82% width, up to 540px
+      targetW = Math.max(260, Math.min(containerW - 24, Math.round(containerW * 0.82), 540));
+      targetH = Math.max(150, Math.min(240, Math.round(containerH * 0.35)));
+      targetTop = Math.max(14, Math.round(containerH * 0.22));
+    } else {
+      // 16:9 Landscape / Desktop / YouTube (e.g. 1000x562)
+      // Wide canvas: prompter occupies ~76% width, up to 780px
+      targetW = Math.max(280, Math.min(containerW - 32, Math.round(containerW * 0.76), 780));
+      targetH = Math.max(160, Math.min(270, Math.round(containerH * 0.40)));
+      targetTop = Math.max(16, Math.round(containerH * 0.23));
+    }
+
+    targetLeft = Math.max(8, Math.round((containerW - targetW) / 2));
+
+    if (forceReset || !studioPrompter.dataset.manualSized) {
+      studioPrompter.style.width = `${targetW}px`;
+      studioPrompter.style.height = `${targetH}px`;
+    } else {
+      // Keep manual size within new container bounds
+      const maxW = Math.max(240, containerW - 16);
+      const maxH = Math.max(120, containerH - 20);
+      const curW = studioPrompter.offsetWidth;
+      const curH = studioPrompter.offsetHeight;
+      if (curW > maxW) studioPrompter.style.width = `${maxW}px`;
+      if (curH > maxH) studioPrompter.style.height = `${maxH}px`;
+    }
+
+    if (forceReset || !studioPrompter.dataset.manualMoved) {
+      studioPrompter.style.left = `${targetLeft}px`;
+      studioPrompter.style.top = `${targetTop}px`;
+    } else {
+      // Keep manual position within new container bounds
+      const maxLeft = Math.max(8, containerW - studioPrompter.offsetWidth - 8);
+      const maxTop = Math.max(10, containerH - studioPrompter.offsetHeight - 10);
+      const curLeft = studioPrompter.offsetLeft;
+      const curTop = studioPrompter.offsetTop;
+      studioPrompter.style.left = `${Math.max(8, Math.min(maxLeft, curLeft))}px`;
+      studioPrompter.style.top = `${Math.max(10, Math.min(maxTop, curTop))}px`;
+    }
+
+    studioPrompter.style.transform = 'none';
+    studioPrompter.dataset.positioned = 'true';
+    updateStudioPrompterScale();
+  }
 
   function setupStudioPrompterDrag() {
     if (!prompterHeader || !studioPrompter || !cameraContainer) return;
@@ -483,6 +551,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let isDragging = false;
     let startX = 0, startY = 0;
     let initialLeft = 0, initialTop = 0;
+    let hasMoved = false;
 
     prompterHeader.addEventListener('mousedown', (e) => {
       // Ignore clicks on buttons or input controls inside header
@@ -492,6 +561,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       e.preventDefault();
 
       isDragging = true;
+      hasMoved = false;
       studioPrompter.classList.add('dragging');
 
       // Normalize CSS transform if still present
@@ -514,10 +584,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dx = moveEvent.clientX - startX;
         const dy = moveEvent.clientY - startY;
 
-        const maxLeft = Math.max(10, cameraContainer.clientWidth - studioPrompter.offsetWidth - 10);
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+          hasMoved = true;
+        }
+
+        const maxLeft = Math.max(8, cameraContainer.clientWidth - studioPrompter.offsetWidth - 8);
         const maxTop = Math.max(10, cameraContainer.clientHeight - studioPrompter.offsetHeight - 10);
 
-        const newLeft = Math.max(10, Math.min(maxLeft, initialLeft + dx));
+        const newLeft = Math.max(8, Math.min(maxLeft, initialLeft + dx));
         const newTop = Math.max(10, Math.min(maxTop, initialTop + dy));
 
         studioPrompter.style.left = `${newLeft}px`;
@@ -527,6 +601,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const onMouseUp = () => {
         isDragging = false;
         studioPrompter.classList.remove('dragging');
+        if (hasMoved) {
+          studioPrompter.dataset.manualMoved = 'true';
+        }
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
       };
@@ -546,6 +623,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const dir = handle.dataset.dir; // 'se', 's', 'e', 'sw', 'w'
         let isResizing = true;
+        let hasResized = false;
         studioPrompter.classList.add('resizing');
 
         // Normalize transform
@@ -570,11 +648,15 @@ document.addEventListener('DOMContentLoaded', async () => {
           const dx = moveEvent.clientX - startX;
           const dy = moveEvent.clientY - startY;
 
-          const maxW = Math.max(260, cameraContainer.clientWidth - 20);
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+            hasResized = true;
+          }
+
+          const maxW = Math.max(240, cameraContainer.clientWidth - 16);
           const maxH = Math.max(120, cameraContainer.clientHeight - 20);
 
           if (dir === 'se' || dir === 'e') {
-            const newW = Math.max(260, Math.min(maxW - startLeft, startWidth + dx));
+            const newW = Math.max(240, Math.min(maxW - startLeft, startWidth + dx));
             studioPrompter.style.width = `${newW}px`;
           }
           if (dir === 'se' || dir === 's' || dir === 'sw') {
@@ -583,7 +665,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
           if (dir === 'w' || dir === 'sw') {
             const targetW = startWidth - dx;
-            if (targetW >= 260 && startLeft + dx >= 10) {
+            if (targetW >= 240 && startLeft + dx >= 8) {
               studioPrompter.style.width = `${targetW}px`;
               studioPrompter.style.left = `${startLeft + dx}px`;
             }
@@ -595,6 +677,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const onMouseUp = () => {
           isResizing = false;
           studioPrompter.classList.remove('resizing');
+          if (hasResized) {
+            studioPrompter.dataset.manualSized = 'true';
+          }
           updateStudioPrompterScale();
           window.removeEventListener('mousemove', onMouseMove);
           window.removeEventListener('mouseup', onMouseUp);
@@ -606,12 +691,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     if (window.ResizeObserver) {
-      const ro = new ResizeObserver(() => {
-        updateStudioPrompterScale();
+      let lastCW = 0;
+      let lastCH = 0;
+      const ro = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.target === cameraContainer) {
+            const cw = cameraContainer.clientWidth;
+            const ch = cameraContainer.clientHeight;
+            if (cw && ch && (Math.abs(cw - lastCW) > 4 || Math.abs(ch - lastCH) > 4)) {
+              lastCW = cw;
+              lastCH = ch;
+              applyRatioToPrompter(currentRatio, false);
+            }
+          } else if (entry.target === studioPrompter) {
+            updateStudioPrompterScale();
+          }
+        }
       });
-      ro.observe(studioPrompter);
       ro.observe(cameraContainer);
+      ro.observe(studioPrompter);
     }
+
+    window.addEventListener('resize', () => {
+      applyRatioToPrompter(currentRatio, false);
+    });
   }
 
   function updateStudioPrompterScale() {
@@ -632,6 +735,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     studioPrompter.style.setProperty('--sp-scale', scale.toFixed(3));
     studioPrompter.style.setProperty('--sp-font-scale', fontScale.toFixed(3));
     studioPrompter.style.setProperty('--sp-base-font-size', `${currentFontSize}px`);
+
+    // Responsive title and controls density
+    if (w < 315) {
+      studioPrompter.classList.add('prompter-compact', 'prompter-xs');
+    } else if (w < 395) {
+      studioPrompter.classList.add('prompter-compact');
+      studioPrompter.classList.remove('prompter-xs');
+    } else {
+      studioPrompter.classList.remove('prompter-compact', 'prompter-xs');
+    }
   }
 
   // Global Keyboard Shortcuts inside Studio

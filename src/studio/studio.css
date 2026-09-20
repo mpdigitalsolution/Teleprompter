@@ -352,9 +352,10 @@ body {
   left: 50%;
   transform: translateX(-50%);
   width: 78%;
-  max-width: 680px;
-  min-width: 260px;
+  max-width: min(840px, calc(100% - 16px));
+  min-width: 240px;
   height: 230px;
+  max-height: calc(100% - 20px);
   min-height: 120px;
   background: rgba(12, 16, 28, 0.45);
   backdrop-filter: blur(10px);
@@ -367,18 +368,20 @@ body {
   overflow: hidden;
   z-index: 20;
   touch-action: none;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, width 0.35s cubic-bezier(0.16, 1, 0.3, 1), height 0.35s cubic-bezier(0.16, 1, 0.3, 1), left 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .studio-prompter.dragging {
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.95), 0 0 32px rgba(0, 240, 255, 0.6) !important;
   border-color: #00F0FF !important;
   user-select: none !important;
+  transition: none !important;
 }
 
 .studio-prompter.resizing {
   user-select: none !important;
   border-color: #00FF88 !important;
+  transition: none !important;
 }
 
 .prompter-header {
@@ -419,6 +422,22 @@ body {
   color: #FFFFFF;
   font-size: calc(12px * var(--sp-scale, 1));
   white-space: nowrap;
+}
+
+.prompter-title-short {
+  display: none;
+}
+
+.studio-prompter.prompter-compact .prompter-title-full {
+  display: none;
+}
+
+.studio-prompter.prompter-compact .prompter-title-short {
+  display: inline;
+}
+
+.studio-prompter.prompter-xs .prompter-title {
+  display: none;
 }
 
 .prompter-speed-pill {
@@ -488,14 +507,14 @@ body {
 
 .prompter-focus-bar {
   position: sticky;
-  top: calc(20px * var(--sp-scale, 1));
-  height: calc(36px * var(--sp-scale, 1));
+  top: calc(18px * var(--sp-scale, 1));
+  height: calc(38px * var(--sp-font-scale, 1));
   border-top: 1.5px solid rgba(0, 240, 255, 0.5);
   border-bottom: 1.5px solid rgba(0, 240, 255, 0.5);
   background: rgba(0, 240, 255, 0.08);
   border-radius: calc(6px * var(--sp-scale, 1));
   pointer-events: none;
-  margin-bottom: calc(-36px * var(--sp-scale, 1));
+  margin-bottom: calc(-38px * var(--sp-font-scale, 1));
 }
 
 .prompter-text {
@@ -515,7 +534,7 @@ body {
      1.5px -1.5px 0 #000,
     -1.5px  1.5px 0 #000,
      1.5px  1.5px 0 #000;
-  transition: font-size 0.05s ease;
+  transition: font-size 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Resize Handles for Elastic Scaling */
