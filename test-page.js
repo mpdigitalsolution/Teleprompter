@@ -6,6 +6,8 @@
 document.addEventListener('DOMContentLoaded', () => {
   const togglePrompterBtn = document.getElementById('test-btn-toggle-prompter');
   const toggleGhostBtn = document.getElementById('test-btn-ghost-toggle');
+  const toggleTransBtn = document.getElementById('test-btn-transparency');
+  const toggleScrollBtn = document.getElementById('test-btn-autoscroll');
   const simGazeBtn = document.getElementById('test-btn-sim-gaze');
   const camBtn = document.getElementById('meet-btn-cam');
   const webcamVideo = document.getElementById('user-webcam');
@@ -15,6 +17,22 @@ document.addEventListener('DOMContentLoaded', () => {
     togglePrompterBtn.addEventListener('click', () => {
       if (window.GhostPrompter && window.GhostPrompter.toggle) {
         window.GhostPrompter.toggle();
+      }
+    });
+  }
+
+  if (toggleTransBtn) {
+    toggleTransBtn.addEventListener('click', () => {
+      if (window.GhostPrompter && window.GhostPrompter.toggleTransparency) {
+        window.GhostPrompter.toggleTransparency();
+      }
+    });
+  }
+
+  if (toggleScrollBtn) {
+    toggleScrollBtn.addEventListener('click', () => {
+      if (window.GhostPrompter && window.GhostPrompter.toggleAutoScroll) {
+        window.GhostPrompter.toggleAutoScroll();
       }
     });
   }

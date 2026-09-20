@@ -23,6 +23,7 @@
   let isGhostMode = false;
   let isMirrorMode = false;
   let isSolidMode = true; // High visibility solid mode by default
+  let isTransparentMode = false; // Dedicated transparent glass mode
   let currentSettings = null;
   let currentScript = null;
   let scrollAnimFrame = null;
@@ -35,8 +36,10 @@
     textColor: '#00F0FF',
     lineHeight: 1.6,
     wpm: 130,
-    trackingMode: 'manual',
-    window: { x: null, y: 24, width: 640, height: 280 }
+    trackingMode: 'auto',
+    isTransparentMode: false,
+    transparencyPreset: 'solid',
+    window: { x: null, y: 24, width: 680, height: 290 }
   };
 
   /**
@@ -69,11 +72,43 @@
       overflow: hidden;
       border: 2px solid rgba(0, 240, 255, 0.85);
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.95), 0 0 24px rgba(0, 240, 255, 0.4);
-      transition: box-shadow 0.25s ease, opacity 0.2s ease, background-color 0.2s ease;
+      transition: box-shadow 0.25s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
       pointer-events: auto;
       background-color: rgba(12, 16, 28, 0.94);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
+    }
+    .gp-window.gp-transparent-mode {
+      background-color: rgba(10, 14, 24, 0.18) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      border: 1.5px solid rgba(0, 240, 255, 0.6) !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.25) !important;
+    }
+    .gp-window.gp-transparent-mode .gp-viewport {
+      background-color: transparent !important;
+    }
+    .gp-window.gp-transparent-mode .gp-header {
+      background: rgba(14, 20, 34, 0.65) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border-bottom: 1.5px solid rgba(0, 240, 255, 0.4) !important;
+    }
+    .gp-window.gp-transparent-mode .gp-toolbar {
+      background: rgba(16, 22, 38, 0.8) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+    }
+    .gp-window.gp-transparent-mode .gp-script-body {
+      font-weight: 700 !important;
+      text-shadow: 
+        0 0 14px rgba(0, 0, 0, 1),
+        0 0 6px rgba(0, 0, 0, 1),
+        0 2px 4px rgba(0, 0, 0, 1),
+        -1.5px -1.5px 0 #000,  
+         1.5px -1.5px 0 #000,
+        -1.5px  1.5px 0 #000,
+         1.5px  1.5px 0 #000 !important;
     }
     .gp-window.gp-ghost-mode {
       pointer-events: none !important;
@@ -196,6 +231,80 @@
       height: 28px;
       padding: 0;
       font-size: 12px;
+    }
+    .gp-btn-autoscroll {
+      background: linear-gradient(135deg, #00C853, #00E676) !important;
+      color: #051408 !important;
+      font-weight: 800 !important;
+      border: 1px solid #69F0AE !important;
+      box-shadow: 0 0 10px rgba(0, 230, 118, 0.4) !important;
+    }
+    .gp-btn-autoscroll:hover {
+      filter: brightness(1.15) !important;
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.7) !important;
+    }
+    .gp-btn-autoscroll.gp-scrolling {
+      background: linear-gradient(135deg, #FF9100, #FF3D00) !important;
+      color: #FFFFFF !important;
+      border-color: #FF9E80 !important;
+      box-shadow: 0 0 14px rgba(255, 87, 34, 0.6) !important;
+      animation: gp-pulse 1.8s infinite;
+    }
+    @keyframes gp-pulse {
+      0% { box-shadow: 0 0 8px rgba(255, 87, 34, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(255, 87, 34, 0.9); }
+      100% { box-shadow: 0 0 8px rgba(255, 87, 34, 0.5); }
+    }
+    .gp-speed-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #0D1424;
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-size: 11px;
+      color: #00F0FF;
+      font-weight: 700;
+      user-select: none;
+    }
+    .gp-btn-tiny {
+      width: 18px;
+      height: 18px;
+      padding: 0;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 4px;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.1s ease;
+    }
+    .gp-btn-tiny:hover {
+      background: #00F0FF;
+      color: #0A0E1A;
+      border-color: #00F0FF;
+    }
+    .gp-preset-btn {
+      padding: 3px 8px !important;
+      font-size: 10px !important;
+    }
+    .gp-preset-btn.active {
+      background: #00F0FF !important;
+      color: #0A0E1A !important;
+      border-color: #00F0FF !important;
+      box-shadow: 0 0 8px #00F0FF !important;
+      font-weight: 800 !important;
+    }
+    .gp-badge-scrolling {
+      background: rgba(0, 255, 136, 0.25) !important;
+      color: #00FF88 !important;
+      border-color: rgba(0, 255, 136, 0.7) !important;
+      box-shadow: 0 0 8px rgba(0, 255, 136, 0.4) !important;
     }
     .gp-toolbar {
       display: flex;
@@ -421,16 +530,24 @@
     const data = await loadData();
     currentSettings = { ...defaultState, ...(data.settings || {}) };
     
-    // Ensure opacity is high enough to be clearly visible
-    if (!currentSettings.opacity || currentSettings.opacity < 0.3) {
-      currentSettings.opacity = 0.94;
+    // Check transparent mode setting
+    if (typeof currentSettings.isTransparentMode === 'boolean') {
+      isTransparentMode = currentSettings.isTransparentMode;
+      isSolidMode = !isTransparentMode;
+    } else {
+      isTransparentMode = currentSettings.opacity !== undefined && currentSettings.opacity < 0.65;
+      isSolidMode = !isTransparentMode;
+    }
+
+    if (!currentSettings.opacity) {
+      currentSettings.opacity = isTransparentMode ? 0.35 : 0.94;
     }
 
     const scripts = data.scripts || [];
     currentScript = scripts.find(s => s.id === data.activeScriptId) || scripts[0] || {
       id: 'default',
       title: 'Welcome to GhostPrompter',
-      content: `Welcome to GhostPrompter! 👻\n\nThis is your high-visibility heads-up teleprompter.\n\n• Drag this window directly beneath your webcam lens.\n• Resize it using the bottom-right cyan handle.\n• Click "▶ Play" or press Spacebar to Pause / Resume scroll.\n• Click "▲" or "▼" (or Up/Down arrows) to nudge lines.\n• Click "⬛ Solid" to toggle between Solid and Glass transparency.\n• Click "👻 Ghost" (Alt + C) to click right through the window.\n\nStart speaking or reading, and enjoy natural eye contact!`
+      content: `Welcome to GhostPrompter! 👻\n\nThis is your high-visibility heads-up teleprompter.\n\n• Drag this window directly beneath your webcam lens.\n• Resize it using the bottom-right cyan handle.\n• Click "▶ Auto-Scroll" (or Spacebar) for continuous smooth scrolling.\n• Adjust scroll speed using "-" / "+" in the header at any time.\n• Click "🪟 Transparent" to switch between Solid Dark and Floating Glass.\n• Click "👻 Ghost" (Alt + C) to click right through the window.\n\nEnjoy seamless eye contact on every call!`
     };
 
     createHUD(data.scripts || [currentScript]);
@@ -458,20 +575,20 @@
 
     // Initial position & dimensions
     const winConfig = currentSettings.window || defaultState.window;
-    const initialWidth = winConfig.width || 640;
-    const initialHeight = winConfig.height || 280;
+    const initialWidth = winConfig.width || 680;
+    const initialHeight = winConfig.height || 290;
     const initialTop = winConfig.y !== null ? winConfig.y : 24;
     const initialLeft = winConfig.x !== null ? winConfig.x : Math.max(20, (window.innerWidth - initialWidth) / 2);
 
     // Main window element
     windowEl = document.createElement('div');
-    windowEl.className = 'gp-window';
+    windowEl.className = `gp-window ${isTransparentMode ? 'gp-transparent-mode' : 'gp-solid-mode'}`;
     windowEl.style.width = `${initialWidth}px`;
     windowEl.style.height = `${initialHeight}px`;
     windowEl.style.top = `${initialTop}px`;
     windowEl.style.left = `${initialLeft}px`;
 
-    // Markup with high-visibility manual controls
+    // Markup with high-visibility auto-scroll & transparent mode controls
     windowEl.innerHTML = `
       <!-- Click-through Ghost Mode exit badge -->
       <button class="gp-ghost-pill" id="gp-ghost-pill">👻 Ghost Mode Active (Click to Exit)</button>
@@ -484,7 +601,7 @@
           </svg>
           <span class="gp-title">GhostPrompter</span>
           <div class="gp-status-group">
-            <span class="gp-badge" id="gp-mode-badge">${(currentSettings.trackingMode || 'MANUAL').toUpperCase()}</span>
+            <span class="gp-badge" id="gp-mode-badge">${(currentSettings.trackingMode || 'AUTO').toUpperCase()}</span>
             <div class="gp-indicator" title="Gaze Tracking Status">
               <span class="gp-dot" id="gp-gaze-dot"></span> Gaze
             </div>
@@ -495,11 +612,16 @@
         </div>
 
         <div class="gp-actions">
-          <button class="gp-btn active" id="gp-btn-play" title="Spacebar: Play/Pause">▶ Play</button>
+          <button class="gp-btn gp-btn-autoscroll" id="gp-btn-autoscroll" title="Spacebar: Start / Pause Auto-Scroll">▶ Auto-Scroll</button>
+          <div class="gp-speed-pill" title="Live Auto-Scroll Speed (WPM)">
+            <button class="gp-btn-tiny" id="gp-btn-hdr-wpm-dec" title="Slower (-10 WPM)">-</button>
+            <span id="gp-hdr-wpm-val">${currentSettings.wpm} WPM</span>
+            <button class="gp-btn-tiny" id="gp-btn-hdr-wpm-inc" title="Faster (+10 WPM)">+</button>
+          </div>
+          <button class="gp-btn ${isTransparentMode ? 'active' : ''}" id="gp-btn-transparency" title="Alt+T: Toggle Transparent Glass / Solid mode">${isTransparentMode ? '⬛ Solid' : '🪟 Transparent'}</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-nudge-up" title="Nudge Up (Up Arrow)">▲</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-nudge-down" title="Nudge Down (Down Arrow)">▼</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-reset-top" title="Reset to Top">⏮</button>
-          <button class="gp-btn" id="gp-btn-solid" title="Toggle Solid / Transparent window">⬛ Solid</button>
           <button class="gp-btn" id="gp-btn-ghost" title="Alt+C: Ghost Click-Through Mode">👻 Ghost</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-mirror" title="Mirror text for glass prompter">🪞</button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-tools" title="Toggle control sliders">⚙</button>
@@ -517,11 +639,20 @@
         </div>
 
         <div class="gp-ctrl-group">
-          <label>Speed:</label>
+          <label>Speed (WPM):</label>
           <button class="gp-btn gp-btn-icon" id="gp-btn-wpm-dec" style="width:22px; height:22px; font-size:11px;">-</button>
-          <input type="range" class="gp-range" id="gp-range-wpm" min="50" max="260" step="10" value="${currentSettings.wpm}">
+          <input type="range" class="gp-range" id="gp-range-wpm" min="50" max="300" step="10" value="${currentSettings.wpm}">
           <button class="gp-btn gp-btn-icon" id="gp-btn-wpm-inc" style="width:22px; height:22px; font-size:11px;">+</button>
           <span id="gp-val-wpm" style="font-size:11px; color:#00F0FF; min-width:28px; font-weight:700;">${currentSettings.wpm}</span>
+        </div>
+
+        <div class="gp-ctrl-group">
+          <label>Transparency Presets:</label>
+          <button class="gp-btn gp-preset-btn ${currentSettings.opacity >= 0.85 && !isTransparentMode ? 'active' : ''}" id="gp-preset-solid" data-preset="solid">⬛ Solid 95%</button>
+          <button class="gp-btn gp-preset-btn ${currentSettings.opacity >= 0.65 && currentSettings.opacity < 0.85 ? 'active' : ''}" id="gp-preset-dark" data-preset="dark">🌓 Dark 75%</button>
+          <button class="gp-btn gp-preset-btn ${currentSettings.opacity >= 0.2 && currentSettings.opacity < 0.65 && isTransparentMode ? 'active' : ''}" id="gp-preset-glass" data-preset="glass">🪟 Glass 35%</button>
+          <button class="gp-btn gp-preset-btn ${currentSettings.opacity < 0.2 && isTransparentMode ? 'active' : ''}" id="gp-preset-clear" data-preset="clear">👻 Clear 0%</button>
+          <input type="range" class="gp-range" id="gp-range-opacity" min="0" max="1" step="0.05" value="${currentSettings.opacity}">
         </div>
 
         <div class="gp-ctrl-group">
@@ -534,22 +665,18 @@
         <div class="gp-ctrl-group">
           <label>Color:</label>
           <select class="gp-select" id="gp-select-color">
-            <option value="#00F0FF" selected>⚡ Neon Cyan</option>
-            <option value="#FFEA00">☀️ Bright Yellow</option>
-            <option value="#FFFFFF">⚪ Crisp White</option>
+            <option value="#00F0FF" ${currentSettings.textColor === '#00F0FF' ? 'selected' : ''}>⚡ Neon Cyan</option>
+            <option value="#FFEA00" ${currentSettings.textColor === '#FFEA00' ? 'selected' : ''}>☀️ Bright Yellow</option>
+            <option value="#00FF88" ${currentSettings.textColor === '#00FF88' ? 'selected' : ''}>💚 Emerald Green</option>
+            <option value="#FFFFFF" ${currentSettings.textColor === '#FFFFFF' ? 'selected' : ''}>⚪ Crisp White</option>
           </select>
-        </div>
-
-        <div class="gp-ctrl-group">
-          <label>Opacity:</label>
-          <input type="range" class="gp-range" id="gp-range-opacity" min="0.2" max="1" step="0.05" value="${currentSettings.opacity}">
         </div>
 
         <div class="gp-ctrl-group">
           <label>Mode:</label>
           <select class="gp-select" id="gp-select-mode">
-            <option value="manual" ${currentSettings.trackingMode === 'manual' ? 'selected' : ''}>Manual (Keys/Buttons)</option>
             <option value="auto" ${currentSettings.trackingMode === 'auto' ? 'selected' : ''}>Auto-Scroll (WPM)</option>
+            <option value="manual" ${currentSettings.trackingMode === 'manual' ? 'selected' : ''}>Manual (Keys/Buttons)</option>
             <option value="dual" ${currentSettings.trackingMode === 'dual' ? 'selected' : ''}>Dual (Gaze + Speech)</option>
             <option value="gaze" ${currentSettings.trackingMode === 'gaze' ? 'selected' : ''}>Gaze Only</option>
             <option value="speech" ${currentSettings.trackingMode === 'speech' ? 'selected' : ''}>Speech Sync</option>
@@ -594,23 +721,66 @@
 
   function applyWindowAppearance() {
     if (!windowEl) return;
-    const bgAlpha = isGhostMode 
-      ? 0.2 
-      : isSolidMode 
-        ? Math.max(0.92, currentSettings.opacity || 0.94) 
-        : (currentSettings.opacity || 0.5);
+
+    if (isTransparentMode) {
+      windowEl.classList.add('gp-transparent-mode');
+      windowEl.classList.remove('gp-solid-mode');
+    } else {
+      windowEl.classList.remove('gp-transparent-mode');
+      windowEl.classList.add('gp-solid-mode');
+    }
+
+    let bgAlpha = 0.94;
+    if (isGhostMode) {
+      bgAlpha = 0.15;
+    } else if (isTransparentMode) {
+      bgAlpha = typeof currentSettings.opacity === 'number' ? Math.min(0.5, currentSettings.opacity) : 0.25;
+    } else {
+      bgAlpha = typeof currentSettings.opacity === 'number' ? Math.max(0.75, currentSettings.opacity) : 0.94;
+    }
 
     windowEl.style.backgroundColor = `rgba(12, 16, 28, ${bgAlpha})`;
     
     if (viewportEl) {
-      viewportEl.style.backgroundColor = `rgba(11, 14, 24, ${bgAlpha * 0.98})`;
+      if (isTransparentMode || isGhostMode) {
+        viewportEl.style.backgroundColor = 'transparent';
+      } else {
+        viewportEl.style.backgroundColor = `rgba(11, 14, 24, ${bgAlpha * 0.98})`;
+      }
     }
 
     if (scriptBodyEl) {
       scriptBodyEl.style.fontSize = `${currentSettings.fontSize || 24}px`;
       scriptBodyEl.style.color = currentSettings.textColor || '#00F0FF';
       scriptBodyEl.style.lineHeight = currentSettings.lineHeight || 1.6;
-      scriptBodyEl.style.textShadow = '0 2px 8px rgba(0, 0, 0, 0.95)';
+      if (isTransparentMode) {
+        scriptBodyEl.style.fontWeight = '700';
+        scriptBodyEl.style.textShadow = '0 0 14px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 1), 0 2px 4px rgba(0, 0, 0, 1), -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000';
+      } else {
+        scriptBodyEl.style.fontWeight = '600';
+        scriptBodyEl.style.textShadow = '0 2px 8px rgba(0, 0, 0, 0.95)';
+      }
+    }
+
+    // Update preset buttons and toggle button active state
+    if (shadowRoot) {
+      const presetBtns = shadowRoot.querySelectorAll('.gp-preset-btn');
+      presetBtns.forEach(btn => {
+        const p = btn.dataset.preset;
+        const op = currentSettings.opacity;
+        let isAct = false;
+        if (p === 'solid' && op >= 0.85 && !isTransparentMode) isAct = true;
+        else if (p === 'dark' && op >= 0.65 && op < 0.85) isAct = true;
+        else if (p === 'glass' && op >= 0.2 && op < 0.65 && isTransparentMode) isAct = true;
+        else if (p === 'clear' && op < 0.2 && isTransparentMode) isAct = true;
+        btn.classList.toggle('active', isAct);
+      });
+
+      const transBtn = shadowRoot.getElementById('gp-btn-transparency');
+      if (transBtn) {
+        transBtn.textContent = isTransparentMode ? '⬛ Solid' : '🪟 Transparent';
+        transBtn.classList.toggle('active', isTransparentMode);
+      }
     }
   }
 
@@ -728,11 +898,13 @@
    * UI Controls & Handlers
    */
   function setupUIControls() {
-    const playBtn = shadowRoot.getElementById('gp-btn-play');
+    const autoscrollBtn = shadowRoot.getElementById('gp-btn-autoscroll');
+    const hdrWpmDec = shadowRoot.getElementById('gp-btn-hdr-wpm-dec');
+    const hdrWpmInc = shadowRoot.getElementById('gp-btn-hdr-wpm-inc');
+    const transBtn = shadowRoot.getElementById('gp-btn-transparency');
     const nudgeUpBtn = shadowRoot.getElementById('gp-btn-nudge-up');
     const nudgeDownBtn = shadowRoot.getElementById('gp-btn-nudge-down');
     const resetTopBtn = shadowRoot.getElementById('gp-btn-reset-top');
-    const solidBtn = shadowRoot.getElementById('gp-btn-solid');
     const ghostBtn = shadowRoot.getElementById('gp-btn-ghost');
     const ghostPill = shadowRoot.getElementById('gp-ghost-pill');
     const mirrorBtn = shadowRoot.getElementById('gp-btn-mirror');
@@ -746,142 +918,224 @@
     const modeSelect = shadowRoot.getElementById('gp-select-mode');
     const scriptSelect = shadowRoot.getElementById('gp-select-script');
     const colorSelect = shadowRoot.getElementById('gp-select-color');
+    const presetBtns = shadowRoot.querySelectorAll('.gp-preset-btn');
 
-    // Play / Pause
-    playBtn.addEventListener('click', togglePlay);
+    // Auto-Scroll Toggle
+    if (autoscrollBtn) {
+      autoscrollBtn.addEventListener('click', toggleAutoScroll);
+    }
+
+    // Header Fast Speed Adjusters
+    if (hdrWpmDec) {
+      hdrWpmDec.addEventListener('click', () => adjustSpeed(-10));
+    }
+    if (hdrWpmInc) {
+      hdrWpmInc.addEventListener('click', () => adjustSpeed(10));
+    }
+
+    // Transparent / Solid Toggle
+    if (transBtn) {
+      transBtn.addEventListener('click', toggleTransparency);
+    }
+
+    // Transparency Preset Buttons
+    presetBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        setTransparencyPreset(btn.dataset.preset);
+      });
+    });
 
     // Manual nudges
-    nudgeUpBtn.addEventListener('click', () => nudgeScroll(-36));
-    nudgeDownBtn.addEventListener('click', () => nudgeScroll(36));
-    resetTopBtn.addEventListener('click', () => {
-      if (viewportEl) viewportEl.scrollTop = 0;
-    });
-
-    // Solid vs Transparent Toggle
-    solidBtn.addEventListener('click', () => {
-      isSolidMode = !isSolidMode;
-      solidBtn.textContent = isSolidMode ? '⬛ Solid' : '🪟 Glass';
-      solidBtn.classList.toggle('active', isSolidMode);
-      currentSettings.opacity = isSolidMode ? 0.94 : 0.45;
-      opacitySlider.value = currentSettings.opacity;
-      applyWindowAppearance();
-      saveData({ settings: currentSettings });
-    });
+    if (nudgeUpBtn) nudgeUpBtn.addEventListener('click', () => nudgeScroll(-40));
+    if (nudgeDownBtn) nudgeDownBtn.addEventListener('click', () => nudgeScroll(40));
+    if (resetTopBtn) {
+      resetTopBtn.addEventListener('click', () => {
+        if (viewportEl) viewportEl.scrollTop = 0;
+      });
+    }
 
     // Color Selector
-    colorSelect.addEventListener('change', (e) => {
-      currentSettings.textColor = e.target.value;
-      applyWindowAppearance();
-      saveData({ settings: currentSettings });
-    });
+    if (colorSelect) {
+      colorSelect.addEventListener('change', (e) => {
+        currentSettings.textColor = e.target.value;
+        applyWindowAppearance();
+        saveData({ settings: currentSettings });
+      });
+    }
 
-    // Quick +/- WPM buttons
+    // Toolbar WPM buttons
     const wpmDecBtn = shadowRoot.getElementById('gp-btn-wpm-dec');
     const wpmIncBtn = shadowRoot.getElementById('gp-btn-wpm-inc');
-    wpmDecBtn.addEventListener('click', () => adjustSpeed(-10));
-    wpmIncBtn.addEventListener('click', () => adjustSpeed(10));
+    if (wpmDecBtn) wpmDecBtn.addEventListener('click', () => adjustSpeed(-10));
+    if (wpmIncBtn) wpmIncBtn.addEventListener('click', () => adjustSpeed(10));
 
-    // Quick +/- Font buttons
+    // Font buttons
     const fontDecBtn = shadowRoot.getElementById('gp-btn-font-dec');
     const fontIncBtn = shadowRoot.getElementById('gp-btn-font-inc');
-    fontDecBtn.addEventListener('click', () => {
-      currentSettings.fontSize = Math.max(16, currentSettings.fontSize - 2);
-      fontSlider.value = currentSettings.fontSize;
-      applyWindowAppearance();
-      saveData({ settings: currentSettings });
-    });
-    fontIncBtn.addEventListener('click', () => {
-      currentSettings.fontSize = Math.min(48, currentSettings.fontSize + 2);
-      fontSlider.value = currentSettings.fontSize;
-      applyWindowAppearance();
-      saveData({ settings: currentSettings });
-    });
+    if (fontDecBtn) {
+      fontDecBtn.addEventListener('click', () => {
+        currentSettings.fontSize = Math.max(16, (currentSettings.fontSize || 24) - 2);
+        if (fontSlider) fontSlider.value = currentSettings.fontSize;
+        applyWindowAppearance();
+        saveData({ settings: currentSettings });
+      });
+    }
+    if (fontIncBtn) {
+      fontIncBtn.addEventListener('click', () => {
+        currentSettings.fontSize = Math.min(48, (currentSettings.fontSize || 24) + 2);
+        if (fontSlider) fontSlider.value = currentSettings.fontSize;
+        applyWindowAppearance();
+        saveData({ settings: currentSettings });
+      });
+    }
 
     // Ghost Mode
-    ghostBtn.addEventListener('click', toggleGhostMode);
-    ghostPill.addEventListener('click', toggleGhostMode);
+    if (ghostBtn) ghostBtn.addEventListener('click', toggleGhostMode);
+    if (ghostPill) ghostPill.addEventListener('click', toggleGhostMode);
 
     // Mirror Mode
-    mirrorBtn.addEventListener('click', () => {
-      isMirrorMode = !isMirrorMode;
-      mirrorBtn.classList.toggle('active', isMirrorMode);
-      scriptBodyEl.classList.toggle('gp-mirrored', isMirrorMode);
-      currentSettings.mirrorMode = isMirrorMode;
-      saveData({ settings: currentSettings });
-    });
+    if (mirrorBtn) {
+      mirrorBtn.addEventListener('click', () => {
+        isMirrorMode = !isMirrorMode;
+        mirrorBtn.classList.toggle('active', isMirrorMode);
+        if (scriptBodyEl) scriptBodyEl.classList.toggle('gp-mirrored', isMirrorMode);
+        currentSettings.mirrorMode = isMirrorMode;
+        saveData({ settings: currentSettings });
+      });
+    }
 
     // Toggle Toolbar
-    toolsBtn.addEventListener('click', () => {
-      toolbar.classList.toggle('collapsed');
-      toolsBtn.classList.toggle('active', !toolbar.classList.contains('collapsed'));
-    });
+    if (toolsBtn) {
+      toolsBtn.addEventListener('click', () => {
+        toolbar.classList.toggle('collapsed');
+        toolsBtn.classList.toggle('active', !toolbar.classList.contains('collapsed'));
+      });
+    }
 
     // Close HUD
-    closeBtn.addEventListener('click', () => {
-      hostEl.style.display = 'none';
-      pauseScroll();
-    });
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        hostEl.style.display = 'none';
+        pauseAutoScroll();
+      });
+    }
 
-    // Opacity
-    opacitySlider.addEventListener('input', (e) => {
-      currentSettings.opacity = parseFloat(e.target.value);
-      isSolidMode = currentSettings.opacity >= 0.85;
-      solidBtn.textContent = isSolidMode ? '⬛ Solid' : '🪟 Glass';
-      solidBtn.classList.toggle('active', isSolidMode);
-      applyWindowAppearance();
-      saveData({ settings: currentSettings });
-    });
+    // Opacity Slider
+    if (opacitySlider) {
+      opacitySlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        currentSettings.opacity = val;
+        isTransparentMode = val < 0.65;
+        isSolidMode = !isTransparentMode;
+        currentSettings.isTransparentMode = isTransparentMode;
+        applyWindowAppearance();
+        saveData({ settings: currentSettings });
+      });
+    }
 
-    // Font Size
-    fontSlider.addEventListener('input', (e) => {
-      currentSettings.fontSize = parseInt(e.target.value, 10);
-      applyWindowAppearance();
-      saveData({ settings: currentSettings });
-    });
+    // Font Size Slider
+    if (fontSlider) {
+      fontSlider.addEventListener('input', (e) => {
+        currentSettings.fontSize = parseInt(e.target.value, 10);
+        applyWindowAppearance();
+        saveData({ settings: currentSettings });
+      });
+    }
 
-    // WPM Speed
-    wpmSlider.addEventListener('input', (e) => {
-      currentSettings.wpm = parseInt(e.target.value, 10);
-      wpmVal.textContent = currentSettings.wpm;
-      saveData({ settings: currentSettings });
-    });
+    // WPM Speed Slider
+    if (wpmSlider) {
+      wpmSlider.addEventListener('input', (e) => {
+        adjustSpeed(parseInt(e.target.value, 10) - (currentSettings.wpm || 130));
+      });
+    }
 
     // Tracking Mode
-    modeSelect.addEventListener('change', (e) => {
-      currentSettings.trackingMode = e.target.value;
-      const badge = shadowRoot.getElementById('gp-mode-badge');
-      if (badge) badge.textContent = e.target.value.toUpperCase();
-      saveData({ settings: currentSettings });
-      sendMessageToExtension({ type: 'SET_TRACKING_MODE', mode: e.target.value });
-    });
+    if (modeSelect) {
+      modeSelect.addEventListener('change', (e) => {
+        currentSettings.trackingMode = e.target.value;
+        const badge = shadowRoot.getElementById('gp-mode-badge');
+        if (badge && !isPlaying) badge.textContent = e.target.value.toUpperCase();
+        saveData({ settings: currentSettings });
+        sendMessageToExtension({ type: 'SET_TRACKING_MODE', mode: e.target.value });
+      });
+    }
 
     // Script Switcher
-    scriptSelect.addEventListener('change', async (e) => {
-      const data = await loadData();
-      const scripts = data.scripts || [];
-      const found = scripts.find(s => s.id === e.target.value);
-      if (found) {
-        currentScript = found;
-        updateScriptContent();
-        saveData({ activeScriptId: found.id });
-        viewportEl.scrollTop = 0;
-      }
-    });
+    if (scriptSelect) {
+      scriptSelect.addEventListener('change', async (e) => {
+        const data = await loadData();
+        const scripts = data.scripts || [];
+        const found = scripts.find(s => s.id === e.target.value);
+        if (found) {
+          currentScript = found;
+          updateScriptContent();
+          saveData({ activeScriptId: found.id });
+          if (viewportEl) viewportEl.scrollTop = 0;
+        }
+      });
+    }
 
     // In-place script editing
-    scriptBodyEl.addEventListener('input', () => {
-      if (currentScript) {
-        currentScript.content = scriptBodyEl.innerText;
-        currentScript.updatedAt = Date.now();
-        saveData({ activeScriptId: currentScript.id });
-        loadData().then(data => {
-          const scripts = data.scripts || [];
-          const idx = scripts.findIndex(s => s.id === currentScript.id);
-          if (idx >= 0) scripts[idx] = currentScript;
-          saveData({ scripts });
-        });
+    if (scriptBodyEl) {
+      scriptBodyEl.addEventListener('input', () => {
+        if (currentScript) {
+          currentScript.content = scriptBodyEl.innerText;
+          currentScript.updatedAt = Date.now();
+          saveData({ activeScriptId: currentScript.id });
+          loadData().then(data => {
+            const scripts = data.scripts || [];
+            const idx = scripts.findIndex(s => s.id === currentScript.id);
+            if (idx >= 0) scripts[idx] = currentScript;
+            saveData({ scripts });
+          });
+        }
+      });
+    }
+  }
+
+  /**
+   * Transparency Controls
+   */
+  function toggleTransparency() {
+    isTransparentMode = !isTransparentMode;
+    isSolidMode = !isTransparentMode;
+    if (isTransparentMode) {
+      if (!currentSettings.opacity || currentSettings.opacity >= 0.7) {
+        currentSettings.opacity = 0.35;
       }
-    });
+    } else {
+      currentSettings.opacity = 0.94;
+    }
+    currentSettings.isTransparentMode = isTransparentMode;
+    const opacitySlider = shadowRoot ? shadowRoot.getElementById('gp-range-opacity') : null;
+    if (opacitySlider) opacitySlider.value = currentSettings.opacity;
+    applyWindowAppearance();
+    saveData({ settings: currentSettings });
+  }
+
+  function setTransparencyPreset(preset) {
+    if (preset === 'solid') {
+      isTransparentMode = false;
+      isSolidMode = true;
+      currentSettings.opacity = 0.95;
+    } else if (preset === 'dark') {
+      isTransparentMode = false;
+      isSolidMode = true;
+      currentSettings.opacity = 0.75;
+    } else if (preset === 'glass') {
+      isTransparentMode = true;
+      isSolidMode = false;
+      currentSettings.opacity = 0.35;
+    } else if (preset === 'clear') {
+      isTransparentMode = true;
+      isSolidMode = false;
+      currentSettings.opacity = 0.02;
+    }
+    currentSettings.isTransparentMode = isTransparentMode;
+    const opacitySlider = shadowRoot ? shadowRoot.getElementById('gp-range-opacity') : null;
+    if (opacitySlider) opacitySlider.value = currentSettings.opacity;
+    applyWindowAppearance();
+    saveData({ settings: currentSettings });
   }
 
   /**
@@ -892,29 +1146,37 @@
       const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
       const isEditingScript = shadowRoot && shadowRoot.activeElement === scriptBodyEl;
       
-      // Global toggle hotkeys
+      // Global toggle HUD hotkey: Alt + P
       if (e.altKey && (e.key === 'p' || e.key === 'P')) {
         e.preventDefault();
         initOrToggleHUD();
         return;
       }
 
+      // Global click-through Ghost Mode hotkey: Alt + C
       if (e.altKey && (e.key === 'c' || e.key === 'C')) {
         e.preventDefault();
         toggleGhostMode();
         return;
       }
 
+      // Global Transparent Mode hotkey: Alt + T
+      if (e.altKey && (e.key === 't' || e.key === 'T')) {
+        e.preventDefault();
+        toggleTransparency();
+        return;
+      }
+
       if (hostEl && hostEl.style.display !== 'none' && !isEditingScript && activeTag !== 'input' && activeTag !== 'textarea') {
         if (e.code === 'Space') {
           e.preventDefault();
-          togglePlay();
+          toggleAutoScroll();
         } else if (e.code === 'ArrowUp') {
           e.preventDefault();
-          nudgeScroll(-36);
+          nudgeScroll(-40);
         } else if (e.code === 'ArrowDown') {
           e.preventDefault();
-          nudgeScroll(36);
+          nudgeScroll(40);
         } else if (e.key === '[') {
           e.preventDefault();
           adjustSpeed(-10);
@@ -924,27 +1186,71 @@
         } else if (e.key === 'Escape') {
           e.preventDefault();
           hostEl.style.display = 'none';
-          pauseScroll();
+          pauseAutoScroll();
         }
       }
     });
   }
 
-  function togglePlay() {
+  /**
+   * Auto-Scroll Engine & Pacing
+   */
+  function toggleAutoScroll() {
     isPlaying = !isPlaying;
-    const playBtn = shadowRoot ? shadowRoot.getElementById('gp-btn-play') : null;
+    updateAutoScrollUI();
     if (isPlaying) {
-      if (playBtn) {
-        playBtn.textContent = '⏸ Pause';
-        playBtn.classList.add('active');
-      }
       startScrollLoop();
     } else {
-      if (playBtn) {
-        playBtn.textContent = '▶ Play';
-        playBtn.classList.remove('active');
-      }
       pauseScroll();
+    }
+  }
+
+  function startAutoScroll() {
+    if (!isPlaying) {
+      isPlaying = true;
+      updateAutoScrollUI();
+      startScrollLoop();
+    }
+  }
+
+  function pauseAutoScroll() {
+    if (isPlaying) {
+      isPlaying = false;
+      updateAutoScrollUI();
+      pauseScroll();
+    }
+  }
+
+  function updateAutoScrollUI() {
+    if (!shadowRoot) return;
+    const scrollBtn = shadowRoot.getElementById('gp-btn-autoscroll');
+    const modeBadge = shadowRoot.getElementById('gp-mode-badge');
+    const hdrWpm = shadowRoot.getElementById('gp-hdr-wpm-val');
+
+    if (hdrWpm) {
+      hdrWpm.textContent = `${currentSettings.wpm || 130} WPM`;
+    }
+
+    if (scrollBtn) {
+      if (isPlaying) {
+        scrollBtn.textContent = '⏸ Pause';
+        scrollBtn.classList.add('gp-scrolling');
+        scrollBtn.title = 'Spacebar: Pause Auto-Scroll';
+      } else {
+        scrollBtn.textContent = '▶ Auto-Scroll';
+        scrollBtn.classList.remove('gp-scrolling');
+        scrollBtn.title = 'Spacebar: Start Auto-Scroll';
+      }
+    }
+
+    if (modeBadge) {
+      if (isPlaying) {
+        modeBadge.textContent = `● SCROLLING (${currentSettings.wpm || 130} WPM)`;
+        modeBadge.className = 'gp-badge gp-badge-scrolling';
+      } else {
+        modeBadge.textContent = (currentSettings.trackingMode || 'AUTO').toUpperCase();
+        modeBadge.className = 'gp-badge';
+      }
     }
   }
 
@@ -963,16 +1269,19 @@
   }
 
   function adjustSpeed(deltaWpm) {
-    currentSettings.wpm = Math.max(50, Math.min(300, (currentSettings.wpm || 130) + deltaWpm));
+    currentSettings.wpm = Math.max(50, Math.min(320, (currentSettings.wpm || 130) + deltaWpm));
     const slider = shadowRoot ? shadowRoot.getElementById('gp-range-wpm') : null;
     const val = shadowRoot ? shadowRoot.getElementById('gp-val-wpm') : null;
+    const hdrVal = shadowRoot ? shadowRoot.getElementById('gp-hdr-wpm-val') : null;
     if (slider) slider.value = currentSettings.wpm;
     if (val) val.textContent = currentSettings.wpm;
+    if (hdrVal) hdrVal.textContent = `${currentSettings.wpm} WPM`;
+    updateAutoScrollUI();
     saveData({ settings: currentSettings });
   }
 
   /**
-   * Continuous Scroll Animation Loop
+   * Continuous Smooth Scroll Animation Loop
    */
   function startScrollLoop() {
     if (scrollAnimFrame) cancelAnimationFrame(scrollAnimFrame);
@@ -988,15 +1297,27 @@
       const dt = (time - lastTime) / 1000;
       lastTime = time;
 
+      // Base pixels per second based on WPM:
+      // ~4.2 px per second gives smooth natural reading pacing
       const wps = (currentSettings.wpm || 130) / 60;
-      const basePixelsPerSec = wps * 3.5;
+      const basePixelsPerSec = wps * 4.2;
 
       let speed = basePixelsPerSec;
       if (scrollVelocity !== 0) {
         speed += scrollVelocity;
       }
 
-      viewportEl.scrollTop += speed * dt;
+      if (speed > 0) {
+        viewportEl.scrollTop += speed * dt;
+      }
+
+      // Check if reached end of script
+      if (viewportEl.scrollTop + viewportEl.clientHeight >= viewportEl.scrollHeight - 2) {
+        isPlaying = false;
+        updateAutoScrollUI();
+        pauseScroll();
+        return;
+      }
 
       scrollAnimFrame = requestAnimationFrame(frame);
     }
@@ -1029,11 +1350,11 @@
 
       if (message.type === 'TOGGLE_PROMPTER') {
         initOrToggleHUD().then(() => {
-          sendResponse({ status: 'ok' });
+          sendResponse({ status: 'ok', isPlaying, isTransparentMode });
         }).catch(err => {
           sendResponse({ status: 'error', error: err.message });
         });
-        return true; // Crucial: keep message port open for async sendResponse!
+        return true; // Keep port open for async response
       }
 
       if (message.type === 'TOGGLE_GHOST_MODE') {
@@ -1042,9 +1363,58 @@
         return true;
       }
 
-      if (message.type === 'TOGGLE_PAUSE') {
-        togglePlay();
+      if (message.type === 'TOGGLE_PAUSE' || message.type === 'TOGGLE_AUTO_SCROLL') {
+        toggleAutoScroll();
         sendResponse({ status: 'ok', isPlaying });
+        return true;
+      }
+
+      if (message.type === 'START_AUTO_SCROLL') {
+        if (!hostEl || hostEl.style.display === 'none') {
+          initOrToggleHUD().then(() => {
+            startAutoScroll();
+            sendResponse({ status: 'ok', isPlaying: true });
+          });
+          return true;
+        } else {
+          startAutoScroll();
+          sendResponse({ status: 'ok', isPlaying: true });
+          return true;
+        }
+      }
+
+      if (message.type === 'STOP_AUTO_SCROLL') {
+        pauseAutoScroll();
+        sendResponse({ status: 'ok', isPlaying: false });
+        return true;
+      }
+
+      if (message.type === 'TOGGLE_TRANSPARENCY') {
+        toggleTransparency();
+        sendResponse({ status: 'ok', isTransparentMode });
+        return true;
+      }
+
+      if (message.type === 'SET_TRANSPARENCY_MODE') {
+        if (message.preset) {
+          setTransparencyPreset(message.preset);
+        } else if (typeof message.opacity === 'number') {
+          currentSettings.opacity = message.opacity;
+          isTransparentMode = message.opacity < 0.65;
+          isSolidMode = !isTransparentMode;
+          currentSettings.isTransparentMode = isTransparentMode;
+          applyWindowAppearance();
+          saveData({ settings: currentSettings });
+        }
+        sendResponse({ status: 'ok', isTransparentMode, opacity: currentSettings.opacity });
+        return true;
+      }
+
+      if (message.type === 'SET_WPM') {
+        if (typeof message.wpm === 'number') {
+          adjustSpeed(message.wpm - (currentSettings.wpm || 130));
+        }
+        sendResponse({ status: 'ok', wpm: currentSettings.wpm });
         return true;
       }
 
@@ -1094,10 +1464,18 @@
   // Expose global controller
   window.GhostPrompter = {
     toggle: initOrToggleHUD,
+    toggleAutoScroll: toggleAutoScroll,
+    startAutoScroll: startAutoScroll,
+    pauseAutoScroll: pauseAutoScroll,
+    togglePlay: toggleAutoScroll,
+    toggleTransparency: toggleTransparency,
+    setTransparencyPreset: setTransparencyPreset,
     toggleGhostMode: toggleGhostMode,
-    togglePlay: togglePlay,
-    nudge: nudgeScroll
+    nudge: nudgeScroll,
+    adjustSpeed: adjustSpeed,
+    isPlaying: () => isPlaying,
+    isTransparent: () => isTransparentMode
   };
 
-  console.log('GhostPrompter content script loaded. Press Alt+P or click extension icon to launch.');
+  console.log('GhostPrompter content script loaded. Alt+P: Toggle Prompter | Alt+T: Transparent Mode | Space: Auto-Scroll');
 })();

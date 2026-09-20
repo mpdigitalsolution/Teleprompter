@@ -46,7 +46,24 @@ function testScrollerEngine() {
   const topVel = ScrollerEngine.calculateVelocity();
   assert(topVel < midVel && topVel > 0, `Top gaze (${topVel}) should be slower than mid (${midVel})`);
 
+  // Auto-scroll mode tests
+  ScrollerEngine.resume();
+  ScrollerEngine.setMode('auto');
+  ScrollerEngine.setWpm(120);
+  const autoVel120 = ScrollerEngine.calculateVelocity();
+  assert(autoVel120 > 0, 'Auto scroll velocity should be positive');
+
+  ScrollerEngine.setWpm(180);
+  const autoVel180 = ScrollerEngine.calculateVelocity();
+  assert(autoVel180 > autoVel120, 'Higher WPM should produce higher velocity');
+
+  // In auto mode, gaze shouldn't alter velocity
+  ScrollerEngine.updateGaze('away');
+  assert.strictEqual(ScrollerEngine.calculateVelocity(), autoVel180, 'Auto mode velocity should remain steady regardless of gaze away');
+
   ScrollerEngine.pause();
+  assert.strictEqual(ScrollerEngine.calculateVelocity(), 0, 'Auto mode paused should be 0');
+
   console.log('✓ ScrollerEngine tests passed.');
 }
 

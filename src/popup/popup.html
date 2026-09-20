@@ -16,44 +16,66 @@
     <span class="status-pill" id="popup-status">Ready</span>
   </div>
 
-  <button class="btn-toggle-hud" id="popup-btn-toggle">
-    <span>👻</span> Toggle Prompter (Alt+P)
-  </button>
+  <div class="action-grid">
+    <button class="btn-toggle-hud" id="popup-btn-toggle" title="Alt+P: Open or Close Prompter HUD">
+      <span>👻</span> Toggle Prompter
+    </button>
+    <button class="btn-autoscroll" id="popup-btn-autoscroll" title="Spacebar: Start Auto-Scrolling">
+      <span>▶</span> Auto-Scroll
+    </button>
+  </div>
 
+  <!-- Transparency Mode Presets -->
   <div class="section">
+    <div class="section-title">Transparency Mode</div>
+    <div class="preset-group">
+      <button class="preset-btn active" id="pop-preset-solid" data-preset="solid">⬛ Solid 95%</button>
+      <button class="preset-btn" id="pop-preset-dark" data-preset="dark">🌓 Dark 75%</button>
+      <button class="preset-btn" id="pop-preset-glass" data-preset="glass">🪟 Glass 35%</button>
+      <button class="preset-btn" id="pop-preset-clear" data-preset="clear">👻 Clear 0%</button>
+    </div>
+    <div class="row" style="margin-top: 6px;">
+      <span class="label">Custom Opacity:</span>
+      <input type="range" class="input-range" id="popup-range-opacity" min="0" max="1" step="0.05">
+    </div>
+  </div>
+
+  <!-- Speed & Mode Section -->
+  <div class="section">
+    <div class="section-title">Speed & Script</div>
+    <div class="row">
+      <span class="label">Auto-Scroll Speed:</span>
+      <div class="speed-control">
+        <button class="btn-step" id="pop-btn-wpm-dec">-</button>
+        <span class="wpm-display" id="pop-val-wpm">130 WPM</span>
+        <button class="btn-step" id="pop-btn-wpm-inc">+</button>
+      </div>
+    </div>
+    <div class="row">
+      <input type="range" class="input-range full-width" id="popup-range-wpm" min="50" max="300" step="10">
+    </div>
+    <div class="row">
+      <span class="label">Mode:</span>
+      <select class="select" id="popup-select-mode">
+        <option value="auto">Auto-Scroll (WPM)</option>
+        <option value="manual">Manual (Keys/Buttons)</option>
+        <option value="dual">Dual (Gaze + Speech)</option>
+        <option value="gaze">Gaze Only</option>
+        <option value="speech">Speech Sync</option>
+      </select>
+    </div>
     <div class="row">
       <span class="label">Script:</span>
       <select class="select" id="popup-select-script"></select>
     </div>
     <div class="row">
-      <span class="label">Mode:</span>
-      <select class="select" id="popup-select-mode">
-        <option value="dual">Dual (Gaze + Speech)</option>
-        <option value="gaze">Gaze Only</option>
-        <option value="speech">Speech Sync</option>
-        <option value="auto">Auto-Scroll</option>
-        <option value="manual">Manual</option>
-      </select>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="row">
-      <span class="label">Opacity:</span>
-      <input type="range" class="input-range" id="popup-range-opacity" min="0" max="1" step="0.05">
-    </div>
-    <div class="row">
       <span class="label">Font Size:</span>
-      <input type="range" class="input-range" id="popup-range-font" min="14" max="44" step="2">
-    </div>
-    <div class="row">
-      <span class="label">Speed (WPM):</span>
-      <input type="range" class="input-range" id="popup-range-wpm" min="60" max="240" step="10">
+      <input type="range" class="input-range" id="popup-range-font" min="16" max="44" step="2">
     </div>
   </div>
 
   <div class="links">
-    <button class="link-btn" id="link-setup">⚙ Setup & Calibration</button>
+    <button class="link-btn" id="link-setup">⚙ Calibration & Scripts</button>
     <button class="link-btn" id="link-mock-test">🧪 Test Meeting Page</button>
   </div>
 

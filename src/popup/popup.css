@@ -63,23 +63,28 @@ body {
   border-radius: 10px;
 }
 
-/* Big Action Button */
+/* Action Buttons Grid */
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .btn-toggle-hud {
-  width: 100%;
   background: linear-gradient(135deg, #00F0FF, #7000FF);
   color: #FFF;
   border: none;
   border-radius: 8px;
-  padding: 10px;
-  font-size: 13px;
+  padding: 10px 8px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   box-shadow: 0 4px 15px rgba(0, 240, 255, 0.25);
-  margin-bottom: 12px;
   transition: all 0.15s ease;
 }
 
@@ -88,7 +93,29 @@ body {
   transform: translateY(-1px);
 }
 
-/* Control Rows */
+.btn-autoscroll {
+  background: linear-gradient(135deg, #00C853, #00E676);
+  color: #051408;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+  transition: all 0.15s ease;
+}
+
+.btn-autoscroll:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+
+/* Control Sections */
 .section {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
@@ -98,6 +125,79 @@ body {
   flex-direction: column;
   gap: 8px;
   margin-bottom: 10px;
+}
+
+.section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent-cyan);
+}
+
+.preset-group {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.preset-btn {
+  background: #182035;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  color: #CBD5E1;
+  border-radius: 5px;
+  padding: 5px 2px;
+  font-size: 9px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.preset-btn:hover {
+  background: #222C48;
+  color: #FFF;
+  border-color: var(--accent-cyan);
+}
+
+.preset-btn.active {
+  background: var(--accent-cyan);
+  color: #0A0D18;
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+.speed-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-step {
+  width: 20px;
+  height: 20px;
+  background: #1A2238;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFF;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-step:hover {
+  background: var(--accent-cyan);
+  color: #0A0D18;
+}
+
+.wpm-display {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  min-width: 48px;
+  text-align: center;
 }
 
 .row {
@@ -130,6 +230,10 @@ body {
   width: 100px;
   height: 4px;
   cursor: pointer;
+}
+
+.input-range.full-width {
+  width: 100%;
 }
 
 .links {
