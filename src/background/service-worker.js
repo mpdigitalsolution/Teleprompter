@@ -69,7 +69,7 @@ async function closeOffscreenDocument() {
  * Launch or Toggle Prompter on a specific tab with automatic fallback
  */
 async function togglePrompterOnTab(tabId, tabUrl) {
-  // If user is on an internal browser URL where scripting is prohibited, open Studio Mode
+  // If user is on an internal browser URL where scripting is prohibited, open floating prompter window
   const isRestrictedUrl = !tabUrl || 
     tabUrl.startsWith('chrome://') || 
     tabUrl.startsWith('edge://') || 
@@ -77,9 +77,14 @@ async function togglePrompterOnTab(tabId, tabUrl) {
     (tabUrl.startsWith('chrome-extension://') && !tabUrl.includes(chrome.runtime.id));
 
   if (isRestrictedUrl) {
-    const studioUrl = chrome.runtime.getURL('src/studio/studio.html');
-    await chrome.tabs.create({ url: studioUrl });
-    return { status: 'opened_studio' };
+    chrome.windows.create({
+      url: chrome.runtime.getURL('src/floating/floating.html'),
+      type: 'popup',
+      width: 700,
+      height: 360,
+      focused: true
+    });
+    return { status: 'opened_floating_window' };
   }
 
   // Try injecting content script if not already present

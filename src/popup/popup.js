@@ -190,11 +190,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (pipBtn) {
     pipBtn.addEventListener('click', () => {
       pipBtn.innerHTML = '<span>⏳</span> Floating...';
-      chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
-        setTimeout(() => {
-          notifyActiveTab({ type: 'OPEN_PIP' });
-          setTimeout(() => { window.close(); }, 300);
-        }, 150);
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs && tabs[0];
+        const tabUrl = tab ? tab.url : '';
+        const isRestricted = !tabUrl || 
+          tabUrl.startsWith('chrome://') || 
+          tabUrl.startsWith('edge://') || 
+          tabUrl.startsWith('about:') || 
+          (tabUrl.startsWith('chrome-extension://') && !tabUrl.includes(chrome.runtime.id));
+
+        if (isRestricted) {
+          // If user is on an internal browser page (e.g. chrome://extensions), open floating prompter window directly
+          chrome.runtime.sendMessage({ type: 'OPEN_FLOATING_PROMPTER_WINDOW' });
+          setTimeout(() => { window.close(); }, 250);
+        } else {
+          // Normal webpage: launch in-tab HUD and immediately pop out to Document PiP
+          chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
+            setTimeout(() => {
+              notifyActiveTab({ type: 'OPEN_PIP' });
+              setTimeout(() => { window.close(); }, 300);
+            }, 150);
+          });
+        }
       });
     });
   }
