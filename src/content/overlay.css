@@ -474,6 +474,9 @@
   cursor: text;
   user-select: text;
   background: #0B0E18;
+  contain: content;
+  will-change: scroll-position;
+  transform: translateZ(0);
 }
 
 .gp-viewport::-webkit-scrollbar {

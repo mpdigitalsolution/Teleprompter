@@ -22,6 +22,7 @@ class PiPPrompterManager {
     this.currentScript = null;
     this.scriptsList = [];
     this.onCloseCallback = null;
+    this.lastScrollTime = 0;
   }
 
   /**
@@ -394,7 +395,6 @@ class PiPPrompterManager {
         updatePipScale();
       });
       ro.observe(doc.documentElement);
-      ro.observe(doc.body);
     }
     pipWin.addEventListener('resize', updatePipScale);
     updatePipScale();
@@ -410,12 +410,17 @@ class PiPPrompterManager {
       }, 50);
     }
 
-    // Auto-Scroll Loop
-    const stepScroll = () => {
+    // Auto-Scroll Loop with Precision Delta-Time (Stutter-free on low-end CPUs)
+    const stepScroll = (timestamp) => {
       if (!this.isScrolling) return;
 
+      const now = timestamp || performance.now();
+      if (!this.lastScrollTime) this.lastScrollTime = now;
+      const dt = Math.min((now - this.lastScrollTime) / 1000, 0.1);
+      this.lastScrollTime = now;
+
       const pixelsPerSecond = (this.currentWpm * 22) / 60;
-      this.scrollAccumulator += pixelsPerSecond / 60;
+      this.scrollAccumulator += pixelsPerSecond * dt;
 
       if (this.scrollAccumulator >= 1) {
         const toMove = Math.floor(this.scrollAccumulator);
@@ -857,10 +862,12 @@ class PiPPrompterManager {
     }
 
     if (active && pipWin && stepScroll) {
+      this.lastScrollTime = performance.now();
       this.scrollAnimId = pipWin.requestAnimationFrame(stepScroll);
     } else if (!active && pipWin && this.scrollAnimId) {
       pipWin.cancelAnimationFrame(this.scrollAnimId);
       this.scrollAnimId = null;
+      this.lastScrollTime = 0;
     }
   }
 
@@ -1000,8 +1007,8 @@ class PiPPrompterManager {
       }
       .pip-prompter.pip-transparent {
         background: rgba(6, 9, 17, 0.4);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
       }
       .pip-header {
         display: flex;
@@ -1009,10 +1016,10 @@ class PiPPrompterManager {
         justify-content: space-between;
         padding: calc(3px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1));
         background: rgba(10, 14, 26, 0.88);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        backdrop-filter: blur(12px) saturate(180%);
+        -webkit-backdrop-filter: blur(12px) saturate(180%);
         border: none !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
         gap: calc(4px * var(--pip-scale, 1));
         flex-shrink: 0;
         min-height: calc(28px * var(--pip-scale, 1));
@@ -1020,8 +1027,8 @@ class PiPPrompterManager {
       }
       .pip-transparent .pip-header {
         background: rgba(8, 12, 22, 0.7);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
       }
       .pip-brand {
         display: flex;
@@ -1253,6 +1260,9 @@ class PiPPrompterManager {
         scrollbar-width: none;
         padding: calc(16px * var(--pip-scale, 1)) calc(20px * var(--pip-scale, 1)) calc(120px * var(--pip-scale, 1)) calc(20px * var(--pip-scale, 1));
         border: none !important;
+        contain: content;
+        will-change: scroll-position;
+        transform: translateZ(0);
         -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%);
         mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%);
       }
@@ -1270,6 +1280,8 @@ class PiPPrompterManager {
         pointer-events: none;
         margin-bottom: calc(-1.5 * var(--pip-font-size, 24px) * var(--pip-scale, 1));
         z-index: 10;
+        contain: strict;
+        will-change: transform;
       }
       .pip-text {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", sans-serif;
@@ -1282,9 +1294,11 @@ class PiPPrompterManager {
         word-break: break-word;
         outline: none;
         user-select: text;
+        contain: layout style;
+        text-rendering: optimizeLegibility;
         text-shadow: 
-          0 2px 16px rgba(0, 0, 0, 0.95),
-          0 1px 4px rgba(0, 0, 0, 0.9);
+          0 2px 14px rgba(0, 0, 0, 0.95),
+          0 1px 3px rgba(0, 0, 0, 0.9);
       }
       .pip-transparent .pip-text {
         color: #00F0FF !important;
