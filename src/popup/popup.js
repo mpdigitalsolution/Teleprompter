@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const wpmDecBtn = document.getElementById('pop-btn-wpm-dec');
   const wpmIncBtn = document.getElementById('pop-btn-wpm-inc');
   const setupLink = document.getElementById('link-setup');
-  const testLink = document.getElementById('link-mock-test');
   const studioLink = document.getElementById('link-studio');
   const studioBtn = document.getElementById('popup-btn-studio');
   const recordBtn = document.getElementById('popup-btn-record');
@@ -264,10 +263,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       chrome.tabs.create({ url: chrome.runtime.getURL('src/setup/setup.html') });
     }
-  });
-
-  testLink.addEventListener('click', () => {
-    chrome.tabs.create({ url: chrome.runtime.getURL('test-page.html') });
   });
 
   // Query background status
