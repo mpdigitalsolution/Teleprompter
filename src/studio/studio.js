@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const ratioBtns = document.querySelectorAll('.ratio-btn');
   const btnToggleGuides = document.getElementById('btn-toggle-guides');
   const btnToggleMirror = document.getElementById('btn-toggle-mirror');
+  const btnToggleEnhance = document.getElementById('btn-toggle-enhance');
+  const selectCameraDevice = document.getElementById('select-camera-device');
   const btnCloseStudio = document.getElementById('btn-close-studio');
   const btnToggleOverlayHUD = document.getElementById('btn-toggle-hud-prompter');
 
@@ -227,11 +229,51 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnSourceScreen.addEventListener('click', () => switchToSource('screen'));
   }
 
+  // Auto-Enhance Button Logic
+  let isEnhanced = true;
+  if (btnToggleEnhance) {
+    videoEl.classList.add('enhanced');
+    btnToggleEnhance.classList.add('active');
+
+    btnToggleEnhance.addEventListener('click', () => {
+      isEnhanced = !isEnhanced;
+      videoEl.classList.toggle('enhanced', isEnhanced);
+      btnToggleEnhance.classList.toggle('active', isEnhanced);
+    });
+  }
+
+  // Camera Device Enumeration
+  async function populateCameraDevices() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(d => d.kind === 'videoinput');
+      if (videoDevices.length > 1 && selectCameraDevice) {
+        selectCameraDevice.innerHTML = videoDevices.map((d, i) => 
+          `<option value="${d.deviceId}">📹 ${d.label || `Camera ${i + 1}`}</option>`
+        ).join('');
+        selectCameraDevice.style.display = 'inline-block';
+
+        selectCameraDevice.addEventListener('change', async () => {
+          const chosenId = selectCameraDevice.value;
+          try {
+            const stream = await recorder.startCamera(chosenId);
+            videoEl.srcObject = stream;
+            videoEl.play().catch(() => {});
+          } catch (err) {
+            console.warn('Device switch error:', err);
+          }
+        });
+      }
+    } catch (e) {}
+  }
+
   // Start Hardware Camera Stream
   try {
     const stream = await recorder.startCamera();
     videoEl.srcObject = stream;
     videoEl.play().catch(() => {});
+    populateCameraDevices();
   } catch (err) {
     console.warn('Camera could not start automatically:', err);
   }

@@ -259,15 +259,38 @@ body {
   width: auto;
 }
 
+.select-camera-device {
+  background: rgba(20, 28, 48, 0.9);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #FFF;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 6px;
+  max-width: 140px;
+  outline: none;
+  cursor: pointer;
+}
+
+.select-camera-device:hover {
+  border-color: #00F0FF;
+}
+
 .camera-feed {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: filter 0.2s ease;
 }
 
 .camera-feed.mirrored {
   transform: scaleX(-1);
+}
+
+.camera-feed.enhanced {
+  filter: contrast(1.08) brightness(1.04) saturate(1.12);
+  image-rendering: -webkit-optimize-contrast;
 }
 
 /* Framing Overlay & Half-Body Guides */

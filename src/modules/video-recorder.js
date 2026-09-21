@@ -86,7 +86,7 @@
     /**
      * Compute video resolution constraints based on quality and aspect ratio
      */
-    getVideoConstraints() {
+    getVideoConstraints(preferredDeviceId = null) {
       const is1080 = this.options.videoQuality === '1080p';
       const baseLong = is1080 ? 1920 : 1280;
       const baseShort = is1080 ? 1080 : 720;
@@ -102,26 +102,37 @@
         height = baseShort;
       }
 
-      return {
+      const constraints = {
         width: { ideal: width },
         height: { ideal: height },
         frameRate: { ideal: 30, max: 60 }
       };
+
+      const devId = preferredDeviceId || this.options.deviceId;
+      if (devId) {
+        constraints.deviceId = { exact: devId };
+      }
+
+      return constraints;
     }
 
     /**
      * Request webcam & microphone permissions and acquire hardware MediaStream
      */
-    async startCamera() {
+    async startCamera(preferredDeviceId = null) {
       if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('getUserMedia is not supported in this environment');
+      }
+
+      if (preferredDeviceId && this.mediaStream) {
+        this.stopCamera();
       }
 
       if (this.mediaStream && this.mediaStream.active) {
         return this.mediaStream;
       }
 
-      const videoConstraints = this.getVideoConstraints();
+      const videoConstraints = this.getVideoConstraints(preferredDeviceId);
       const constraints = {
         video: videoConstraints,
         audio: {
@@ -133,6 +144,28 @@
 
       try {
         this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+        // Hardware auto-enhancement: continuous focus & exposure if supported by sensor
+        const track = this.mediaStream.getVideoTracks()[0];
+        if (track && typeof track.getCapabilities === 'function' && typeof track.applyConstraints === 'function') {
+          try {
+            const caps = track.getCapabilities();
+            const advanced = [];
+            if (caps.focusMode && Array.isArray(caps.focusMode) && caps.focusMode.includes('continuous')) {
+              advanced.push({ focusMode: 'continuous' });
+            }
+            if (caps.exposureMode && Array.isArray(caps.exposureMode) && caps.exposureMode.includes('continuous')) {
+              advanced.push({ exposureMode: 'continuous' });
+            }
+            if (caps.whiteBalanceMode && Array.isArray(caps.whiteBalanceMode) && caps.whiteBalanceMode.includes('continuous')) {
+              advanced.push({ whiteBalanceMode: 'continuous' });
+            }
+            if (advanced.length > 0) {
+              await track.applyConstraints({ advanced });
+            }
+          } catch (e) {}
+        }
+
         this.setupAudioAnalyser(this.mediaStream);
         return this.mediaStream;
       } catch (err) {
