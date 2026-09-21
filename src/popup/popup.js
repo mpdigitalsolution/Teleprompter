@@ -143,22 +143,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Toggle HUD button
-  toggleBtn.addEventListener('click', () => {
-    toggleBtn.disabled = true;
-    toggleBtn.innerHTML = '<span>⏳</span> Launching...';
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      toggleBtn.disabled = true;
+      toggleBtn.innerHTML = '<span>⏳</span> Launching...';
 
-    chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, (res) => {
-      if (chrome.runtime.lastError) {
-        console.warn('Launch message notice:', chrome.runtime.lastError.message);
-      }
-      if (res && res.status === 'opened_test_page') {
-        toggleBtn.innerHTML = '<span>🧪</span> Opened Test Tab!';
-      } else {
-        toggleBtn.innerHTML = '<span>✓</span> Prompter Active!';
-      }
-      setTimeout(() => { window.close(); }, 400);
+      chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, (res) => {
+        if (chrome.runtime.lastError) {
+          console.warn('Launch message notice:', chrome.runtime.lastError.message);
+        }
+        if (res && res.status === 'opened_test_page') {
+          toggleBtn.innerHTML = '<span>🧪</span> Opened Test Tab!';
+        } else {
+          toggleBtn.innerHTML = '<span>✓</span> Prompter Active!';
+        }
+        setTimeout(() => { window.close(); }, 400);
+      });
     });
-  });
+  }
 
   // Start Auto-Scroll button
   if (autoscrollBtn) {
