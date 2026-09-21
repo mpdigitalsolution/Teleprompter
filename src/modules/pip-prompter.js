@@ -982,9 +982,11 @@ class PiPPrompterManager {
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background: #000;
+        background: #060911;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         color: #FFF;
+        margin: 0;
+        padding: 0;
       }
       .pip-prompter {
         display: flex;
@@ -993,33 +995,37 @@ class PiPPrompterManager {
         height: 100%;
         transition: background 0.25s ease;
         border: none !important;
-        border-radius: calc(14px * var(--pip-scale, 1));
+        border-radius: 0 !important;
         overflow: hidden;
         position: relative;
       }
       .pip-prompter.pip-solid {
-        background: #0A0D18;
+        background: #060911;
       }
       .pip-prompter.pip-transparent {
-        background: rgba(10, 14, 24, 0.35);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        background: rgba(6, 9, 17, 0.4);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
       }
       .pip-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: calc(3.5px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1));
-        background: rgba(16, 22, 38, 0.95);
+        padding: calc(3px * var(--pip-scale, 1)) calc(8px * var(--pip-scale, 1));
+        background: rgba(10, 14, 26, 0.88);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
         border: none !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         gap: calc(4px * var(--pip-scale, 1));
         flex-shrink: 0;
         min-height: calc(28px * var(--pip-scale, 1));
         box-sizing: border-box;
       }
       .pip-transparent .pip-header {
-        background: rgba(12, 16, 30, 0.75);
+        background: rgba(8, 12, 22, 0.7);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
       }
       .pip-brand {
         display: flex;
@@ -1249,8 +1255,10 @@ class PiPPrompterManager {
         overflow-y: scroll;
         overflow-x: hidden;
         scrollbar-width: none;
-        padding: calc(14px * var(--pip-scale, 1)) calc(18px * var(--pip-scale, 1)) calc(120px * var(--pip-scale, 1)) calc(18px * var(--pip-scale, 1));
+        padding: calc(16px * var(--pip-scale, 1)) calc(20px * var(--pip-scale, 1)) calc(120px * var(--pip-scale, 1)) calc(20px * var(--pip-scale, 1));
         border: none !important;
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%);
+        mask-image: linear-gradient(to bottom, transparent 0%, black 8%, black 88%, transparent 100%);
       }
       .pip-viewport::-webkit-scrollbar {
         display: none;
@@ -1260,40 +1268,34 @@ class PiPPrompterManager {
         top: calc(24px * var(--pip-scale, 1));
         height: calc(1.5 * var(--pip-font-size, 24px) * var(--pip-scale, 1));
         border: none !important;
-        background: rgba(0, 240, 255, 0.1);
-        box-shadow: 0 0 calc(12px * var(--pip-scale, 1)) rgba(0, 240, 255, 0.25);
-        border-radius: calc(8px * var(--pip-scale, 1));
+        background: linear-gradient(90deg, transparent 0%, rgba(0, 240, 255, 0.07) 12%, rgba(0, 240, 255, 0.07) 88%, transparent 100%);
+        box-shadow: none !important;
+        border-radius: 0 !important;
         pointer-events: none;
         margin-bottom: calc(-1.5 * var(--pip-font-size, 24px) * var(--pip-scale, 1));
         z-index: 10;
       }
       .pip-text {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", sans-serif;
         font-size: calc(var(--pip-font-size, 24px) * var(--pip-scale, 1));
-        font-weight: 800;
-        line-height: 1.6;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        line-height: 1.65;
         color: #00F0FF;
         white-space: pre-wrap;
         word-break: break-word;
         outline: none;
         user-select: text;
         text-shadow: 
-          0 0 16px rgba(0, 0, 0, 1),
-          0 2px 4px rgba(0, 0, 0, 1),
-          -1.5px -1.5px 0 #000,
-           1.5px -1.5px 0 #000,
-          -1.5px  1.5px 0 #000,
-           1.5px  1.5px 0 #000;
+          0 2px 16px rgba(0, 0, 0, 0.95),
+          0 1px 4px rgba(0, 0, 0, 0.9);
       }
       .pip-transparent .pip-text {
         color: #00F0FF !important;
         text-shadow: 
-          0 0 16px #000,
-          0 0 8px #000,
-          0 2px 4px #000,
-          -2px -2px 0 #000,
-           2px -2px 0 #000,
-          -2px  2px 0 #000,
-           2px  2px 0 #000 !important;
+          0 2px 18px rgba(0, 0, 0, 1),
+          0 0 10px rgba(0, 0, 0, 0.95),
+          0 1px 4px rgba(0, 0, 0, 0.9) !important;
       }
 
       /* Modal Overlay & Card (Borderless Rounded Glass) */
