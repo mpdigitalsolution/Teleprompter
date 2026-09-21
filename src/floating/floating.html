@@ -3,71 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GhostPrompter — Floating Window (Multi-Tab & Multi-Screen)</title>
-  <link rel="stylesheet" href="floating.css">
-</head>
-<body class="mode-solid" id="body-root">
-
-  <!-- Top Action & Navigation Strip -->
-  <header class="float-header" id="float-header">
-    <div class="header-left">
-      <div class="brand">
-        <span class="brand-ghost">👻</span>
-        <span class="brand-title">GhostPrompter</span>
-        <span class="badge-floating">Multi-Tab / Screen</span>
-      </div>
-    </div>
-
-    <div class="header-actions">
-      <!-- 1-Click Always-On-Top OS Window (Document PiP) -->
-      <button class="btn-action btn-pip" id="btn-pip-toggle" title="Float on top of ALL tabs, PowerPoint, and Desktop Windows (Picture-in-Picture)">
-        <span>📌</span> Always-On-Top (PiP)
-      </button>
-
-      <!-- Auto-Scroll Toggle -->
-      <button class="btn-action btn-play" id="btn-play-toggle" title="Spacebar: Play / Pause Auto-Scroll">
-        <span id="play-icon">▶</span> <span id="play-label">Play</span>
-      </button>
-
-      <!-- WPM Speed Controls -->
-      <div class="pill-control speed-pill" title="Scroll Speed (WPM)">
-        <button class="btn-step" id="btn-wpm-dec">-</button>
-        <span id="label-wpm">130 WPM</span>
-        <button class="btn-step" id="btn-wpm-inc">+</button>
-      </div>
-
-      <!-- Transparent / Solid Toggle -->
-      <button class="btn-action btn-trans" id="btn-trans-toggle" title="Toggle Transparent Glass Mode">
-        <span id="trans-icon">🪟</span> <span id="trans-label">Transparent</span>
-      </button>
-
-      <!-- Font Size Stepper -->
-      <div class="pill-control font-pill" title="Text Font Size">
-        <button class="btn-step" id="btn-font-dec">A-</button>
-        <span id="label-font">24px</span>
-        <button class="btn-step" id="btn-font-inc">A+</button>
-      </div>
-
-      <!-- Rewind -->
-      <button class="btn-action btn-ghost" id="btn-rewind" title="Rewind to Top">
-        ⏮ Top
-      </button>
-
-      <!-- Script Picker -->
-      <select class="select-script" id="select-script" title="Choose Presentation Script"></select>
-    </div>
-  </header>
-
-  <!-- Scrolling Script Viewport & Eye-Line Guide -->
-  <main class="float-viewport" id="float-viewport">
-    <div class="float-focus-bar" id="float-focus-bar"></div>
-    <div class="float-text" id="float-text" contenteditable="true" spellcheck="false">
-      Loading presentation script...
-    </div>
-  </main>
-
+  <title>GhostPrompter — Floating Teleprompter</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0A0D18;
+    }
+  </style>
   <script src="../modules/storage.js"></script>
+  <script src="../modules/video-recorder.js"></script>
   <script src="../modules/pip-prompter.js"></script>
   <script src="floating.js"></script>
+</head>
+<body id="body-root">
 </body>
 </html>
