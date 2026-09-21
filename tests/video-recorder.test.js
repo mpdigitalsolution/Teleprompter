@@ -118,8 +118,10 @@ function testVideoRecorder() {
     screenRec.stopCapture();
     assert.strictEqual(screenRec.mediaStream, null);
     assert.strictEqual(screenRec.micStream, null);
+    assert.strictEqual(screenRec.displayStream, null);
     assert.strictEqual(screenRec.state, 'idle');
     console.log('✓ Screen capture & audio mixing mock passed.');
+    console.log('✓ Automatic display stream and tab share termination verified.');
 
     console.log('✅ All VideoRecorder unit tests passed successfully!');
   }).catch((err) => {

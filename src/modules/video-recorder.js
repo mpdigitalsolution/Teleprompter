@@ -165,6 +165,7 @@
           },
           audio: captureSystemAudio
         });
+        this.displayStream = displayStream;
 
         const screenVideoTrack = displayStream.getVideoTracks()[0];
         if (!screenVideoTrack) {
@@ -360,6 +361,11 @@
       };
 
       this.mediaRecorder.onstop = () => {
+        // Automatically stop screen sharing immediately so the shared tab indicator stops
+        if (this.sourceType === 'screen') {
+          this.stopScreenShare();
+        }
+
         const type = this.mediaRecorder.mimeType || 'video/webm';
         this.recordedBlob = new Blob(this.recordedChunks, { type });
         if (typeof URL !== 'undefined' && URL.createObjectURL) {
@@ -436,6 +442,11 @@
         this.mediaRecorder.stop();
       }
 
+      // Automatically terminate screen share session so Chrome stops sharing the tab
+      if (this.sourceType === 'screen') {
+        this.stopScreenShare();
+      }
+
       this.state = 'stopped';
     }
 
@@ -456,11 +467,49 @@
         this.mediaRecorder.stop();
       }
 
+      if (this.sourceType === 'screen') {
+        this.stopScreenShare();
+      }
+
       this.recordedChunks = [];
       this.state = 'idle';
     }
 
+    /**
+     * Stop and release active screen sharing session (tab, window, or monitor)
+     */
+    stopScreenShare() {
+      if (this.displayStream) {
+        try {
+          this.displayStream.getTracks().forEach(track => {
+            track.stop();
+          });
+        } catch (e) {}
+        this.displayStream = null;
+      }
+
+      if (this.mediaStream && this.sourceType === 'screen') {
+        try {
+          this.mediaStream.getTracks().forEach(track => {
+            track.stop();
+          });
+        } catch (e) {}
+        this.mediaStream = null;
+      }
+
+      if (this.micStream && this.sourceType === 'screen') {
+        try {
+          this.micStream.getTracks().forEach(track => {
+            track.stop();
+          });
+        } catch (e) {}
+        this.micStream = null;
+      }
+    }
+
     stopCamera() {
+      this.stopScreenShare();
+
       if (this.audioLevelInterval) {
         clearInterval(this.audioLevelInterval);
         this.audioLevelInterval = null;
@@ -484,6 +533,7 @@
     }
 
     stopCapture() {
+      this.stopScreenShare();
       this.stopCamera();
     }
 

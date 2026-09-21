@@ -2167,6 +2167,9 @@
     function stopRecordingFlow() {
       if (videoRecorderInstance) {
         videoRecorderInstance.stopRecording();
+        if (typeof videoRecorderInstance.stopScreenShare === 'function') {
+          videoRecorderInstance.stopScreenShare();
+        }
       }
       if (isPlaying) {
         pauseAutoScroll();
