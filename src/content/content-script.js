@@ -1144,7 +1144,7 @@
           </button>
           <button class="gp-btn gp-btn-icon" id="gp-btn-mirror" title="Mirror text for glass prompter">🪞</button>
           <button class="gp-btn gp-btn-popout" id="gp-btn-popout" title="Float on top of ALL tabs, PowerPoint, Zoom, and Desktop Windows (Always-On-Top PiP)">
-            <span>📌</span><span class="gp-popout-label"> Pop Out</span>
+            <span>📌</span><span class="gp-popout-label"> PiP Mode</span>
           </button>
           <button class="gp-btn gp-btn-tools ${!isToolbarCollapsed ? 'active' : ''}" id="gp-btn-tools" title="Alt+S: Toggle Settings Toolbar">
             <span>⚙</span><span class="gp-tools-label"> Controls</span> <span class="gp-tools-arrow">${isToolbarCollapsed ? '▼' : '▲'}</span>
