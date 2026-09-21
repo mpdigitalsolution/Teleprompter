@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setupLink = document.getElementById('link-setup');
   const studioLink = document.getElementById('link-studio');
   const studioBtn = document.getElementById('popup-btn-studio');
-  const recordBtn = document.getElementById('popup-btn-record');
   const statusPill = document.getElementById('popup-status');
 
   const presetBtns = {
@@ -183,39 +182,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     studioBtn.addEventListener('click', () => {
       chrome.tabs.create({ url: chrome.runtime.getURL('src/studio/studio.html') });
       window.close();
-    });
-  }
-
-  // Quick Record Button on active tab
-  if (recordBtn) {
-    recordBtn.addEventListener('click', () => {
-      recordBtn.disabled = true;
-      recordBtn.innerHTML = '<span>⏳</span> Starting...';
-
-      chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
-        setTimeout(() => {
-          notifyActiveTab({ type: 'START_CAMERA_RECORDING' });
-          recordBtn.innerHTML = '<span>📹</span> Recording...';
-          setTimeout(() => { window.close(); }, 400);
-        }, 150);
-      });
-    });
-  }
-
-  // Quick Screen / Tab Record Button on active tab
-  const recScreenBtn = document.getElementById('popup-btn-rec-screen');
-  if (recScreenBtn) {
-    recScreenBtn.addEventListener('click', () => {
-      recScreenBtn.disabled = true;
-      recScreenBtn.innerHTML = '<span>⏳</span> Starting...';
-
-      chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
-        setTimeout(() => {
-          notifyActiveTab({ type: 'START_SCREEN_RECORDING' });
-          recScreenBtn.innerHTML = '<span>🖥️</span> Sharing...';
-          setTimeout(() => { window.close(); }, 400);
-        }, 150);
-      });
     });
   }
 
