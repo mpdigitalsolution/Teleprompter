@@ -169,10 +169,6 @@ class PiPPrompterManager {
             <button class="pip-btn pip-btn-nudge" id="pip-btn-nudge-down" title="Nudge Down (↓)">▼</button>
             <button class="pip-btn pip-btn-rewind" id="pip-btn-rewind" title="Rewind to Top">⏮</button>
 
-            <button class="pip-btn pip-btn-ghost-toggle ${this.isGhostMode ? 'active' : ''}" id="pip-btn-ghost" title="Ghost Click-Through Mode">
-              👻 <span class="pip-ghost-label">Ghost</span>
-            </button>
-
             <button class="pip-btn pip-btn-controls ${!this.isToolbarCollapsed ? 'active' : ''}" id="pip-btn-controls" title="Toggle Settings (Alt+S)">
               ⚙ <span class="pip-ctrl-label">Controls</span> <span id="pip-ctrl-arrow">${this.isToolbarCollapsed ? '▼' : '▲'}</span>
             </button>
