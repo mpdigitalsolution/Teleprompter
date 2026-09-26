@@ -38,6 +38,10 @@ contextBridge.exposeInMainWorld('studioAPI', {
   // Video Capturer Sources & Export
   getSources: () => ipcRenderer.invoke(IPC_CHANNELS.RECORDER_GET_SOURCES),
   exportTake: (buffer, name) => ipcRenderer.invoke('recorder:export-file', buffer, name),
+  getStorageDir: () => ipcRenderer.invoke('recorder:get-storage-dir'),
+  selectStorageDir: () => ipcRenderer.invoke('recorder:select-storage-dir'),
+  resetStorageDir: () => ipcRenderer.invoke('recorder:reset-storage-dir'),
+  openStorageDir: () => ipcRenderer.invoke('recorder:open-storage-dir'),
 
   // Window Controls
   closeWindow: () => ipcRenderer.send(IPC_CHANNELS.WINDOW_CLOSE),

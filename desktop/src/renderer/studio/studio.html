@@ -115,6 +115,23 @@
               <h2>Recorded Video Takes</h2>
               <p class="subtitle">Review, export to MP4/WebM, or trim your recorded takes.</p>
             </div>
+
+            <!-- Target Storage Location Action Bar -->
+            <div class="takes-storage-bar" style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+              <div style="display:flex; align-items:center; gap: 8px;">
+                <span style="font-size: 13px; color: var(--apple-text-secondary);">Target Recording Storage:</span>
+                <span id="takes-storage-path" style="font-family: monospace; font-size: 13px; color: #00F0FF; background: rgba(0,240,255,0.1); padding: 3px 8px; border-radius: 4px;">D:\facescreen recording</span>
+              </div>
+              <div style="display:flex; gap: 8px;">
+                <button class="btn-apple btn-apple-pill" id="btn-open-storage-dir" title="Open storage directory in Windows File Explorer">
+                  <span>📂 Open Folder</span>
+                </button>
+                <button class="btn-apple btn-apple-pill" id="btn-change-storage-dir" title="Change target recording directory">
+                  <span>📁 Change Folder...</span>
+                </button>
+              </div>
+            </div>
+
             <div class="takes-grid" id="takes-grid-container">
               <div class="empty-state">
                 <span class="empty-icon">🎥</span>
@@ -129,6 +146,23 @@
           <div class="settings-container">
             <h2>Preferences & Global Shortcuts</h2>
             <p class="subtitle">Configure performance, visual materials, and system-wide hotkeys.</p>
+
+            <div class="settings-card">
+              <h3>Video Recording & Storage Destination</h3>
+              <p class="subtitle" style="margin-bottom: 12px;">Configure where your exported video takes and sessions are saved on your computer.</p>
+              
+              <div class="setting-row" style="align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <strong style="color: #FFFFFF; font-size: 13px; display:block;">Target Storage Folder</strong>
+                  <span id="settings-storage-path" style="font-family: monospace; font-size: 12px; color: #00F0FF;">D:\facescreen recording</span>
+                </div>
+                <div style="display:flex; gap: 8px;">
+                  <button class="btn-apple btn-apple-pill" id="btn-settings-open-folder" title="Open folder in Windows File Explorer">📂 Open Folder</button>
+                  <button class="btn-apple btn-apple-pill" id="btn-settings-change-folder" title="Change destination folder">📁 Change...</button>
+                  <button class="btn-apple btn-apple-pill" id="btn-settings-reset-folder" title="Reset back to default D:\facescreen recording">↺ Reset to Default</button>
+                </div>
+              </div>
+            </div>
 
             <div class="settings-card">
               <h3>Teleprompter Defaults</h3>

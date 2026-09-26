@@ -235,6 +235,29 @@ function registerIpcHandlers(windowManager, storageService, recorderService) {
     return recorderService.exportTakeToFile(buffer, defaultName);
   });
 
+  electronIpc.handle('recorder:select-storage-dir', async () => {
+    return recorderService.selectCustomExportDir();
+  });
+
+  electronIpc.handle('recorder:get-storage-dir', async () => {
+    return recorderService._getDefaultExportDir();
+  });
+
+  electronIpc.handle('recorder:reset-storage-dir', async () => {
+    return recorderService.resetExportDir();
+  });
+
+  electronIpc.handle('recorder:open-storage-dir', async () => {
+    let electronModule;
+    try { electronModule = require('electron'); } catch (e) {}
+    const dir = recorderService._getDefaultExportDir();
+    if (electronModule && electronModule.shell && electronModule.shell.openPath) {
+      await electronModule.shell.openPath(dir);
+      return true;
+    }
+    return false;
+  });
+
   // App Navigation Handlers
   electronIpc.on(IPC_CHANNELS.APP_OPEN_PROMPTER, () => {
     windowManager.showPrompter();

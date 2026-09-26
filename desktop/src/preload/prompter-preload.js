@@ -70,6 +70,10 @@ contextBridge.exposeInMainWorld('prompterAPI', {
   exportRecordingSession: (tempPath, name) => ipcRenderer.invoke(IPC_CHANNELS.RECORDER_EXPORT_SESSION, tempPath, name),
   saveTake: (take) => ipcRenderer.invoke(IPC_CHANNELS.RECORDER_SAVE_TAKE, take),
   exportTake: (buffer, name) => ipcRenderer.invoke('recorder:export-file', buffer, name),
+  getStorageDir: () => ipcRenderer.invoke('recorder:get-storage-dir'),
+  selectStorageDir: () => ipcRenderer.invoke('recorder:select-storage-dir'),
+  resetStorageDir: () => ipcRenderer.invoke('recorder:reset-storage-dir'),
+  openStorageDir: () => ipcRenderer.invoke('recorder:open-storage-dir'),
 
   // Prompter Action Dispatches
   togglePlay: () => ipcRenderer.send(IPC_CHANNELS.PROMPTER_TOGGLE_PLAY),

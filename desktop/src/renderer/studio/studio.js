@@ -224,6 +224,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (window.studioAPI) window.studioAPI.maximizeWindow();
   });
 
+  // Video Recording Storage Directory Controls
+  const takesStoragePath = document.getElementById('takes-storage-path');
+  const btnOpenStorageDir = document.getElementById('btn-open-storage-dir');
+  const btnChangeStorageDir = document.getElementById('btn-change-storage-dir');
+  const settingsStoragePath = document.getElementById('settings-storage-path');
+  const btnSettingsOpenFolder = document.getElementById('btn-settings-open-folder');
+  const btnSettingsChangeFolder = document.getElementById('btn-settings-change-folder');
+  const btnSettingsResetFolder = document.getElementById('btn-settings-reset-folder');
+
+  async function refreshStorageDirUI() {
+    if (window.studioAPI && window.studioAPI.getStorageDir) {
+      try {
+        const dir = await window.studioAPI.getStorageDir();
+        if (dir) {
+          if (takesStoragePath) takesStoragePath.textContent = dir;
+          if (settingsStoragePath) settingsStoragePath.textContent = dir;
+        }
+      } catch (e) {}
+    }
+  }
+
+  const handleOpenStorage = async () => {
+    if (window.studioAPI && window.studioAPI.openStorageDir) {
+      await window.studioAPI.openStorageDir();
+    }
+  };
+
+  const handleChangeStorage = async () => {
+    if (window.studioAPI && window.studioAPI.selectStorageDir) {
+      const selected = await window.studioAPI.selectStorageDir();
+      if (selected) {
+        await refreshStorageDirUI();
+      }
+    }
+  };
+
+  if (btnOpenStorageDir) btnOpenStorageDir.addEventListener('click', handleOpenStorage);
+  if (btnSettingsOpenFolder) btnSettingsOpenFolder.addEventListener('click', handleOpenStorage);
+  if (btnChangeStorageDir) btnChangeStorageDir.addEventListener('click', handleChangeStorage);
+  if (btnSettingsChangeFolder) btnSettingsChangeFolder.addEventListener('click', handleChangeStorage);
+
+  if (btnSettingsResetFolder) {
+    btnSettingsResetFolder.addEventListener('click', async () => {
+      if (window.studioAPI && window.studioAPI.resetStorageDir) {
+        await window.studioAPI.resetStorageDir();
+        await refreshStorageDirUI();
+      }
+    });
+  }
+
+  refreshStorageDirUI();
+
   // IPC Event Sync
   if (window.studioAPI) {
     window.studioAPI.onScriptSaved((saved) => {

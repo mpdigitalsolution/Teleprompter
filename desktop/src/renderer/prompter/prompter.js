@@ -1342,12 +1342,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  const takeDestPath = document.getElementById('take-dest-path');
+  const btnTakeChangeDir = document.getElementById('btn-take-change-dir');
+
+  async function updateTakeDestUI() {
+    if (window.prompterAPI && window.prompterAPI.getStorageDir) {
+      try {
+        const dir = await window.prompterAPI.getStorageDir();
+        if (takeDestPath) takeDestPath.textContent = dir || 'D:\\facescreen recording';
+        if (btnTakeSave) btnTakeSave.textContent = `💾 Save to ${dir || 'D:\\facescreen recording'}`;
+      } catch (e) {}
+    }
+  }
+
+  if (btnTakeChangeDir) {
+    btnTakeChangeDir.addEventListener('click', async () => {
+      if (window.prompterAPI && window.prompterAPI.selectStorageDir) {
+        const selected = await window.prompterAPI.selectStorageDir();
+        if (selected) {
+          await updateTakeDestUI();
+        }
+      }
+    });
+  }
+
   function onRecordingFinished(blob, stats) {
     const duration = formatTime(stats?.duration || recordSeconds);
     const size = formatFileSize(stats?.size || blob?.size || 0);
 
     if (takeStatDuration) takeStatDuration.textContent = duration;
     if (takeStatSize) takeStatSize.textContent = size;
+    updateTakeDestUI();
     if (takeOverlay) takeOverlay.classList.remove('hidden');
   }
 

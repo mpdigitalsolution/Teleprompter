@@ -145,6 +145,16 @@ class RecorderService {
     return null;
   }
 
+  resetExportDir() {
+    if (this.storage && typeof this.storage.set === 'function') {
+      const settings = this.storage.get('settings') || {};
+      settings.recordingStoragePath = 'D:\\facescreen recording';
+      settings.recordingStorageName = 'facescreen recording';
+      this.storage.set('settings', settings);
+    }
+    return this._getDefaultExportDir();
+  }
+
   async exportSessionToFile(tempPath, defaultName = 'GhostPrompter_Take.webm') {
     if (!electronModule || !electronModule.dialog) {
       return { success: false, error: 'dialog not available' };

@@ -250,9 +250,13 @@
           <div class="take-stat-badge">⏱ <span id="take-stat-duration">00:00</span></div>
           <div class="take-stat-badge">💾 <span id="take-stat-size">0 MB</span></div>
         </div>
+        <div style="margin: 10px 0; font-size: 11.5px; color: #00F0FF; background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.22); border-radius: 6px; padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+          <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">📁 Destination: <strong id="take-dest-path">D:\facescreen recording</strong></span>
+          <button type="button" class="btn-step-mini" id="btn-take-change-dir" style="padding: 2px 6px; font-size: 10px; cursor: pointer; border-radius: 4px;" title="Change target storage folder">Change</button>
+        </div>
         <div class="take-modal-actions">
           <button class="btn-apple btn-apple-ghost" id="btn-take-discard">Discard</button>
-          <button class="btn-apple btn-apple-blue" id="btn-take-save">💾 Save Video File...</button>
+          <button class="btn-apple btn-apple-blue" id="btn-take-save">💾 Save to D:\facescreen recording</button>
         </div>
       </div>
     </div>
