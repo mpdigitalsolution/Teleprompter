@@ -10,9 +10,48 @@ let animFrame = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   initScriptManager();
+  initStorageFolderManager();
   checkExistingPermissions();
   setupEventListeners();
 });
+
+async function initStorageFolderManager() {
+  const btnLinkFolder = document.getElementById('btn-setup-link-folder');
+  const folderStatus = document.getElementById('setup-folder-status');
+
+  async function updateFolderStatusUI() {
+    if (window.VideoRecorder && window.VideoRecorder.getSavedDirectoryHandle) {
+      const handle = await window.VideoRecorder.getSavedDirectoryHandle();
+      if (handle && handle.name) {
+        if (folderStatus) {
+          folderStatus.textContent = `${handle.name} (Linked ✓)`;
+          folderStatus.style.color = '#00FF88';
+        }
+        if (btnLinkFolder) btnLinkFolder.textContent = `✓ Linked: ${handle.name}`;
+      } else {
+        if (folderStatus) {
+          folderStatus.textContent = 'D:\\facescreen recording';
+          folderStatus.style.color = '#00F0FF';
+        }
+        if (btnLinkFolder) btnLinkFolder.textContent = '📁 Link D:\\facescreen recording';
+      }
+    }
+  }
+
+  if (btnLinkFolder) {
+    btnLinkFolder.addEventListener('click', async () => {
+      if (window.VideoRecorder && window.VideoRecorder.selectStorageDirectory) {
+        const handle = await window.VideoRecorder.selectStorageDirectory();
+        if (handle) {
+          await updateFolderStatusUI();
+          alert(`Successfully linked "${handle.name}"!\nAll video recordings will now be saved directly to this folder on your computer.`);
+        }
+      }
+    });
+  }
+
+  updateFolderStatusUI();
+}
 
 async function checkExistingPermissions() {
   if (navigator.permissions && navigator.permissions.query) {

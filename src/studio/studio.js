@@ -53,9 +53,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const reviewVideo = document.getElementById('review-video-player');
   const metaDuration = document.getElementById('meta-duration');
   const metaSize = document.getElementById('meta-size');
+  const metaStorageDest = document.getElementById('meta-storage-dest');
   const btnCloseReview = document.getElementById('btn-close-review');
   const btnSaveVideo = document.getElementById('btn-save-video');
   const btnRetake = document.getElementById('btn-retake');
+  const btnSelectStorageDir = document.getElementById('btn-select-storage-dir');
+  const storageDirLabel = document.getElementById('storage-dir-label');
 
   // State
   let currentRatio = '16:9';
@@ -142,7 +145,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     },
     onTimeUpdate: (elapsedSeconds, formattedTime) => {
-      recTimer.textContent = formattedTime;
+      const timeStr = typeof elapsedSeconds === 'object' && elapsedSeconds !== null
+        ? (elapsedSeconds.formattedTime || (typeof VideoRecorder !== 'undefined' ? VideoRecorder.formatTime(elapsedSeconds.elapsedSeconds || 0) : '00:00'))
+        : (formattedTime || (typeof VideoRecorder !== 'undefined' ? VideoRecorder.formatTime(typeof elapsedSeconds === 'number' ? elapsedSeconds : 0) : '00:00'));
+      if (recTimer) recTimer.textContent = timeStr;
     },
     onStop: (take) => {
       isRecording = false;
@@ -274,8 +280,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     videoEl.srcObject = stream;
     videoEl.play().catch(() => {});
     populateCameraDevices();
+    updateStorageDirectoryUI();
   } catch (err) {
     console.warn('Camera could not start automatically:', err);
+  }
+
+  // Storage Directory UI and Handler (D:\facescreen recording)
+  async function updateStorageDirectoryUI() {
+    if (!VideoRecorder || !VideoRecorder.getSavedDirectoryHandle) return;
+    const handle = await VideoRecorder.getSavedDirectoryHandle();
+    if (handle && handle.name) {
+      if (storageDirLabel) storageDirLabel.textContent = `Storage: ${handle.name} (Linked ✓)`;
+      if (btnSelectStorageDir) {
+        btnSelectStorageDir.classList.add('active');
+        btnSelectStorageDir.title = `Direct storage linked to "${handle.name}". Click to change folder.`;
+      }
+      if (metaStorageDest) metaStorageDest.textContent = `📁 Target: ${handle.name} (Direct Disk)`;
+    } else {
+      if (storageDirLabel) storageDirLabel.textContent = `Storage: D:\\facescreen recording`;
+      if (btnSelectStorageDir) {
+        btnSelectStorageDir.classList.remove('active');
+        btnSelectStorageDir.title = `Click to link folder (select D:\\facescreen recording) for direct saving`;
+      }
+    }
+  }
+
+  if (btnSelectStorageDir) {
+    btnSelectStorageDir.addEventListener('click', async () => {
+      const handle = await VideoRecorder.selectStorageDirectory();
+      if (handle) {
+        await updateStorageDirectoryUI();
+        alert(`Storage folder linked: ${handle.name}!\nAll recordings will now be saved directly to this folder on your computer.`);
+      }
+    });
   }
 
   // Record Button
@@ -415,6 +452,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     prompterViewport.scrollTop = 0;
     scrollAccumulator = 0;
   });
+
+  const btnStudioFocus = document.getElementById('btn-studio-focus-toggle');
+  const studioFocusBar = document.getElementById('studio-focus-bar');
+  if (btnStudioFocus && studioFocusBar) {
+    btnStudioFocus.addEventListener('click', () => {
+      const isHidden = studioFocusBar.classList.toggle('hidden');
+      btnStudioFocus.classList.toggle('active', !isHidden);
+    });
+  }
+
+  const btnStudioPrompterMin = document.getElementById('btn-studio-prompter-min');
+  if (btnStudioPrompterMin && studioPrompter) {
+    btnStudioPrompterMin.addEventListener('click', () => {
+      studioPrompter.classList.toggle('minimized');
+    });
+  }
 
   if (btnPrompterPip) {
     const pipManager = new PiPPrompterManager();
@@ -581,11 +634,40 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   btnCloseReview.addEventListener('click', closeReview);
 
-  btnSaveVideo.addEventListener('click', () => {
+  btnSaveVideo.addEventListener('click', async () => {
     if (currentTake && currentTake.blob) {
       const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const filename = `ghostprompter-studio-${dateStr}.webm`;
-      VideoRecorder.downloadBlob(currentTake.blob, filename);
+
+      btnSaveVideo.disabled = true;
+      btnSaveVideo.innerHTML = '<span>💾</span> Saving to D:\\facescreen recording...';
+
+      try {
+        const res = await VideoRecorder.saveVideoFile(currentTake.blob, filename);
+        if (res && res.success) {
+          const dir = res.directory ? res.directory : 'D:\\facescreen recording';
+          btnSaveVideo.innerHTML = `<span>✓</span> Saved to ${dir}!`;
+          if (metaStorageDest) {
+            metaStorageDest.textContent = `✓ Saved: ${res.filename} in ${dir}`;
+            metaStorageDest.style.color = '#00FF88';
+          }
+          setTimeout(() => {
+            btnSaveVideo.disabled = false;
+            btnSaveVideo.innerHTML = '<span>💾</span> Save Video (.webm)';
+          }, 3000);
+        } else if (res && res.aborted) {
+          btnSaveVideo.disabled = false;
+          btnSaveVideo.innerHTML = '<span>💾</span> Save Video (.webm)';
+        } else {
+          VideoRecorder.downloadBlob(currentTake.blob, filename);
+          btnSaveVideo.disabled = false;
+          btnSaveVideo.innerHTML = '<span>💾</span> Save Video (.webm)';
+        }
+      } catch (err) {
+        VideoRecorder.downloadBlob(currentTake.blob, filename);
+        btnSaveVideo.disabled = false;
+        btnSaveVideo.innerHTML = '<span>💾</span> Save Video (.webm)';
+      }
     }
   });
 

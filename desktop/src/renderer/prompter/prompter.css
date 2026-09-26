@@ -1,0 +1,2121 @@
+/* ==========================================================================
+   GhostPrompter Desktop — Floating Prompter Overlay Stylesheet
+   visionOS Frosted Glass Vibrancy & Hardware GPU Optimization
+   ========================================================================== */
+
+:root {
+  --prompter-opacity: 0.85;
+  --prompter-font-size: 26px;
+}
+
+html, body {
+  background: transparent !important;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Frosted Glass Window Frame — 100% Borderless, Zero White Halo/Shadow */
+.prompter-window {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(22, 22, 26, var(--prompter-opacity, 0.88));
+  border: none !important;
+  border-radius: var(--apple-radius-l);
+  box-shadow: none !important;
+  outline: none !important;
+  overflow: hidden;
+  position: relative;
+}
+
+.prompter-window.is-maximized {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* visionOS Frosted Header (Native OS Draggable across all screens with 0% CPU) */
+.prompter-header {
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgba(36, 36, 42, 0.92);
+  border: none !important;
+  border-bottom: none !important;
+  height: 42px;
+  flex-shrink: 0;
+  user-select: none;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 50;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.brand-badge {
+  -webkit-app-region: no-drag !important;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--apple-text-primary);
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 3px 7px;
+  border-radius: var(--apple-radius-s);
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.brand-badge:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.brand-badge:active,
+.brand-badge.active {
+  background: rgba(100, 210, 255, 0.22);
+  border-color: var(--apple-blue);
+  color: #FFFFFF;
+  box-shadow: 0 0 10px rgba(100, 210, 255, 0.35);
+}
+
+.brand-badge:hover .brand-icon {
+  transform: scale(1.22);
+}
+
+.brand-icon {
+  font-size: 13px;
+  transition: transform 0.15s ease;
+}
+
+.mode-pill {
+  font-size: 9px;
+  font-weight: 700;
+  background: rgba(10, 132, 255, 0.20);
+  color: var(--apple-blue);
+  border: 1px solid rgba(10, 132, 255, 0.35);
+  padding: 1px 6px;
+  border-radius: var(--apple-radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.header-drag-handle {
+  -webkit-app-region: no-drag !important;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--apple-text-secondary);
+  padding: 2px 7px;
+  user-select: none;
+  transition: all 0.15s ease;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--apple-border-subtle);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.header-drag-handle:hover {
+  color: #FFFFFF;
+  background: rgba(10, 132, 255, 0.25);
+  border-color: var(--apple-blue);
+  box-shadow: 0 0 8px rgba(10, 132, 255, 0.4);
+}
+
+.header-drag-handle:active {
+  cursor: grabbing;
+  background: var(--apple-blue);
+  color: #FFFFFF;
+}
+
+/* Action Strip */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 1;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.btn-play {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.btn-action-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--apple-radius-s);
+  border: 1px solid var(--apple-border);
+  background: var(--apple-bg-surface);
+  color: var(--apple-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 12px;
+}
+
+.btn-action-icon:hover {
+  background: var(--apple-bg-surface-hover);
+  color: var(--apple-text-primary);
+}
+
+.btn-action-icon.active {
+  background: rgba(10, 132, 255, 0.25);
+  border-color: var(--apple-blue);
+  color: #FFFFFF;
+}
+
+/* Window Control Group (Minimize, Maximize / Restore) */
+.window-control-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 2px;
+  padding-left: 6px;
+  border-left: 1px solid var(--apple-border-subtle);
+  -webkit-app-region: no-drag !important;
+  flex-shrink: 0;
+}
+
+.btn-win-ctrl {
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+  font-weight: 600;
+  -webkit-app-region: no-drag !important;
+}
+
+.btn-win-ctrl:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.btn-win-ctrl:active {
+  transform: scale(0.94);
+}
+
+/* Pill Steppers: Speed (WPM) & Font Size (px) */
+.pill-stepper {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--apple-border);
+  border-radius: var(--apple-radius-pill, 9999px);
+  padding: 2px 6px;
+  gap: 4px;
+  -webkit-app-region: no-drag !important;
+  user-select: none;
+  height: 26px;
+}
+
+.pill-stepper .btn-step {
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: var(--apple-text-primary, #FFFFFF);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 0;
+  transition: all 0.15s ease;
+  -webkit-app-region: no-drag !important;
+}
+
+.pill-stepper .btn-step:hover {
+  background: rgba(10, 132, 255, 0.45);
+  color: #FFFFFF;
+}
+
+.pill-stepper .btn-step:active {
+  transform: scale(0.92);
+}
+
+.pill-stepper span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--apple-text-primary, #FFFFFF);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill-stepper .font-unit,
+.pill-stepper .wpm-unit {
+  font-size: 9px;
+  color: var(--apple-text-secondary, rgba(235, 235, 245, 0.6));
+  font-weight: 500;
+  margin-left: 1px;
+}
+
+.apple-select {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--apple-border);
+  color: #FFFFFF;
+  font-size: 11px;
+  border-radius: var(--apple-radius-s);
+  padding: 3px 6px;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.apple-select option {
+  background: #1C1C1E;
+  color: #FFFFFF;
+}
+
+/* Reading Focus Line */
+.focus-reading-bar {
+  position: absolute;
+  top: 35%;
+  left: 0;
+  width: 100%;
+  height: 48px;
+  pointer-events: none;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(100, 210, 255, 0.08) 12%, 
+    rgba(100, 210, 255, 0.16) 50%, 
+    rgba(100, 210, 255, 0.08) 88%, 
+    transparent 100%
+  );
+  border-top: 1px solid rgba(100, 210, 255, 0.28);
+  border-bottom: 1px solid rgba(100, 210, 255, 0.28);
+  transform: translateY(-50%);
+  z-index: 10;
+  transition: opacity 0.2s ease;
+}
+
+.focus-reading-bar.hidden {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+/* Teleprompter Scrolling Viewport (Hardware Fast-Composited) */
+.prompter-viewport {
+  flex: 1;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 24px 28px 120px 28px;
+  cursor: text;
+  contain: content;
+  will-change: scroll-position;
+}
+
+.prompter-viewport::-webkit-scrollbar {
+  width: 6px;
+}
+
+.prompter-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+}
+
+/* Script Content Typography — Flexible & Centered on Wide Screens */
+.script-content {
+  font-size: var(--prompter-font-size);
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--apple-cyan);
+  letter-spacing: -0.01em;
+  white-space: pre-wrap;
+  word-break: break-word;
+  outline: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  min-height: 160px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  transition: font-size 0.2s ease, max-width 0.2s ease;
+}
+
+/* Ghost / 100% Transparent UI Mode */
+.prompter-window.ghost-mode {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.prompter-window.ghost-mode .prompter-header {
+  background: transparent !important;
+  border: none !important;
+  opacity: 0.2;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.prompter-window.ghost-mode:hover .prompter-header,
+.prompter-window.ghost-mode .prompter-header:hover {
+  background: rgba(30, 30, 36, 0.92) !important;
+  opacity: 1 !important;
+}
+
+.prompter-window.ghost-mode .script-content {
+  background: transparent !important;
+  color: #FFFFFF !important;
+  text-shadow: 
+    0 1px 3px rgba(0, 0, 0, 1),
+    0 2px 8px rgba(0, 0, 0, 0.95),
+    -1px -1px 0 rgba(0, 0, 0, 0.95),
+     1px -1px 0 rgba(0, 0, 0, 0.95),
+    -1px  1px 0 rgba(0, 0, 0, 0.95),
+     1px  1px 0 rgba(0, 0, 0, 0.95),
+    0 0 16px rgba(0, 0, 0, 0.9);
+}
+
+.ghost-floating-pill {
+  display: none;
+  position: absolute;
+  top: 48px;
+  right: 14px;
+  background: rgba(10, 132, 255, 0.92);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--apple-radius-pill);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  z-index: 100;
+  -webkit-app-region: no-drag;
+  transition: all 0.15s ease;
+}
+
+.ghost-floating-pill:hover {
+  transform: scale(1.05);
+  background: var(--apple-blue);
+}
+
+.prompter-window.ghost-mode .ghost-floating-pill {
+  display: block;
+}
+
+/* ==========================================================================
+   Studio Mode: Half-Body Webcam Stage with Teleprompter on the Top
+   ========================================================================== */
+.studio-stage {
+  display: none;
+  position: absolute;
+  top: 42px; /* below header */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: 5;
+  background: #000000;
+}
+
+.prompter-window.studio-mode .studio-stage {
+  display: block;
+}
+
+.studio-webcam-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* Mirrored by default for natural presenter view */
+  transition: transform 0.2s ease;
+}
+
+.studio-webcam-feed.unmirrored {
+  transform: scaleX(1);
+}
+
+/* Half-Body Safe-Zone Framing Guides */
+.studio-framing-guides {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 8;
+  transition: opacity 0.2s ease;
+}
+
+.studio-framing-guides.hidden {
+  display: none !important;
+}
+
+/* Headroom Line */
+.guide-headroom {
+  position: absolute;
+  top: 14%;
+  left: 6%;
+  right: 6%;
+  border-top: 1px dashed rgba(255, 255, 255, 0.3);
+}
+
+.guide-headroom .guide-tag {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Eye-Line Target (Direct Webcam Eye Contact) */
+.guide-eyeline {
+  position: absolute;
+  top: 32%;
+  left: 6%;
+  right: 6%;
+  border-top: 1px solid rgba(0, 240, 255, 0.55);
+}
+
+.guide-eyeline .guide-tag {
+  position: absolute;
+  top: 2px;
+  left: 0;
+  font-size: 10px;
+  color: rgba(0, 240, 255, 0.95);
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Upper-Torso / Half-Body Framing Box */
+.guide-box-halfbody {
+  position: absolute;
+  top: 26%;
+  left: 18%;
+  right: 18%;
+  bottom: 6%;
+  border: 1px dashed rgba(48, 209, 88, 0.4);
+  border-radius: 12px;
+}
+
+.guide-box-halfbody .guide-tag-corner {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  font-size: 10px;
+  color: rgba(48, 209, 88, 0.9);
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* Studio Quick Toolbar (Guides, Mirror, Exit) */
+.studio-tools-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 20;
+  -webkit-app-region: no-drag;
+}
+
+.studio-pill-status {
+  background: rgba(48, 209, 88, 0.2);
+  border: 1px solid rgba(48, 209, 88, 0.45);
+  color: #30D158;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--apple-radius-pill, 9999px);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.btn-studio-tool {
+  background: rgba(28, 28, 32, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: var(--apple-radius-pill, 9999px);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  -webkit-app-region: no-drag !important;
+}
+
+.btn-studio-tool:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.btn-studio-tool.active {
+  background: rgba(10, 132, 255, 0.4);
+  border-color: var(--apple-blue);
+}
+
+/* Teleprompter Card Container (Standard Mode) */
+.prompter-card-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.prompter-window:not(.studio-mode) .card-drag-bar,
+.prompter-window:not(.studio-mode) .card-resize-bar,
+.prompter-window:not(.studio-mode) .card-resize-corner {
+  display: none !important;
+}
+
+/* In Studio Mode: Movable Up/Down/Left/Right & Resizable Teleprompter Card on Top of Webcam */
+.prompter-window.studio-mode .prompter-card-container {
+  position: absolute;
+  top: var(--studio-card-top, 46px);
+  left: var(--studio-card-left, 14px);
+  width: var(--studio-card-width, calc(100% - 28px));
+  height: var(--studio-card-height, 190px);
+  min-width: 260px;
+  max-width: calc(100vw - 20px);
+  min-height: 80px;
+  max-height: calc(100vh - 90px);
+  right: auto;
+  z-index: 15;
+  background: linear-gradient(180deg, 
+    rgba(14, 14, 18, 0.94) 0%, 
+    rgba(14, 14, 18, 0.86) 75%, 
+    rgba(14, 14, 18, 0.70) 100%
+  );
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.prompter-window.studio-mode .prompter-card-container.is-dragging,
+.prompter-window.studio-mode .prompter-card-container.is-resizing {
+  box-shadow: 0 12px 42px rgba(0, 0, 0, 0.85), 0 0 0 1.5px rgba(10, 132, 255, 0.6);
+  border-color: rgba(10, 132, 255, 0.7);
+}
+
+/* Card Drag Handle Bar (Move Anywhere 2D) */
+.prompter-window.studio-mode .card-drag-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 28px;
+  padding: 2px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: grab;
+  user-select: none;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag !important;
+  gap: 8px;
+}
+
+.prompter-window.studio-mode .card-drag-bar:active,
+.prompter-window.studio-mode .prompter-card-container.is-dragging .card-drag-bar {
+  cursor: grabbing;
+  background: rgba(10, 132, 255, 0.20);
+}
+
+.card-drag-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(235, 235, 245, 0.8);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.card-drag-dots {
+  color: rgba(235, 235, 245, 0.45);
+  font-size: 13px;
+  letter-spacing: -1px;
+  pointer-events: auto;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+
+.card-drag-dots:hover {
+  color: #FFFFFF;
+  background: rgba(10, 132, 255, 0.35);
+}
+
+.card-quick-positions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.card-btn-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 5px;
+  padding: 1px 2px;
+  flex-shrink: 0;
+}
+
+.btn-card-pos,
+.btn-card-align {
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(235, 235, 245, 0.85);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-app-region: no-drag !important;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.btn-card-pos:hover,
+.btn-card-align:hover {
+  background: rgba(10, 132, 255, 0.35);
+  border-color: var(--apple-blue);
+  color: #FFFFFF;
+}
+
+.btn-card-pos.active,
+.btn-card-align.active {
+  background: var(--apple-blue);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* In Studio Mode: Viewport Fills the Movable Card */
+.prompter-window.studio-mode .prompter-viewport {
+  position: static !important;
+  flex: 1;
+  width: 100%;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0;
+  padding: 8px 16px 20px 16px;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow-y: auto;
+}
+
+.prompter-window.studio-mode .script-content {
+  color: #FFFFFF !important;
+  text-shadow: 
+    0 1px 3px rgba(0, 0, 0, 1),
+    0 2px 8px rgba(0, 0, 0, 0.95),
+    -1px -1px 0 rgba(0, 0, 0, 0.95),
+     1px -1px 0 rgba(0, 0, 0, 0.95),
+    -1px  1px 0 rgba(0, 0, 0, 0.95),
+     1px  1px 0 rgba(0, 0, 0, 0.95),
+    0 0 16px rgba(0, 0, 0, 0.9);
+  font-size: 22px;
+  line-height: 1.5;
+}
+
+.prompter-window.studio-mode .focus-reading-bar {
+  top: 30px;
+  z-index: 18;
+}
+
+/* Card Resize Handle Bar (Bottom) */
+.prompter-window.studio-mode .card-resize-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 12px;
+  cursor: ns-resize;
+  background: rgba(0, 0, 0, 0.28);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  user-select: none;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag !important;
+  transition: background 0.15s ease;
+}
+
+.prompter-window.studio-mode .card-resize-bar:hover,
+.prompter-window.studio-mode .prompter-card-container.is-resizing .card-resize-bar {
+  background: rgba(10, 132, 255, 0.28);
+}
+
+.card-resize-pill {
+  width: 38px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+.prompter-window.studio-mode .card-resize-bar:hover .card-resize-pill,
+.prompter-window.studio-mode .prompter-card-container.is-resizing .card-resize-pill {
+  background: var(--apple-blue);
+  width: 52px;
+}
+
+/* Corner Resize Grip */
+.prompter-window.studio-mode .card-resize-corner {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  z-index: 20;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.35);
+  border-right: 2px solid rgba(255, 255, 255, 0.35);
+  border-bottom-right-radius: 6px;
+  -webkit-app-region: no-drag !important;
+}
+
+.prompter-window.studio-mode .card-resize-corner:hover {
+  border-color: var(--apple-blue);
+}
+
+/* Right Edge Width Resize Handle */
+.prompter-window.studio-mode .card-resize-edge-right {
+  display: block;
+  position: absolute;
+  top: 28px;
+  right: 0;
+  width: 8px;
+  bottom: 14px;
+  cursor: ew-resize;
+  z-index: 19;
+  -webkit-app-region: no-drag !important;
+  transition: background 0.15s ease;
+}
+
+.prompter-window.studio-mode .card-resize-edge-right:hover,
+.prompter-window.studio-mode .prompter-card-container.is-resizing .card-resize-edge-right {
+  background: rgba(10, 132, 255, 0.4);
+}
+
+.prompter-window:not(.studio-mode) .card-resize-edge-right {
+  display: none !important;
+}
+
+/* Studio Mode Active Glowing Badge on 🎯 */
+.btn-action-icon.studio-active {
+  background: rgba(255, 69, 58, 0.28) !important;
+  border-color: #FF453A !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 10px rgba(255, 69, 58, 0.6);
+  animation: studioPulse 1.8s infinite ease-in-out;
+}
+
+@keyframes studioPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 69, 58, 0.5); }
+  50% { box-shadow: 0 0 16px rgba(255, 69, 58, 0.85); }
+}
+.island-expand-container {
+  display: none;
+  -webkit-app-region: no-drag;
+}
+
+.island-expand-pill {
+  background: rgba(10, 132, 255, 0.25);
+  border: 1px solid var(--apple-blue);
+  color: #FFFFFF;
+  padding: 3px 10px;
+  border-radius: var(--apple-radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.island-expand-pill:hover {
+  background: var(--apple-blue);
+}
+
+.prompter-window.compact-mode {
+  border: none !important;
+  border-radius: var(--apple-radius-pill) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  height: 100vh;
+}
+
+.prompter-window.compact-mode .prompter-header {
+  border: none !important;
+  border-bottom: none !important;
+  border-radius: var(--apple-radius-pill);
+  height: 100%;
+}
+
+.prompter-window.compact-mode .prompter-viewport,
+.prompter-window.compact-mode .focus-reading-bar,
+.prompter-window.compact-mode .header-actions,
+.prompter-window.compact-mode .window-resize-grip,
+.prompter-window.compact-mode .prompter-resize-handle {
+  display: none !important;
+}
+
+.prompter-window.compact-mode .island-expand-container {
+  display: block !important;
+}
+
+/* ==========================================================================
+   8-Directional Frameless Window Resize Grips
+   Allows resizing from any edge or corner with native OS cursors
+   ========================================================================== */
+.window-resize-grip {
+  position: absolute;
+  z-index: 999;
+  -webkit-app-region: no-drag !important;
+  background: transparent;
+}
+
+.window-resize-grip.grip-top {
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.window-resize-grip.grip-bottom {
+  bottom: 0;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.window-resize-grip.grip-left {
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.window-resize-grip.grip-right {
+  right: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.window-resize-grip.grip-top-left {
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+}
+
+.window-resize-grip.grip-top-right {
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nesw-resize;
+}
+
+.window-resize-grip.grip-bottom-left {
+  bottom: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nesw-resize;
+}
+
+.window-resize-grip.grip-bottom-right {
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  border-right: 2px solid rgba(255, 255, 255, 0.28);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.28);
+  border-bottom-right-radius: 4px;
+}
+
+.prompter-window.is-maximized .window-resize-grip {
+  display: none !important;
+}
+
+/* Strict No-Drag on Interactive Elements so Buttons, Dropdowns & Controls Never Fail to Click */
+.window-resize-grip,
+.traffic-group,
+.traffic-dot,
+.header-actions,
+.header-actions *,
+.btn-apple,
+.btn-play,
+.btn-record,
+.pill-stepper,
+.pill-stepper *,
+.apple-select,
+.btn-action-icon,
+.btn-studio-tool,
+.btn-studio-tool *,
+.studio-tools-overlay,
+.studio-tools-overlay *,
+.island-expand-pill,
+.island-expand-container,
+.ghost-floating-pill,
+.prompter-resize-handle,
+.header-drag-handle,
+.settings-modal-overlay,
+.settings-modal-card,
+.settings-modal-card *,
+.prompter-card-container,
+.card-drag-bar,
+.card-drag-bar *,
+.card-resize-bar,
+.card-resize-bar *,
+.card-resize-corner,
+.btn-card-pos,
+.btn-card-pos *,
+.btn-card-align,
+.btn-card-align *,
+.card-btn-cluster,
+.card-btn-cluster *,
+.card-resize-edge-right,
+.prompter-viewport,
+.prompter-viewport *,
+.picker-btn-close,
+.picker-tabs,
+.picker-tabs *,
+.picker-tab-btn,
+.picker-body,
+.picker-list-container,
+.picker-list-container *,
+.picker-source-item,
+.picker-source-item *,
+.picker-preview-box,
+.picker-preview-box *,
+.picker-footer,
+.picker-footer *,
+.take-modal-actions,
+.take-modal-actions * {
+  -webkit-app-region: no-drag !important;
+}
+
+/* ==========================================================================
+   Record Action Button (Immediately after Start)
+   ========================================================================== */
+.btn-apple-record {
+  background: rgba(255, 69, 58, 0.16);
+  border: 1px solid rgba(255, 69, 58, 0.40);
+  color: #FF453A;
+  padding: 4px 10px;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btn-apple-record:hover {
+  background: rgba(255, 69, 58, 0.28);
+  border-color: #FF453A;
+  color: #FFFFFF;
+}
+
+.record-dot {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.record-timer {
+  font-family: var(--apple-font-mono, monospace);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.record-timer.hidden {
+  display: none !important;
+}
+
+/* Live Recording Active State */
+.btn-apple-record.is-recording {
+  background: #FF453A !important;
+  border-color: #FF3B30 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 12px rgba(255, 69, 58, 0.60) !important;
+}
+
+.btn-apple-record.is-recording .record-dot {
+  animation: recPulse 1.2s infinite ease-in-out;
+}
+
+@keyframes recPulse {
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ==========================================================================
+   Screen & Window Source Picker Modal ("Choose what to share")
+   ========================================================================== */
+.picker-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  -webkit-app-region: drag;
+  cursor: grab;
+}
+
+.picker-overlay.hidden {
+  display: none !important;
+}
+
+.picker-modal {
+  width: 100%;
+  max-width: 530px;
+  height: 330px;
+  background: #1C1C1E;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--apple-radius-l, 14px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.70);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: var(--apple-text-primary, #FFF);
+}
+
+.picker-modal-header {
+  padding: 8px 14px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  -webkit-app-region: drag;
+  cursor: grab;
+  user-select: none;
+}
+
+.picker-header-text {
+  -webkit-app-region: drag;
+  user-select: none;
+}
+
+.picker-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  -webkit-app-region: drag;
+}
+
+.picker-drag-handle {
+  font-size: 13px;
+  color: var(--apple-text-secondary, rgba(235, 235, 245, 0.7));
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  padding: 1px 5px;
+  cursor: grab;
+  user-select: none;
+  line-height: 1;
+  -webkit-app-region: drag;
+  transition: all 0.15s ease;
+}
+
+.picker-drag-handle:hover {
+  background: rgba(255, 255, 255, 0.20);
+  color: #FFFFFF;
+}
+
+.picker-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0;
+  -webkit-app-region: drag;
+}
+
+.picker-subtitle {
+  font-size: 10px;
+  color: rgba(235, 235, 245, 0.60);
+  margin-top: 2px;
+  -webkit-app-region: drag;
+}
+
+.picker-btn-close {
+  background: none;
+  border: none;
+  color: rgba(235, 235, 245, 0.50);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.picker-btn-close:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.picker-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px 14px 0 14px;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.picker-tab-btn {
+  background: transparent;
+  border: none;
+  color: rgba(235, 235, 245, 0.60);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 14px 8px;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  border-bottom: 2px solid transparent;
+}
+
+.picker-tab-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.picker-tab-btn.active {
+  color: #64D2FF;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+  border-bottom: 2px solid #0A84FF;
+}
+
+.picker-body {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  padding: 8px 14px;
+  min-height: 0;
+}
+
+.picker-list-container {
+  flex: 1.25;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding-right: 4px;
+}
+
+.picker-list-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.picker-list-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.20);
+  border-radius: 3px;
+}
+
+.picker-source-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.picker-loading {
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.50);
+  padding: 20px 8px;
+  text-align: center;
+}
+
+.picker-source-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.picker-source-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.picker-source-item.selected {
+  background: rgba(10, 132, 255, 0.22);
+  border-color: #0A84FF;
+}
+
+.source-item-thumb {
+  width: 36px;
+  height: 22px;
+  border-radius: 3px;
+  object-fit: cover;
+  background: #000;
+  flex-shrink: 0;
+}
+
+.source-item-name {
+  font-size: 11px;
+  color: #FFFFFF;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.source-item-badge {
+  font-size: 9px;
+  background: rgba(10, 132, 255, 0.25);
+  color: #64D2FF;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(10, 132, 255, 0.40);
+  font-weight: 600;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
+.picker-preview-box {
+  flex: 0.95;
+  background: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.picker-preview-placeholder {
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.35);
+  text-align: center;
+  padding: 8px;
+}
+
+.picker-preview-image {
+  max-width: 100%;
+  max-height: 125px;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.50);
+}
+
+.picker-preview-placeholder.hidden,
+.picker-preview-image.hidden,
+.picker-preview-name.hidden {
+  display: none !important;
+}
+
+.picker-preview-name {
+  font-size: 10px;
+  color: rgba(235, 235, 245, 0.70);
+  margin-top: 6px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.picker-footer {
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.20);
+}
+
+.picker-audio-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.75);
+  cursor: pointer;
+  user-select: none;
+}
+
+.picker-audio-toggle input[type="checkbox"] {
+  accent-color: #0A84FF;
+  cursor: pointer;
+}
+
+.picker-footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   Take Export Modal
+   ========================================================================== */
+.take-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 210;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.take-modal-overlay.hidden {
+  display: none !important;
+}
+
+.take-modal {
+  background: #1C1C1E;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 14px;
+  padding: 16px;
+  width: 320px;
+  text-align: center;
+  color: #FFF;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+}
+
+.take-modal-icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.take-modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.take-modal-desc {
+  font-size: 11px;
+  color: rgba(235, 235, 245, 0.65);
+  margin-bottom: 10px;
+}
+
+.take-stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.take-stat-badge {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-family: var(--apple-font-mono, monospace);
+}
+
+.take-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   Prompter Settings Modal Popover (Speed, Font Size, Color)
+   ========================================================================== */
+.settings-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  z-index: 240;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: settingsFadeIn 0.18s ease-out;
+}
+
+.settings-modal-overlay.hidden {
+  display: none !important;
+}
+
+@keyframes settingsFadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.settings-modal-card {
+  background: rgba(26, 26, 32, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  width: 360px;
+  max-width: 92vw;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #FFFFFF;
+  -webkit-app-region: no-drag !important;
+}
+
+.settings-modal-header {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.settings-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-title-icon {
+  font-size: 18px;
+}
+
+.settings-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+  color: #FFFFFF;
+  line-height: 1.2;
+}
+
+.settings-subtitle {
+  font-size: 10px;
+  color: rgba(235, 235, 245, 0.6);
+  margin: 2px 0 0 0;
+}
+
+.settings-btn-close {
+  background: transparent;
+  border: none;
+  color: rgba(235, 235, 245, 0.55);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.settings-btn-close:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.settings-modal-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(235, 235, 245, 0.85);
+}
+
+.settings-val-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--apple-blue, #0A84FF);
+  background: rgba(10, 132, 255, 0.15);
+  border: 1px solid rgba(10, 132, 255, 0.3);
+  padding: 1px 7px;
+  border-radius: var(--apple-radius-pill, 9999px);
+  font-family: var(--apple-font-mono, monospace);
+}
+
+.settings-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-step-mini {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--apple-radius-pill, 9999px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.btn-step-mini:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.apple-slider {
+  flex: 1;
+  height: 5px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+
+.apple-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.apple-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  background: var(--apple-blue, #0A84FF);
+}
+
+.settings-presets-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.btn-preset-pill {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(235, 235, 245, 0.75);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--apple-radius-pill, 9999px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-preset-pill:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+}
+
+.btn-preset-pill.active {
+  background: rgba(10, 132, 255, 0.28);
+  border-color: var(--apple-blue, #0A84FF);
+  color: #FFFFFF;
+}
+
+/* Color Swatches */
+.settings-swatches-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.color-swatch-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--swatch-color, #FFF);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  position: relative;
+}
+
+.color-swatch-btn:hover {
+  transform: scale(1.15);
+  border-color: #FFFFFF;
+}
+
+.color-swatch-btn.active {
+  transform: scale(1.18);
+  border-color: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.8), 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.color-picker-label {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.15s ease;
+}
+
+.color-picker-label:hover {
+  border-color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.custom-color-input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.custom-color-icon {
+  font-size: 13px;
+  pointer-events: none;
+}
+
+/* Dual Subgroups (Alignment & Opacity) */
+.settings-row-dual {
+  display: flex;
+  gap: 12px;
+}
+
+.settings-subgroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.settings-label-mini {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(235, 235, 245, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.settings-btn-segmented {
+  display: flex;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.btn-segment {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(235, 235, 245, 0.75);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-segment:hover {
+  color: #FFFFFF;
+}
+
+.btn-segment.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.settings-modal-footer {
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.footer-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   5-Second Recording Countdown Overlay — Apple Frosted Sheet
+   ========================================================================== */
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-app-region: drag;
+  cursor: grab;
+  animation: countdownFadeIn 0.2s ease-out;
+}
+
+.countdown-overlay.hidden {
+  display: none !important;
+}
+
+@keyframes countdownFadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.countdown-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(28, 28, 34, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--apple-radius-l, 14px);
+  padding: 22px 28px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75);
+  text-align: center;
+  min-width: 250px;
+  -webkit-app-region: no-drag;
+}
+
+.countdown-badge-shield {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #30D158;
+  background: rgba(48, 209, 88, 0.14);
+  border: 1px solid rgba(48, 209, 88, 0.32);
+  padding: 3px 9px;
+  border-radius: var(--apple-radius-pill, 9999px);
+  margin-bottom: 12px;
+}
+
+.countdown-circle {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.countdown-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.countdown-circle-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 5;
+}
+
+.countdown-circle-progress {
+  fill: none;
+  stroke: var(--apple-red, #FF453A);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 276.46;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.95s linear;
+}
+
+.countdown-number {
+  font-size: 42px;
+  font-weight: 800;
+  color: #FFFFFF;
+  line-height: 1;
+  text-shadow: 0 0 16px rgba(255, 69, 58, 0.6);
+  animation: countdownPulse 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes countdownPulse {
+  0% { transform: scale(1.35); opacity: 0.6; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.countdown-source-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--apple-text-primary, #FFF);
+  margin-bottom: 4px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.countdown-hint {
+  font-size: 11px;
+  color: var(--apple-text-secondary, rgba(235, 235, 245, 0.6));
+  margin-bottom: 12px;
+}
+
+.countdown-cancel-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--apple-text-secondary, rgba(235, 235, 245, 0.7));
+  padding: 5px 14px;
+  font-size: 11px;
+  border-radius: var(--apple-radius-s, 8px);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  -webkit-app-region: no-drag !important;
+}
+
+.countdown-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ==========================================================================
+   Progressive Adaptive Responsive Layout System (Fill & Follow)
+   Ensures prompter UI adapts gracefully whether resized tiny (320px) or huge (1920px)
+   ========================================================================== */
+
+/* --- Width Breakpoint 1: <= 820px --- */
+@media (max-width: 820px) {
+  .mode-pill {
+    display: none !important;
+  }
+}
+
+/* --- Width Breakpoint 2: <= 720px --- */
+@media (max-width: 720px) {
+  .brand-name {
+    display: none !important;
+  }
+  .wpm-unit {
+    display: none !important;
+  }
+  .apple-select {
+    padding: 3px 4px;
+    font-size: 10px;
+    max-width: 76px;
+  }
+}
+
+/* --- Width Breakpoint 3: <= 620px --- */
+@media (max-width: 620px) {
+  .traffic-group {
+    display: none !important;
+  }
+  .btn-play #play-text {
+    display: none !important;
+  }
+  .btn-play {
+    padding: 4px 8px;
+  }
+  .btn-apple-record:not(.is-recording) #record-label {
+    display: none !important;
+  }
+  .btn-apple-record {
+    padding: 4px 8px;
+  }
+  #btn-open-studio {
+    display: none !important;
+  }
+}
+
+/* --- Width Breakpoint 4: <= 520px --- */
+@media (max-width: 520px) {
+  .apple-select {
+    display: none !important;
+  }
+  #btn-focus-toggle {
+    display: none !important;
+  }
+  .header-drag-handle {
+    padding: 2px 4px;
+    font-size: 13px;
+  }
+  .pill-stepper {
+    padding: 2px 4px;
+    gap: 3px;
+  }
+  .pill-stepper #speed-display {
+    min-width: 24px;
+    font-size: 11px;
+  }
+  .header-actions {
+    gap: 3px;
+  }
+  .prompter-viewport {
+    padding: 16px 18px 80px 18px;
+  }
+}
+
+/* --- Width Breakpoint 5: <= 400px (Down to 320px minimum) --- */
+@media (max-width: 400px) {
+  .header-drag-handle {
+    display: none !important;
+  }
+  #btn-ghost-toggle {
+    display: none !important; /* brand-badge 👻 handles ghost mode toggle */
+  }
+  .prompter-header {
+    padding: 4px 6px;
+    gap: 3px;
+  }
+  .header-actions {
+    gap: 2px;
+  }
+  .btn-action-icon, .btn-win-ctrl {
+    width: 24px;
+    height: 24px;
+  }
+  .pill-stepper .btn-step {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+  }
+  .prompter-viewport {
+    padding: 12px 14px 60px 14px;
+  }
+  .script-content {
+    font-size: calc(var(--prompter-font-size, 26px) * 0.9);
+  }
+}
+
+/* --- Height Breakpoint: Slim Ticker / Low-Height Window (< 200px) --- */
+@media (max-height: 200px) {
+  .prompter-header {
+    height: 36px;
+    padding: 2px 8px;
+  }
+  .prompter-viewport {
+    padding: 8px 16px 24px 16px;
+  }
+  .focus-reading-bar {
+    height: 32px;
+  }
+  .script-content {
+    min-height: 40px;
+    line-height: 1.4;
+  }
+}
+
+/* --- Height Breakpoint: Extreme Slim Height (< 120px) --- */
+@media (max-height: 120px) {
+  .prompter-viewport {
+    padding: 4px 12px 10px 12px;
+  }
+  .focus-reading-bar {
+    display: none !important;
+  }
+}
+
+/* --- Large & Wide Screens (>= 1100px) --- */
+@media (min-width: 1100px) {
+  .prompter-header {
+    padding: 8px 18px;
+  }
+  .script-content {
+    max-width: 1160px;
+    font-size: calc(var(--prompter-font-size, 26px) * 1.08);
+  }
+}
+
+/* --- Ultra-Wide / Maximized Screens (>= 1500px) --- */
+@media (min-width: 1500px) {
+  .prompter-header {
+    padding: 10px 24px;
+    height: 46px;
+  }
+  .script-content {
+    max-width: 1320px;
+    font-size: calc(var(--prompter-font-size, 26px) * 1.2);
+  }
+}
+

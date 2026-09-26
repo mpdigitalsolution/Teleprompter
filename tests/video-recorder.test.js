@@ -107,7 +107,7 @@ function testVideoRecorder() {
     sourceType: 'screen'
   });
 
-  screenRec.startScreenCapture().then((stream) => {
+  screenRec.startScreenCapture().then(async (stream) => {
     assert.strictEqual(displayMediaCalled, true, 'getDisplayMedia was called');
     assert.strictEqual(userMediaCalled, true, 'getUserMedia for mic audio was called');
     assert.ok(stream, 'Returned active media stream');
@@ -120,8 +120,28 @@ function testVideoRecorder() {
     assert.strictEqual(screenRec.micStream, null);
     assert.strictEqual(screenRec.displayStream, null);
     assert.strictEqual(screenRec.state, 'idle');
-    console.log('✓ Screen capture & audio mixing mock passed.');
-    console.log('✓ Automatic display stream and tab share termination verified.');
+    // Test direct disk saving with directory handle
+    let fileWritten = false;
+    const mockWritable = {
+      write: async () => { fileWritten = true; },
+      close: async () => {}
+    };
+    const mockFileHandle = {
+      createWritable: async () => mockWritable
+    };
+    const mockDirHandle = {
+      name: 'facescreen recording',
+      queryPermission: async () => 'granted',
+      getFileHandle: async () => mockFileHandle
+    };
+
+    const mockBlob = { size: 1024, type: 'video/webm' };
+    const saveRes = await VideoRecorder.saveVideoFile(mockBlob, 'test-rec.webm', mockDirHandle);
+    assert.strictEqual(saveRes.success, true);
+    assert.strictEqual(saveRes.method, 'direct_disk');
+    assert.strictEqual(saveRes.directory, 'facescreen recording');
+    assert.strictEqual(fileWritten, true);
+    console.log('✓ Direct disk saving to D:\\facescreen recording verified.');
 
     console.log('✅ All VideoRecorder unit tests passed successfully!');
   }).catch((err) => {

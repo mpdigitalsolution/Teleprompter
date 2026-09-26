@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostPrompter</title>
+  <link rel="stylesheet" href="../shared/css/apple-theme.css">
+  <link rel="stylesheet" href="../shared/css/components.css">
+  <link rel="stylesheet" href="prompter.css">
+</head>
+<body>
+  <div class="prompter-window" id="prompter-window">
+    
+    <!-- Apple visionOS Frosted Header -->
+    <header class="prompter-header" id="prompter-header">
+      <div class="header-left">
+        <!-- macOS Traffic Lights -->
+        <div class="traffic-group">
+          <button class="traffic-dot close" id="traffic-close" title="Close Window (Ctrl+W)">✕</button>
+          <button class="traffic-dot min" id="traffic-min" title="Minimize Window">−</button>
+          <button class="traffic-dot max" id="traffic-max" title="Maximize / Restore Window">⤢</button>
+        </div>
+
+        <div class="brand-badge" id="brand-badge" title="Click to Toggle Transparent UI (Ctrl+Shift+G)">
+          <span class="brand-icon">👻</span>
+          <span class="brand-name">GhostPrompter</span>
+          <span class="mode-pill" id="mode-badge">HUD</span>
+        </div>
+        <button type="button" class="header-drag-handle" id="header-drag-handle" title="Settings & Move (Click for Settings: Speed, Font Size, Color • Drag to Move)">⠿</button>
+      </div>
+
+      <!-- Action Strip -->
+      <div class="header-actions">
+        <!-- Play / Pause Action Button -->
+        <button class="btn-apple btn-apple-green btn-play" id="btn-play-toggle" title="Toggle Auto-Scroll (Ctrl+Shift+Space)">
+          <span id="play-icon">▶</span>
+          <span id="play-text">Start</span>
+        </button>
+
+        <!-- Record Action Button (Immediately after Start) -->
+        <button class="btn-apple btn-apple-record" id="btn-record-toggle" title="Record Screen or Window (Ctrl+Shift+R)">
+          <span class="record-dot" id="record-dot">⏺</span>
+          <span id="record-label">Record</span>
+          <span class="record-timer hidden" id="record-timer">00:00</span>
+        </button>
+
+        <!-- Speed Stepper WPM -->
+        <div class="pill-stepper" title="Scroll Speed (WPM)">
+          <button class="btn-step" id="btn-speed-down">−</button>
+          <span id="speed-display">160<span class="wpm-unit"> WPM</span></span>
+          <button class="btn-step" id="btn-speed-up">+</button>
+        </div>
+
+        <!-- Quick Font Size Stepper (Prompter & Live Studio) -->
+        <div class="pill-stepper font-stepper" id="font-stepper" title="Font Size: Prompter & Live Studio (Ctrl + / −)">
+          <button type="button" class="btn-step" id="btn-font-down" title="Decrease Font Size (A−)">A−</button>
+          <span id="font-display">28<span class="font-unit"> px</span></span>
+          <button type="button" class="btn-step" id="btn-font-up" title="Increase Font Size (A+)">A+</button>
+        </div>
+
+        <!-- Studio Mode: Half-Body Webcam with Teleprompter on Top -->
+        <button class="btn-action-icon" id="btn-focus-toggle" title="Studio Mode: Record Half-Body on Webcam with Teleprompter on Top (Ctrl+Shift+F)">
+          <span>🎯</span>
+        </button>
+
+        <!-- Dynamic Island Compact Pill Toggle -->
+        <button class="btn-action-icon" id="btn-compact-toggle" title="Dynamic Island Mode (Ctrl+Shift+M)">
+          <span>🏝</span>
+        </button>
+      </div>
+
+      <!-- Compact Island Expand Pill -->
+      <div class="island-expand-container" id="island-expand-container">
+        <button class="island-expand-pill" id="btn-island-expand">
+          <span>⇱ Expand Full Prompter</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Studio Mode: Half-Body Webcam Stage with Teleprompter on the Top -->
+    <div class="studio-stage" id="studio-stage">
+      <video id="studio-webcam" class="studio-webcam-feed" autoplay playsinline muted></video>
+
+      <!-- Half-Body Safe-Zone Framing Guides -->
+      <div class="studio-framing-guides" id="studio-framing-guides">
+        <div class="guide-line guide-headroom">
+          <span class="guide-tag">Headroom Line</span>
+        </div>
+        <div class="guide-line guide-eyeline">
+          <span class="guide-tag">👀 Eye-Line Target (Webcam Level)</span>
+        </div>
+        <div class="guide-box-halfbody">
+          <span class="guide-tag-corner">👤 Half-Body Framing Zone</span>
+        </div>
+      </div>
+
+      <!-- Studio Quick Controls Overlay -->
+      <div class="studio-tools-overlay">
+        <span class="studio-pill-status">📹 Studio Active</span>
+        <button class="btn-studio-tool active" id="btn-studio-guides" title="Toggle Half-Body Framing Guides">📐 Guides</button>
+        <button class="btn-studio-tool active" id="btn-studio-mirror" title="Toggle Mirror Camera View">🪞 Mirror</button>
+        <button class="btn-studio-tool" id="btn-studio-exit" title="Exit Studio Mode">✕ Exit Studio</button>
+      </div>
+    </div>
+
+    <!-- Teleprompter Card Section (Movable Up/Down & Resizable in Studio Mode) -->
+    <section class="prompter-card-container" id="prompter-card-container">
+      <!-- Section Drag Handle (Move Anywhere • Click ⠿ for Settings) -->
+      <div class="card-drag-bar" id="card-drag-bar" title="Drag to move teleprompter anywhere inside studio mode • Click ⠿ for Settings">
+        <div class="card-drag-indicator" id="card-drag-indicator">
+          <span class="card-drag-dots" id="card-drag-dots" title="Click for Settings (Speed, Font Size, Color)">⠿</span>
+          <span class="card-drag-label">Teleprompter</span>
+        </div>
+        <div class="card-quick-positions">
+          <!-- Text Alignment Group -->
+          <div class="card-btn-cluster" title="Align Script Text">
+            <button type="button" class="btn-card-align active" id="btn-card-text-left" title="Align Text Left">≡L</button>
+            <button type="button" class="btn-card-align" id="btn-card-text-center" title="Align Text Center">≡C</button>
+            <button type="button" class="btn-card-align" id="btn-card-text-right" title="Align Text Right">≡R</button>
+          </div>
+          <!-- Card Font Size Stepper (Live Studio) -->
+          <div class="card-btn-cluster" title="Font Size (Live Studio)">
+            <button type="button" class="btn-card-align" id="btn-card-font-down" title="Decrease Font Size (A−)">A−</button>
+            <button type="button" class="btn-card-align" id="btn-card-font-up" title="Increase Font Size (A+)">A+</button>
+          </div>
+          <!-- Horizontal Card Alignment Group -->
+          <div class="card-btn-cluster" title="Align Card Position (Left / Center / Right)">
+            <button type="button" class="btn-card-pos" id="btn-card-left" title="Align Card to Left">◀ Left</button>
+            <button type="button" class="btn-card-pos" id="btn-card-center" title="Align Card to Center">◆ Center</button>
+            <button type="button" class="btn-card-pos" id="btn-card-right" title="Align Card to Right">▶ Right</button>
+          </div>
+          <!-- Vertical Card Alignment Group -->
+          <div class="card-btn-cluster" title="Position Card (Top / Middle / Bottom)">
+            <button type="button" class="btn-card-pos" id="btn-card-top" title="Snap Card to Top">▲ Top</button>
+            <button type="button" class="btn-card-pos" id="btn-card-mid" title="Snap Card to Middle">● Mid</button>
+            <button type="button" class="btn-card-pos" id="btn-card-bot" title="Snap Card to Bottom">▼ Bot</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reading Focus Guide Line -->
+      <div class="focus-reading-bar" id="focus-reading-bar"></div>
+
+      <!-- Script Scrolling Viewport -->
+      <main class="prompter-viewport" id="prompter-viewport">
+        <div class="script-content" id="script-content" contenteditable="true" spellcheck="false">
+          Loading your script...
+        </div>
+      </main>
+
+      <!-- Section Height Resize Handle -->
+      <div class="card-resize-bar" id="card-resize-bar" title="Drag to resize teleprompter height">
+        <div class="card-resize-pill"></div>
+      </div>
+
+      <!-- Section Right Edge Resize Handle -->
+      <div class="card-resize-edge-right" id="card-resize-edge-right" title="Drag to resize width"></div>
+
+      <!-- Section Corner Resize Grip (Height & Width) -->
+      <div class="card-resize-corner" id="card-resize-corner" title="Drag to resize height & width"></div>
+    </section>
+
+    <!-- Exit Ghost Mode Floating Pill -->
+    <div class="ghost-floating-pill" id="ghost-floating-pill" title="Click to Exit Ghost Mode">
+      <span>👻 Ghost Mode Active (Click to Exit)</span>
+    </div>
+
+    <!-- Source Picker Modal (Choose what to share) -->
+    <div class="picker-overlay hidden" id="picker-overlay">
+      <div class="picker-modal" id="picker-modal">
+        <div class="picker-modal-header">
+          <div class="picker-header-text">
+            <div class="picker-title-row">
+              <span class="picker-drag-handle" title="Drag to move anywhere on screen">⠿</span>
+              <h3 class="picker-title">Choose what to share with GhostPrompter</h3>
+            </div>
+            <p class="picker-subtitle">Select an application window or screen to record while teleprompting</p>
+          </div>
+          <button class="picker-btn-close" id="btn-picker-close" title="Close">✕</button>
+        </div>
+
+        <!-- Tabs: Chrome Tab | Window | Entire Screen | Studio Mode -->
+        <div class="picker-tabs">
+          <button class="picker-tab-btn active" id="tab-btn-chrome" data-type="chrome">Chrome Tab</button>
+          <button class="picker-tab-btn" id="tab-btn-windows" data-type="window">Window</button>
+          <button class="picker-tab-btn" id="tab-btn-screens" data-type="screen">Entire Screen</button>
+          <button class="picker-tab-btn" id="tab-btn-studio" data-type="studio">📹 Studio Mode</button>
+        </div>
+
+        <!-- Body: Sources List + Live Preview -->
+        <div class="picker-body">
+          <div class="picker-list-container">
+            <div class="picker-source-list" id="picker-source-list">
+              <div class="picker-loading">Scanning available tabs, windows & screens...</div>
+            </div>
+          </div>
+
+          <div class="picker-preview-box">
+            <div class="picker-preview-placeholder" id="picker-preview-placeholder">
+              <span id="preview-placeholder-text">Select a tab to share</span>
+            </div>
+            <img class="picker-preview-image hidden" id="picker-preview-image" alt="Preview">
+            <div class="picker-preview-name hidden" id="picker-preview-name"></div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="picker-footer">
+          <div class="picker-footer-left">
+            <label class="picker-audio-toggle" title="Share audio with the video">
+              <input type="checkbox" id="picker-chk-mic" checked>
+              <span class="audio-toggle-icon" id="audio-toggle-icon">🔊</span>
+              <span id="picker-audio-label">Share tab / system audio</span>
+            </label>
+          </div>
+          <div class="picker-footer-actions">
+            <button class="btn-apple btn-apple-ghost" id="btn-picker-cancel">Cancel</button>
+            <button class="btn-apple btn-apple-blue" id="btn-picker-share" disabled>Share & Record</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5-Second Recording Countdown Overlay -->
+    <div class="countdown-overlay hidden" id="countdown-overlay">
+      <div class="countdown-card">
+        <div class="countdown-badge-shield">🛡 Prompter is 100% Invisible in Video</div>
+        <div class="countdown-circle">
+          <svg class="countdown-svg" viewBox="0 0 100 100">
+            <circle class="countdown-circle-bg" cx="50" cy="50" r="44"></circle>
+            <circle class="countdown-circle-progress" id="countdown-circle-progress" cx="50" cy="50" r="44"></circle>
+          </svg>
+          <div class="countdown-number" id="countdown-number">5</div>
+        </div>
+        <div class="countdown-source-label" id="countdown-source-label">Recording: Screen</div>
+        <div class="countdown-hint">Get ready to present! Starting in 5 seconds...</div>
+        <button class="countdown-cancel-btn" id="btn-countdown-cancel">Cancel (Esc)</button>
+      </div>
+    </div>
+
+    <!-- Take Export Modal -->
+    <div class="take-modal-overlay hidden" id="take-modal-overlay">
+      <div class="take-modal" id="take-modal">
+        <div class="take-modal-header">
+          <span class="take-modal-icon">🎬</span>
+          <h3 class="take-modal-title">Recording Finished!</h3>
+        </div>
+        <p class="take-modal-desc" id="take-modal-desc">Your recording take is ready.</p>
+        <div class="take-stats-row">
+          <div class="take-stat-badge">⏱ <span id="take-stat-duration">00:00</span></div>
+          <div class="take-stat-badge">💾 <span id="take-stat-size">0 MB</span></div>
+        </div>
+        <div class="take-modal-actions">
+          <button class="btn-apple btn-apple-ghost" id="btn-take-discard">Discard</button>
+          <button class="btn-apple btn-apple-blue" id="btn-take-save">💾 Save Video File...</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prompter Settings Modal Popover (Speed, Font Size, Color) -->
+    <div class="settings-modal-overlay hidden" id="settings-overlay">
+      <div class="settings-modal-card" id="settings-card">
+        <div class="settings-modal-header">
+          <div class="settings-title-row">
+            <span class="settings-title-icon">⚙️</span>
+            <div>
+              <h3 class="settings-title">Prompter Settings</h3>
+              <p class="settings-subtitle">Adjust scroll speed, font size, and text color</p>
+            </div>
+          </div>
+          <button type="button" class="settings-btn-close" id="btn-settings-close" title="Close Settings (Esc)">✕</button>
+        </div>
+
+        <div class="settings-modal-body">
+          <!-- 1. Scroll Speed Control -->
+          <div class="settings-group">
+            <div class="settings-label-row">
+              <label class="settings-label" for="settings-speed-slider">⚡ Scroll Speed</label>
+              <span class="settings-val-badge" id="settings-speed-badge">160 WPM</span>
+            </div>
+            <div class="settings-slider-row">
+              <button type="button" class="btn-step-mini" id="settings-speed-minus" title="Decrease Speed">−</button>
+              <input type="range" class="apple-slider" id="settings-speed-slider" min="30" max="450" step="5" value="160">
+              <button type="button" class="btn-step-mini" id="settings-speed-plus" title="Increase Speed">+</button>
+            </div>
+            <div class="settings-presets-row" id="speed-presets">
+              <button type="button" class="btn-preset-pill" data-speed="100">🐢 100 WPM</button>
+              <button type="button" class="btn-preset-pill" data-speed="140">💬 140 WPM</button>
+              <button type="button" class="btn-preset-pill active" data-speed="160">⚡ 160 WPM</button>
+              <button type="button" class="btn-preset-pill" data-speed="200">🎙️ 200 WPM</button>
+              <button type="button" class="btn-preset-pill" data-speed="280">🚀 280 WPM</button>
+            </div>
+          </div>
+
+          <!-- 2. Font Size Control -->
+          <div class="settings-group">
+            <div class="settings-label-row">
+              <label class="settings-label" for="settings-font-slider">🔤 Font Size</label>
+              <span class="settings-val-badge" id="settings-font-badge">28 px</span>
+            </div>
+            <div class="settings-slider-row">
+              <button type="button" class="btn-step-mini" id="settings-font-minus" title="Decrease Font Size">−</button>
+              <input type="range" class="apple-slider" id="settings-font-slider" min="16" max="64" step="2" value="28">
+              <button type="button" class="btn-step-mini" id="settings-font-plus" title="Increase Font Size">+</button>
+            </div>
+            <div class="settings-presets-row" id="font-presets">
+              <button type="button" class="btn-preset-pill" data-font="20">Small (20px)</button>
+              <button type="button" class="btn-preset-pill active" data-font="28">Medium (28px)</button>
+              <button type="button" class="btn-preset-pill" data-font="38">Large (38px)</button>
+              <button type="button" class="btn-preset-pill" data-font="50">Huge (50px)</button>
+            </div>
+          </div>
+
+          <!-- 3. Text Color Control -->
+          <div class="settings-group">
+            <div class="settings-label-row">
+              <label class="settings-label">🎨 Text Color</label>
+              <span class="settings-val-badge" id="settings-color-badge">White</span>
+            </div>
+            <div class="settings-swatches-row" id="color-swatches">
+              <button type="button" class="color-swatch-btn active" data-color="#FFFFFF" data-name="White" style="--swatch-color: #FFFFFF;" title="White"></button>
+              <button type="button" class="color-swatch-btn" data-color="#FFD60A" data-name="Studio Yellow" style="--swatch-color: #FFD60A;" title="Studio Yellow"></button>
+              <button type="button" class="color-swatch-btn" data-color="#30D158" data-name="High-Vis Green" style="--swatch-color: #30D158;" title="High-Vis Green"></button>
+              <button type="button" class="color-swatch-btn" data-color="#00F0FF" data-name="Electric Cyan" style="--swatch-color: #00F0FF;" title="Electric Cyan"></button>
+              <button type="button" class="color-swatch-btn" data-color="#FF9F0A" data-name="Warm Amber" style="--swatch-color: #FF9F0A;" title="Warm Amber"></button>
+              <button type="button" class="color-swatch-btn" data-color="#FF375F" data-name="Vivid Rose" style="--swatch-color: #FF375F;" title="Vivid Rose"></button>
+              <label class="color-picker-label" title="Choose Custom Color">
+                <input type="color" class="custom-color-input" id="settings-custom-color" value="#FFFFFF">
+                <span class="custom-color-icon">🌈</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 4. Text Alignment & Glass Opacity -->
+          <div class="settings-row-dual">
+            <div class="settings-subgroup">
+              <label class="settings-label-mini">Text Alignment</label>
+              <div class="settings-btn-segmented" id="align-segmented">
+                <button type="button" class="btn-segment active" data-align="left" id="btn-align-left" title="Align Left">Left</button>
+                <button type="button" class="btn-segment" data-align="center" id="btn-align-center" title="Align Center">Center</button>
+                <button type="button" class="btn-segment" data-align="right" id="btn-align-right" title="Align Right">Right</button>
+              </div>
+            </div>
+            <div class="settings-subgroup">
+              <label class="settings-label-mini">Background Opacity</label>
+              <select class="apple-select" id="settings-opacity-select">
+                <option value="0.95">Solid 95%</option>
+                <option value="0.85" selected>Dark 85%</option>
+                <option value="0.40">Glass 40%</option>
+                <option value="0.15">Clear 15%</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-modal-footer">
+          <button type="button" class="btn-apple btn-apple-ghost" id="btn-modal-open-studio" title="Open Studio Dashboard (Script Editor & Takes Manager)">🎛 Studio Dashboard</button>
+          <div class="footer-actions-right">
+            <button type="button" class="btn-apple btn-apple-ghost" id="btn-settings-reset">Reset Defaults</button>
+            <button type="button" class="btn-apple btn-apple-blue" id="btn-settings-done">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8-Directional Frameless Window Resize Grips -->
+    <div class="window-resize-grip grip-top" data-dir="n" title="Drag to Resize Top"></div>
+    <div class="window-resize-grip grip-bottom" data-dir="s" title="Drag to Resize Bottom"></div>
+    <div class="window-resize-grip grip-left" data-dir="w" title="Drag to Resize Left"></div>
+    <div class="window-resize-grip grip-right" data-dir="e" title="Drag to Resize Right"></div>
+    <div class="window-resize-grip grip-top-left" data-dir="nw" title="Drag to Resize Top-Left"></div>
+    <div class="window-resize-grip grip-top-right" data-dir="ne" title="Drag to Resize Top-Right"></div>
+    <div class="window-resize-grip grip-bottom-left" data-dir="sw" title="Drag to Resize Bottom-Left"></div>
+    <div class="window-resize-grip grip-bottom-right" data-dir="se" id="prompter-resize-handle" title="Drag to Resize Bottom-Right"></div>
+
+  </div>
+
+  <script src="../shared/engines/scroller-engine.js"></script>
+  <script src="prompter.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+{
+  "name": "ghost-prompter-desktop",
+  "version": "1.0.0",
+  "description": "Apple HIG Frosted Glass Universal Teleprompter with True Click-Through Ghost Mode, Speech Sync & Eye Tracking for Windows, macOS and Linux",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "check-syntax": "node ../scripts/check-syntax.js",
+    "syntax": "node ../scripts/check-syntax.js",
+    "test": "node tests/storage-service.test.js && node tests/scroller-engine.test.js && node tests/window-manager.test.js && node tests/recorder-service.test.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [
+    "teleprompter",
+    "electron",
+    "ghost-mode",
+    "always-on-top",
+    "speech-sync",
+    "eye-tracking",
+    "apple-design",
+    "visionos",
+    "macos"
+  ],
+  "author": "GhostPrompter Team",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.ghostprompter.desktop",
+    "productName": "GhostPrompter",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icons/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icons/icon.icns",
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icons/icon.png",
+      "category": "Utility"
+    }
+  }
+}

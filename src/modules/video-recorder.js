@@ -105,7 +105,7 @@
       const constraints = {
         width: { ideal: width },
         height: { ideal: height },
-        frameRate: { ideal: 30, max: 60 }
+        frameRate: { ideal: 30, max: 30 }
       };
 
       const devId = preferredDeviceId || this.options.deviceId;
@@ -194,7 +194,8 @@
         const displayStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             cursor: 'always',
-            displaySurface: 'monitor'
+            displaySurface: 'monitor',
+            frameRate: { max: 30, ideal: 30 }
           },
           audio: captureSystemAudio
         });
@@ -232,12 +233,15 @@
 
             if (displayAudioTracks.length > 0 && (typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined')) {
               // Mix both tab/system audio and mic audio into a unified audio track
+              if (this.mixAudioContext && this.mixAudioContext.state !== 'closed') {
+                try { this.mixAudioContext.close(); } catch (e) {}
+              }
               const AudioCtx = window.AudioContext || window.webkitAudioContext;
-              const mixCtx = new AudioCtx();
-              const dest = mixCtx.createMediaStreamDestination();
+              this.mixAudioContext = new AudioCtx();
+              const dest = this.mixAudioContext.createMediaStreamDestination();
 
-              const displaySource = mixCtx.createMediaStreamSource(new MediaStream([displayAudioTracks[0]]));
-              const micSource = mixCtx.createMediaStreamSource(new MediaStream([micAudioTracks[0]]));
+              const displaySource = this.mixAudioContext.createMediaStreamSource(new MediaStream([displayAudioTracks[0]]));
+              const micSource = this.mixAudioContext.createMediaStreamSource(new MediaStream([micAudioTracks[0]]));
 
               displaySource.connect(dest);
               micSource.connect(dest);
@@ -370,11 +374,11 @@
       const mimeType = VideoRecorder.getSupportedMimeType();
       const options = mimeType ? { mimeType } : {};
 
-      // Hardware-accelerated bitrate hints for ultra-fast instantaneous muxing & rendering
+      // Ultra-efficient bitrate for low-end hardware: prevents CPU spikes, encoder freezes, and memory bloat
       if (this.sourceType === 'screen') {
-        options.videoBitsPerSecond = 3000000; // 3 Mbps: Crisp 1080p/60 screen capture with ultra-low mux latency
+        options.videoBitsPerSecond = 1500000; // 1.5 Mbps: Crisp 1080p screen capture with ultra-low CPU load
       } else {
-        options.videoBitsPerSecond = 2500000; // 2.5 Mbps: Crisp webcam stream
+        options.videoBitsPerSecond = 1200000; // 1.2 Mbps: Crisp webcam stream
       }
 
       try {
@@ -424,18 +428,17 @@
       this.state = 'recording';
       this.elapsedSeconds = 0;
       this.options.onStart();
-      this.options.onTimeUpdate({
-        elapsedSeconds: 0,
-        formattedTime: '00:00'
-      });
+      if (typeof this.options.onTimeUpdate === 'function') {
+        this.options.onTimeUpdate(0, '00:00');
+      }
 
       this.timerInterval = setInterval(() => {
         if (this.state === 'recording') {
           this.elapsedSeconds += 1;
-          this.options.onTimeUpdate({
-            elapsedSeconds: this.elapsedSeconds,
-            formattedTime: VideoRecorder.formatTime(this.elapsedSeconds)
-          });
+          const formatted = VideoRecorder.formatTime(this.elapsedSeconds);
+          if (typeof this.options.onTimeUpdate === 'function') {
+            this.options.onTimeUpdate(this.elapsedSeconds, formatted);
+          }
         }
       }, 1000);
     }
@@ -465,14 +468,20 @@
         this.timerInterval = null;
       }
 
+      if (this.audioLevelInterval) {
+        clearInterval(this.audioLevelInterval);
+        this.audioLevelInterval = null;
+      }
+
+      if (this.mixAudioContext && this.mixAudioContext.state !== 'closed') {
+        try { this.mixAudioContext.close(); } catch (e) {}
+        this.mixAudioContext = null;
+      }
+
       if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
         try {
-          // Immediately flush any pending buffer chunk so stop is instantaneous
-          if (typeof this.mediaRecorder.requestData === 'function') {
-            this.mediaRecorder.requestData();
-          }
+          this.mediaRecorder.stop();
         } catch (e) {}
-        this.mediaRecorder.stop();
       }
 
       // Automatically terminate screen share session so Chrome stops sharing the tab
@@ -494,10 +503,20 @@
         this.timerInterval = null;
       }
 
+      if (this.audioLevelInterval) {
+        clearInterval(this.audioLevelInterval);
+        this.audioLevelInterval = null;
+      }
+
+      if (this.mixAudioContext && this.mixAudioContext.state !== 'closed') {
+        try { this.mixAudioContext.close(); } catch (e) {}
+        this.mixAudioContext = null;
+      }
+
       if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
         this.mediaRecorder.ondataavailable = null;
         this.mediaRecorder.onstop = null;
-        this.mediaRecorder.stop();
+        try { this.mediaRecorder.stop(); } catch (e) {}
       }
 
       if (this.sourceType === 'screen') {
@@ -512,6 +531,11 @@
      * Stop and release active screen sharing session (tab, window, or monitor)
      */
     stopScreenShare() {
+      if (this.mixAudioContext && this.mixAudioContext.state !== 'closed') {
+        try { this.mixAudioContext.close(); } catch (e) {}
+        this.mixAudioContext = null;
+      }
+
       if (this.displayStream) {
         try {
           this.displayStream.getTracks().forEach(track => {
@@ -576,6 +600,170 @@
       if (this.recordedUrl) {
         URL.revokeObjectURL(this.recordedUrl);
       }
+    }
+
+    /**
+     * Retrieve stored FileSystemDirectoryHandle from IndexedDB
+     */
+    static async getSavedDirectoryHandle() {
+      if (typeof indexedDB === 'undefined') return null;
+      return new Promise((resolve) => {
+        try {
+          const req = indexedDB.open('GhostPrompterFS', 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('handles')) {
+              db.createObjectStore('handles');
+            }
+          };
+          req.onsuccess = (e) => {
+            const db = e.target.result;
+            try {
+              const tx = db.transaction('handles', 'readonly');
+              const store = tx.objectStore('handles');
+              const getReq = store.get('recordingDirectory');
+              getReq.onsuccess = () => resolve(getReq.result || null);
+              getReq.onerror = () => resolve(null);
+            } catch (err) {
+              resolve(null);
+            }
+          };
+          req.onerror = () => resolve(null);
+        } catch (err) {
+          resolve(null);
+        }
+      });
+    }
+
+    /**
+     * Store FileSystemDirectoryHandle into IndexedDB for persistent saving to D:\facescreen recording
+     */
+    static async saveDirectoryHandle(handle) {
+      if (typeof indexedDB === 'undefined' || !handle) return false;
+      return new Promise((resolve) => {
+        try {
+          const req = indexedDB.open('GhostPrompterFS', 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('handles')) {
+              db.createObjectStore('handles');
+            }
+          };
+          req.onsuccess = (e) => {
+            const db = e.target.result;
+            try {
+              const tx = db.transaction('handles', 'readwrite');
+              const store = tx.objectStore('handles');
+              const putReq = store.put(handle, 'recordingDirectory');
+              putReq.onsuccess = () => resolve(true);
+              putReq.onerror = () => resolve(false);
+            } catch (err) {
+              resolve(false);
+            }
+          };
+          req.onerror = () => resolve(false);
+        } catch (err) {
+          resolve(false);
+        }
+      });
+    }
+
+    /**
+     * Trigger native folder picker to select storage directory (e.g. D:\facescreen recording)
+     */
+    static async selectStorageDirectory() {
+      if (typeof window === 'undefined' || !window.showDirectoryPicker) {
+        return null;
+      }
+      try {
+        const dirHandle = await window.showDirectoryPicker({
+          id: 'facescreen-recordings',
+          mode: 'readwrite',
+          startIn: 'documents'
+        });
+        if (dirHandle) {
+          await VideoRecorder.saveDirectoryHandle(dirHandle);
+          return dirHandle;
+        }
+      } catch (err) {
+        // User cancelled or browser rejected
+      }
+      return null;
+    }
+
+    /**
+     * Save recording directly to target storage (e.g. D:\facescreen recording)
+     */
+    static async saveVideoFile(blob, filename, preferredHandle = null) {
+      if (!blob) return { success: false, error: 'No blob provided' };
+
+      const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const ext = blob.type && blob.type.includes('mp4') ? 'mp4' : 'webm';
+      const finalFilename = filename || `ghostprompter-video-${dateStr}.${ext}`;
+
+      // 1. Try File System Access API with stored directory handle (D:\facescreen recording)
+      let dirHandle = preferredHandle || await VideoRecorder.getSavedDirectoryHandle();
+
+      if (dirHandle) {
+        try {
+          let perm = typeof dirHandle.queryPermission === 'function' ?
+            await dirHandle.queryPermission({ mode: 'readwrite' }) : 'granted';
+
+          if (perm !== 'granted' && typeof dirHandle.requestPermission === 'function') {
+            perm = await dirHandle.requestPermission({ mode: 'readwrite' });
+          }
+
+          if (perm === 'granted') {
+            const fileHandle = await dirHandle.getFileHandle(finalFilename, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            return {
+              success: true,
+              method: 'direct_disk',
+              directory: dirHandle.name || 'facescreen recording',
+              filename: finalFilename
+            };
+          }
+        } catch (err) {
+          console.warn('Failed to write directly to directory handle, falling back:', err);
+        }
+      }
+
+      // 2. If no directory handle or permission denied, check if showSaveFilePicker is available
+      if (typeof window !== 'undefined' && window.showSaveFilePicker) {
+        try {
+          const fileHandle = await window.showSaveFilePicker({
+            suggestedName: finalFilename,
+            types: [{
+              description: 'Video File',
+              accept: { [blob.type || 'video/webm']: ['.webm', '.mp4'] }
+            }]
+          });
+          const writable = await fileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return {
+            success: true,
+            method: 'file_picker',
+            directory: 'Selected Folder',
+            filename: fileHandle.name || finalFilename
+          };
+        } catch (pickerErr) {
+          if (pickerErr.name === 'AbortError') {
+            return { success: false, aborted: true };
+          }
+        }
+      }
+
+      // 3. Fallback to standard browser download
+      VideoRecorder.downloadBlob(blob, finalFilename);
+      return {
+        success: true,
+        method: 'browser_download',
+        directory: 'Downloads',
+        filename: finalFilename
+      };
     }
 
     /**

@@ -5,7 +5,21 @@
  * and desktop applications (PowerPoint, Zoom, Teams, Word, etc.).
  */
 
-class PiPPrompterManager {
+(function (root, factory) {
+  if (typeof define === 'function' && define.amd) {
+    define([], factory);
+  } else if (typeof module === 'object' && module.exports) {
+    module.exports = factory();
+  } else {
+    var exportsObj = factory();
+    root.PiPPrompterManager = exportsObj.PiPPrompterManager;
+    if (typeof window !== 'undefined') {
+      window.PiPPrompterManager = exportsObj.PiPPrompterManager;
+    }
+  }
+})(typeof self !== 'undefined' ? self : (typeof window !== 'undefined' ? window : this), function () {
+
+  class PiPPrompterManager {
   constructor() {
     this.activePiPWindow = null;
     this.isScrolling = false;
@@ -50,8 +64,9 @@ class PiPPrompterManager {
     }
 
     try {
+      const isCompact = !!(options.compactBarOnly || options.isMinimized);
       const width = options.width || 680;
-      const height = options.height || 340;
+      const height = isCompact ? 76 : (options.height || 340);
 
       this.currentWpm = options.wpm || 130;
       this.currentFontSize = options.fontSize || 24;
@@ -80,7 +95,7 @@ class PiPPrompterManager {
       });
 
       this.activePiPWindow = pipWin;
-      this.setupPiPDocument(pipWin, options.initialScrollTop || 0);
+      this.setupPiPDocument(pipWin, options.initialScrollTop || 0, isCompact);
 
       pipWin.addEventListener('pagehide', () => {
         this.handlePiPClose();
@@ -122,7 +137,7 @@ class PiPPrompterManager {
   /**
    * Render styles and DOM elements into the Document PiP window
    */
-  setupPiPDocument(pipWin, initialScrollTop = 0) {
+  setupPiPDocument(pipWin, initialScrollTop = 0, initialCompact = false) {
     const doc = pipWin.document;
 
     // Reset title
@@ -144,15 +159,15 @@ class PiPPrompterManager {
           </div>
 
           <div class="pip-actions">
+            <button class="pip-btn pip-btn-play" id="pip-btn-play" title="Spacebar: Play/Pause Auto-Scroll">
+              <span id="pip-play-icon">▶</span> <span id="pip-play-label">Play</span>
+            </button>
+
             <button class="pip-btn pip-btn-rec" id="pip-btn-rec" title="Record Screen / Window / Tab or Camera">
               <span id="pip-rec-icon">🔴</span> <span id="pip-rec-label">Rec</span>
             </button>
             <button class="pip-btn pip-btn-rec-stop" id="pip-btn-rec-stop" style="display: none;" title="Stop Recording & Download Video">
               <span id="pip-stop-icon">⏹</span> <span id="pip-stop-label">Stop</span>
-            </button>
-
-            <button class="pip-btn pip-btn-play" id="pip-btn-play" title="Spacebar: Play/Pause Auto-Scroll">
-              <span id="pip-play-icon">▶</span> <span id="pip-play-label">Play</span>
             </button>
 
             <div class="pip-speed-pill" title="Scroll Speed">
@@ -170,9 +185,16 @@ class PiPPrompterManager {
             <button class="pip-btn pip-btn-nudge" id="pip-btn-nudge-down" title="Nudge Down (↓)">▼</button>
             <button class="pip-btn pip-btn-rewind" id="pip-btn-rewind" title="Rewind to Top">⏮</button>
 
+            <button class="pip-btn pip-btn-focus" id="pip-btn-focus" title="Toggle Reading Focus Line">
+              🎯 <span class="pip-focus-label">Focus</span>
+            </button>
+
             <button class="pip-btn pip-btn-controls ${!this.isToolbarCollapsed ? 'active' : ''}" id="pip-btn-controls" title="Toggle Settings (Alt+S)">
               ⚙ <span class="pip-ctrl-label">Controls</span> <span id="pip-ctrl-arrow">${this.isToolbarCollapsed ? '▼' : '▲'}</span>
             </button>
+
+            <button class="pip-btn pip-btn-minimize" id="pip-btn-minimize" title="Minimize / Collapse to Compact Floating Bar">⇲</button>
+            <span class="pip-expand-pill" id="pip-btn-expand-pill" style="display: none;" title="Expand Teleprompter">⇱ Expand</span>
 
             <button class="pip-btn-close" id="pip-btn-close" title="Close and Return to Tab">✕</button>
           </div>
@@ -265,7 +287,7 @@ class PiPPrompterManager {
                 <span class="pip-source-icon">🖥️</span>
                 <div class="pip-source-text">
                   <div class="pip-source-name">Screen / Window / Tab</div>
-                  <div class="pip-source-desc">Share multi-tab, window, or full screen</div>
+                  <div class="pip-source-desc">Tip: Choose "Entire Screen" for Chrome's native [Hide] button</div>
                 </div>
               </button>
               <button class="pip-source-btn" id="pip-choice-cam">
@@ -515,10 +537,32 @@ class PiPPrompterManager {
     }
 
     if (previewDlBtn) {
-      previewDlBtn.addEventListener('click', () => {
+      previewDlBtn.addEventListener('click', async () => {
         if (this.currentTake && this.currentTake.blob) {
           const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
           const filename = `ghostprompter-video-${dateStr}.webm`;
+          const RecClass = (typeof window !== 'undefined' && window.VideoRecorder) || 
+                           (typeof VideoRecorder !== 'undefined' ? VideoRecorder : null);
+
+          if (RecClass && RecClass.saveVideoFile) {
+            previewDlBtn.textContent = '💾 Saving...';
+            try {
+              const res = await RecClass.saveVideoFile(this.currentTake.blob, filename);
+              if (res && res.success) {
+                previewDlBtn.textContent = `✓ Saved to ${res.directory || 'D:\\facescreen recording'}`;
+                setTimeout(() => {
+                  if (previewDlBtn) previewDlBtn.textContent = '💾 Save Video (.webm)';
+                }, 3000);
+                return;
+              } else if (res && res.aborted) {
+                previewDlBtn.textContent = '💾 Save Video (.webm)';
+                return;
+              }
+            } catch (err) {
+              console.warn('PiP saveVideoFile error, falling back:', err);
+            }
+          }
+
           const url = this.currentTake.url || URL.createObjectURL(this.currentTake.blob);
           const a = doc.createElement('a');
           a.style.display = 'none';
@@ -758,6 +802,53 @@ class PiPPrompterManager {
       }
     });
 
+    // Focus highlight bar toggle
+    const btnFocus = doc.getElementById('pip-btn-focus');
+    const focusLine = doc.getElementById('pip-focus-line');
+    if (btnFocus && focusLine) {
+      btnFocus.addEventListener('click', () => {
+        const isHidden = focusLine.classList.toggle('hidden');
+        btnFocus.classList.toggle('active', !isHidden);
+      });
+    }
+
+    // Minimize / collapse compact bar mode
+    const btnMinimize = doc.getElementById('pip-btn-minimize');
+    const expandPill = doc.getElementById('pip-btn-expand-pill');
+    let previousPiPHeight = pipWin.outerHeight || 340;
+
+    const setPiPMinimized = (shouldMin) => {
+      container.classList.toggle('pip-minimized', shouldMin);
+      if (shouldMin) {
+        previousPiPHeight = pipWin.outerHeight || pipWin.innerHeight || 340;
+        try {
+          // Shrink the native OS window height automatically to fit ONLY the bar!
+          // Outer window height: titlebar (~32px) + prompter bar (~40px) = ~74-76px
+          pipWin.resizeTo(pipWin.outerWidth || 680, 76);
+        } catch (e) {}
+      } else {
+        try {
+          pipWin.resizeTo(pipWin.outerWidth || 680, Math.max(260, previousPiPHeight));
+        } catch (e) {}
+      }
+    };
+
+    if (btnMinimize && container) {
+      btnMinimize.addEventListener('click', () => {
+        const isMin = !container.classList.contains('pip-minimized');
+        setPiPMinimized(isMin);
+      });
+    }
+    if (expandPill && container) {
+      expandPill.addEventListener('click', () => {
+        setPiPMinimized(false);
+      });
+    }
+
+    if (initialCompact) {
+      setPiPMinimized(true);
+    }
+
     // Close button
     btnClose.addEventListener('click', () => {
       pipWin.close();
@@ -784,9 +875,20 @@ class PiPPrompterManager {
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         viewport.scrollTop += 40;
-      } else if (e.altKey && e.key === 's') {
+      } else if (e.altKey && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
         if (btnControls) btnControls.click();
+      } else if (e.altKey && (e.key === 'm' || e.key === 'M')) {
+        e.preventDefault();
+        if (container.classList.contains('pip-minimized')) {
+          if (expandPill) expandPill.click();
+          else if (btnMinimize) btnMinimize.click();
+        } else {
+          if (btnMinimize) btnMinimize.click();
+        }
+      } else if (e.altKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault();
+        if (btnFocus) btnFocus.click();
       } else if (e.key === 'Escape') {
         pipWin.close();
       }
@@ -874,7 +976,7 @@ class PiPPrompterManager {
   /**
    * Update recording status indicator in Document PiP window
    */
-  updateRecordingState(isRecording, timeStr = '00:00') {
+  updateRecordingState(isRecording, timeStr = null) {
     this.isRecording = isRecording;
     if (!this.activePiPWindow || this.activePiPWindow.closed) return;
     const doc = this.activePiPWindow.document;
@@ -888,9 +990,43 @@ class PiPPrompterManager {
       recBtn.classList.add('pip-recording');
       recBtn.title = 'Recording active. Click Stop to finish.';
       if (icon) icon.textContent = '🔴';
-      if (label) label.textContent = ` ${timeStr}`;
+
+      // Live tick timer ensures user ALWAYS sees live count (00:00, 00:01, 00:02...)
+      const win = this.activePiPWindow;
+      const setInt = (win && typeof win.setInterval === 'function') ? win.setInterval.bind(win) : (typeof setInterval !== 'undefined' ? setInterval : null);
+      const clrInt = (win && typeof win.clearInterval === 'function') ? win.clearInterval.bind(win) : (typeof clearInterval !== 'undefined' ? clearInterval : null);
+
+      if (!this._recTimerInterval && setInt) {
+        this._recStartTime = Date.now();
+        this._recTimerInterval = setInt(() => {
+          if (!this.isRecording) {
+            if (clrInt && this._recTimerInterval) clrInt(this._recTimerInterval);
+            this._recTimerInterval = null;
+            return;
+          }
+          const elapsed = Math.floor((Date.now() - this._recStartTime) / 1000);
+          const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
+          const secs = String(elapsed % 60).padStart(2, '0');
+          const currentLabel = doc.getElementById('pip-rec-label');
+          if (currentLabel) {
+            currentLabel.textContent = ` ${mins}:${secs}`;
+          }
+        }, 1000);
+      }
+
+      if (timeStr) {
+        if (label) label.textContent = ` ${timeStr}`;
+      } else if (label && (!label.textContent || label.textContent === 'Rec' || label.textContent === ' Rec')) {
+        label.textContent = ' 00:00';
+      }
       if (stopBtn) stopBtn.style.display = 'inline-flex';
     } else {
+      const win = this.activePiPWindow;
+      const clrInt = (win && typeof win.clearInterval === 'function') ? win.clearInterval.bind(win) : (typeof clearInterval !== 'undefined' ? clearInterval : null);
+      if (this._recTimerInterval && clrInt) {
+        clrInt(this._recTimerInterval);
+        this._recTimerInterval = null;
+      }
       recBtn.classList.remove('pip-recording');
       recBtn.title = 'Record Screen / Window / Tab or Camera';
       if (icon) icon.textContent = '🔴';
@@ -914,9 +1050,10 @@ class PiPPrompterManager {
     if (statDur) statDur.textContent = `⏱ ${take.formattedTime || '00:00'}`;
     if (statSize) statSize.textContent = `💾 ${take.fileSizeFormatted || '0 MB'}`;
 
-    if (previewVideo && take.url) {
+    if (previewVideo && take && take.url) {
       previewVideo.src = take.url;
-      previewVideo.play().catch(() => {});
+      previewVideo.pause();
+      previewVideo.preload = 'metadata';
     }
 
     if (previewModal) previewModal.style.display = 'flex';
@@ -1001,6 +1138,8 @@ class PiPPrompterManager {
         border-radius: 0 !important;
         overflow: hidden;
         position: relative;
+        transform: translateZ(0);
+        backface-visibility: hidden;
       }
       .pip-prompter.pip-solid {
         background: #060911;
@@ -1274,7 +1413,7 @@ class PiPPrompterManager {
         top: calc(24px * var(--pip-scale, 1));
         height: calc(1.5 * var(--pip-font-size, 24px) * var(--pip-scale, 1));
         border: none !important;
-        background: linear-gradient(90deg, transparent 0%, rgba(0, 240, 255, 0.07) 12%, rgba(0, 240, 255, 0.07) 88%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, rgba(100, 210, 255, 0.08) 12%, rgba(100, 210, 255, 0.14) 50%, rgba(100, 210, 255, 0.08) 88%, transparent 100%);
         box-shadow: none !important;
         border-radius: 0 !important;
         pointer-events: none;
@@ -1282,6 +1421,50 @@ class PiPPrompterManager {
         z-index: 10;
         contain: strict;
         will-change: transform;
+        transition: opacity 0.2s ease;
+      }
+      .pip-focus-line.hidden {
+        display: none !important;
+      }
+      .pip-prompter.pip-minimized {
+        height: 100% !important;
+        overflow: hidden !important;
+      }
+      .pip-prompter.pip-minimized .pip-viewport,
+      .pip-prompter.pip-minimized .pip-toolbar,
+      .pip-prompter.pip-minimized .pip-modal-overlay,
+      .pip-prompter.pip-minimized .pip-choice-card,
+      .pip-prompter.pip-minimized .pip-preview-card {
+        display: none !important;
+      }
+      .pip-prompter.pip-minimized #pip-btn-minimize {
+        display: none !important;
+      }
+      .pip-prompter.pip-minimized .pip-expand-pill {
+        display: inline-flex !important;
+      }
+      .pip-expand-pill {
+        display: none;
+        align-items: center;
+        gap: 3px;
+        font-size: calc(9.5px * var(--pip-scale, 1));
+        font-weight: 600;
+        color: #0A84FF;
+        background: rgba(10, 132, 255, 0.15);
+        border: none !important;
+        border-radius: 980px;
+        padding: 2px 8px;
+        cursor: pointer;
+      }
+      .pip-btn-focus {
+        background: rgba(255, 255, 255, 0.08);
+      }
+      .pip-btn-focus.active {
+        background: rgba(10, 132, 255, 0.25) !important;
+        color: #64D2FF !important;
+      }
+      .pip-btn-minimize {
+        background: rgba(255, 255, 255, 0.08);
       }
       .pip-text {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", sans-serif;
@@ -1744,10 +1927,9 @@ class PiPPrompterManager {
   }
 }
 
-// Export for module and global usage
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { PiPPrompterManager };
-}
-if (typeof window !== 'undefined') {
-  window.PiPPrompterManager = PiPPrompterManager;
+  return { PiPPrompterManager };
+});
+
+if (typeof window !== 'undefined' && typeof window.PiPPrompterManager !== 'undefined') {
+  var PiPPrompterManager = window.PiPPrompterManager;
 }

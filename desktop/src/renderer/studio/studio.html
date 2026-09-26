@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GhostPrompter Studio</title>
+  <link rel="stylesheet" href="../shared/css/apple-theme.css">
+  <link rel="stylesheet" href="../shared/css/components.css">
+  <link rel="stylesheet" href="studio.css">
+</head>
+<body>
+  <div class="studio-app">
+
+    <!-- macOS Window Titlebar -->
+    <header class="studio-titlebar">
+      <div class="titlebar-left">
+        <div class="traffic-group">
+          <button class="traffic-dot close" id="titlebar-close">✕</button>
+          <button class="traffic-dot min" id="titlebar-min">−</button>
+          <button class="traffic-dot max" id="titlebar-max">⤢</button>
+        </div>
+        <div class="titlebar-title">
+          <span class="title-icon">👻</span>
+          <span class="title-text">GhostPrompter Studio</span>
+          <span class="apple-badge apple-badge-blue">PRO</span>
+        </div>
+      </div>
+
+      <div class="titlebar-right">
+        <button class="btn-apple btn-apple-primary" id="btn-launch-prompter">
+          <span>🚀 Launch Floating Prompter</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Studio Split Layout -->
+    <div class="studio-body">
+
+      <!-- macOS Translucent Sidebar -->
+      <aside class="studio-sidebar">
+        <div class="sidebar-section-title">WORKSPACE</div>
+        <nav class="sidebar-nav">
+          <button class="sidebar-item active" data-tab="tab-scripts">
+            <span class="sidebar-icon">📜</span>
+            <span class="sidebar-label">Scripts Library</span>
+            <span class="sidebar-count" id="scripts-count">0</span>
+          </button>
+          <button class="sidebar-item" data-tab="tab-takes">
+            <span class="sidebar-icon">🎬</span>
+            <span class="sidebar-label">Recorded Takes</span>
+            <span class="sidebar-count" id="takes-count">0</span>
+          </button>
+          <button class="sidebar-item" data-tab="tab-settings">
+            <span class="sidebar-icon">⚙️</span>
+            <span class="sidebar-label">Settings & Hotkeys</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-hotkey-hint">
+            <span class="hotkey-label">Quick Overlay:</span>
+            <kbd>Ctrl+Shift+H</kbd>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Stage Workspace -->
+      <main class="studio-stage">
+
+        <!-- TAB 1: SCRIPTS LIBRARY -->
+        <section class="tab-pane active" id="tab-scripts">
+          <!-- Sub-Sidebar: Script List -->
+          <div class="scripts-list-panel">
+            <div class="scripts-list-header">
+              <h3>All Scripts</h3>
+              <button class="btn-apple btn-apple-pill btn-new-script" id="btn-new-script">
+                <span>+ New</span>
+              </button>
+            </div>
+            <div class="scripts-scroll-list" id="scripts-list-container">
+              <!-- Dynamically populated script cards -->
+            </div>
+          </div>
+
+          <!-- Main Editor Pane -->
+          <div class="script-editor-panel">
+            <div class="editor-header">
+              <input type="text" class="editor-title-input" id="editor-title" placeholder="Script Title..." value="Welcome Script">
+              <div class="editor-meta">
+                <span class="meta-pill" id="meta-words">0 words</span>
+                <span class="meta-pill" id="meta-duration">~0:00 min</span>
+              </div>
+            </div>
+
+            <div class="editor-toolbar">
+              <div class="toolbar-left">
+                <button class="btn-apple btn-apple-pill" id="btn-save-script">💾 Save Changes</button>
+                <button class="btn-apple btn-apple-pill" id="btn-float-active">📺 Float in Prompter</button>
+              </div>
+              <div class="toolbar-right">
+                <button class="btn-apple btn-apple-pill" id="btn-delete-script" style="color: var(--apple-red);">🗑 Delete</button>
+              </div>
+            </div>
+
+            <div class="editor-textarea-wrapper">
+              <textarea class="editor-textarea" id="editor-body" placeholder="Paste or type your script here..."></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2: RECORDED TAKES -->
+        <section class="tab-pane" id="tab-takes">
+          <div class="takes-view-container">
+            <div class="takes-header">
+              <h2>Recorded Video Takes</h2>
+              <p class="subtitle">Review, export to MP4/WebM, or trim your recorded takes.</p>
+            </div>
+            <div class="takes-grid" id="takes-grid-container">
+              <div class="empty-state">
+                <span class="empty-icon">🎥</span>
+                <p>No video takes recorded yet. Start recording from your floating teleprompter or studio!</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 3: SETTINGS & GLOBAL HOTKEYS -->
+        <section class="tab-pane" id="tab-settings">
+          <div class="settings-container">
+            <h2>Preferences & Global Shortcuts</h2>
+            <p class="subtitle">Configure performance, visual materials, and system-wide hotkeys.</p>
+
+            <div class="settings-card">
+              <h3>Teleprompter Defaults</h3>
+              <div class="setting-row">
+                <label>Default Scrolling Speed</label>
+                <div class="setting-control">
+                  <input type="range" class="apple-slider" id="pref-speed" min="40" max="360" value="160">
+                  <span class="slider-val" id="pref-speed-val">160 WPM</span>
+                </div>
+              </div>
+              <div class="setting-row">
+                <label>Base Typography Font Size</label>
+                <div class="setting-control">
+                  <input type="range" class="apple-slider" id="pref-font-size" min="18" max="48" value="26">
+                  <span class="slider-val" id="pref-font-size-val">26 px</span>
+                </div>
+              </div>
+              <div class="setting-row">
+                <label>Reading Focus Guide Bar</label>
+                <div class="setting-control">
+                  <label class="apple-switch">
+                    <input type="checkbox" id="pref-focus-line" checked>
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <h3>System Global Hotkeys (Active in all Desktop Apps)</h3>
+              <table class="hotkeys-table">
+                <thead>
+                  <tr>
+                    <th>Action</th>
+                    <th>Global Hotkey</th>
+                    <th>Function</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Play / Pause Auto-Scroll</td>
+                    <td><kbd>Ctrl+Shift+Space</kbd></td>
+                    <td>Toggle smooth 60fps scrolling from anywhere</td>
+                  </tr>
+                  <tr>
+                    <td>Adjust Speed</td>
+                    <td><kbd>Ctrl+Shift+Up</kbd> / <kbd>Down</kbd></td>
+                    <td>Increment / decrement speed by 5 WPM</td>
+                  </tr>
+                  <tr>
+                    <td>True Ghost Mode</td>
+                    <td><kbd>Ctrl+Shift+G</kbd></td>
+                    <td>Toggle click-through pass-through over PowerPoint & Zoom</td>
+                  </tr>
+                  <tr>
+                    <td>Dynamic Island Pill</td>
+                    <td><kbd>Ctrl+Shift+M</kbd></td>
+                    <td>Shrink into camera-level pill for natural eye contact</td>
+                  </tr>
+                  <tr>
+                    <td>Reading Guide Line</td>
+                    <td><kbd>Ctrl+Shift+F</kbd></td>
+                    <td>Toggle spotlight reading bar</td>
+                  </tr>
+                  <tr>
+                    <td>Cycle Opacity Presets</td>
+                    <td><kbd>Ctrl+Shift+O</kbd></td>
+                    <td>Cycle Solid 95% → Dark 85% → Glass 40% → Clear 15%</td>
+                  </tr>
+                  <tr>
+                    <td>Hide / Show Prompter</td>
+                    <td><kbd>Ctrl+Shift+H</kbd></td>
+                    <td>Summon or dismiss floating overlay instantly</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+  </div>
+
+  <script src="studio.js"></script>
+</body>
+</html>

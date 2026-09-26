@@ -77,6 +77,8 @@ Let's keep each update to two minutes so we have ample time for open discussion.
     speechSyncEnabled: true,
     gazeTrackingEnabled: true,
     autoHideControls: false, // Keep controls visible
+    showFocusLine: true,     // Focus reading highlight band visibility
+    isWindowMinimized: false, // Minimized compact floating pill mode
     window: {
       x: null, // centered
       y: 24,

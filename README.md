@@ -43,6 +43,8 @@ GhostPrompter is a 100% client-side Chrome extension (Manifest V3) that provides
 | Shortcut | Action |
 |----------|--------|
 | `Alt + P` | Toggle GhostPrompter HUD visibility |
+| `Alt + M` | Minimize / Expand Prompter to Compact Floating Pill |
+| `Alt + F` | Toggle Reading Focus Highlight Bar |
 | `Alt + C` | Toggle Click-Through Ghost Mode |
 | `Alt + Space` or `Space` | Pause / Resume scroll |
 | `Up Arrow` | Micro-nudge scroll up (30px) |

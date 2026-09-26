@@ -188,11 +188,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // Open standalone floating popup window (Multi-Tab / Multi-Screen)
   if (message.type === 'OPEN_FLOATING_PROMPTER_WINDOW') {
+    const isCompact = !!message.compactBarOnly;
+    const compactQuery = isCompact ? '?compact=true' : '';
     chrome.windows.create({
-      url: chrome.runtime.getURL('src/floating/floating.html'),
+      url: chrome.runtime.getURL(`src/floating/floating.html${compactQuery}`),
       type: 'popup',
       width: 700,
-      height: 360,
+      height: isCompact ? 100 : 360,
       focused: true
     }, (win) => {
       sendResponse({ status: 'opened', windowId: win ? win.id : null });

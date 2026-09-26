@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "description": "Low-resource eye-tracking and speech-sync Chrome teleprompter extension with stealth heads-up display",
   "scripts": {
+    "start": "npm start --prefix desktop",
+    "desktop": "npm start --prefix desktop",
+    "desktop:install": "npm install --prefix desktop",
+    "desktop:test": "npm test --prefix desktop",
+    "check-syntax": "node scripts/check-syntax.js",
+    "syntax": "node scripts/check-syntax.js",
     "test": "node tests/storage.test.js && node tests/gaze-tracker.test.js && node tests/speech-and-scroller.test.js && node tests/video-recorder.test.js && node tests/pip-prompter.test.js"
   },
   "keywords": [

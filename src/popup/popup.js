@@ -51,6 +51,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updatePresetUI(initialOpacity, currentSettings.isTransparentMode);
 
+    // Event: Focus Line Toggle (Collapsible reading highlight line)
+    const focusLineToggle = document.getElementById('popup-toggle-focus-line');
+    if (focusLineToggle) {
+      focusLineToggle.checked = currentSettings.showFocusLine !== false;
+      focusLineToggle.addEventListener('change', async (e) => {
+        const show = e.target.checked;
+        await Storage.saveSettings({ showFocusLine: show });
+        notifyActiveTab({ type: 'SET_FOCUS_LINE_VISIBLE', visible: show });
+      });
+    }
+
+    // Event: Minimize to Compact Pill
+    const minimizeBtn = document.getElementById('popup-btn-minimize');
+    if (minimizeBtn) {
+      minimizeBtn.addEventListener('click', () => {
+        notifyActiveTab({ type: 'TOGGLE_MINIMIZE' });
+        setTimeout(() => { window.close(); }, 200);
+      });
+    }
+
     // Event: Script Change
     scriptSelect.addEventListener('change', async (e) => {
       await Storage.setActiveScript(e.target.value);
@@ -209,6 +229,36 @@ document.addEventListener('DOMContentLoaded', async () => {
           chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
             setTimeout(() => {
               notifyActiveTab({ type: 'OPEN_PIP' });
+              setTimeout(() => { window.close(); }, 300);
+            }, 150);
+          });
+        }
+      });
+    });
+  }
+
+  // Float Compact Bar Only (PiP) — hides all frames and launches slim floating bar
+  const pipCompactBtn = document.getElementById('popup-btn-pip-compact');
+  if (pipCompactBtn) {
+    pipCompactBtn.addEventListener('click', () => {
+      pipCompactBtn.innerHTML = '<span>⏳</span> Floating Bar...';
+
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tab = tabs && tabs[0];
+        const tabUrl = tab ? tab.url : '';
+        const isRestricted = !tabUrl || 
+          tabUrl.startsWith('chrome://') || 
+          tabUrl.startsWith('edge://') || 
+          tabUrl.startsWith('about:') || 
+          (tabUrl.startsWith('chrome-extension://') && !tabUrl.includes(chrome.runtime.id));
+
+        if (isRestricted) {
+          chrome.runtime.sendMessage({ type: 'OPEN_FLOATING_PROMPTER_WINDOW', compactBarOnly: true });
+          setTimeout(() => { window.close(); }, 250);
+        } else {
+          chrome.runtime.sendMessage({ type: 'LAUNCH_PROMPTER_ON_ACTIVE_TAB' }, () => {
+            setTimeout(() => {
+              notifyActiveTab({ type: 'OPEN_PIP', compactBarOnly: true });
               setTimeout(() => { window.close(); }, 300);
             }, 150);
           });

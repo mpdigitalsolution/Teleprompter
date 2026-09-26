@@ -55,6 +55,11 @@
       <!-- Camera Device Selector -->
       <select class="select-camera-device" id="select-camera-device" title="Switch Webcam Device" style="display: none;"></select>
 
+      <!-- Target Storage Folder Button -->
+      <button class="tool-btn" id="btn-select-storage-dir" title="Click to link/verify storage folder: D:\facescreen recording">
+        <span id="storage-dir-icon">📁</span> <span id="storage-dir-label">Storage: D:\facescreen recording</span>
+      </button>
+
       <!-- Audio Level Meter -->
       <div class="audio-vu-meter" title="Live Microphone Volume Input">
         <span class="vu-icon">🎤</span>
@@ -110,12 +115,14 @@
             <span id="label-wpm">130 WPM</span>
             <button class="btn-step" id="btn-wpm-inc">+</button>
           </div>
+          <button class="prompter-btn-ghost active" id="btn-studio-focus-toggle" title="Toggle Reading Focus Line">🎯 Focus</button>
           <button class="prompter-btn-ghost" id="btn-prompter-reset" title="Rewind to Top">⏮ Top</button>
           <button class="prompter-btn-ghost" id="btn-prompter-pip" title="Float on top of ALL tabs, PowerPoint, and Desktop Windows (Picture-in-Picture)">📌 Pop Out</button>
+          <button class="prompter-btn-ghost" id="btn-studio-prompter-min" title="Minimize / Collapse Prompter">⇲</button>
         </div>
 
         <div class="prompter-viewport" id="prompter-viewport">
-          <div class="prompter-focus-bar"></div>
+          <div class="prompter-focus-bar" id="studio-focus-bar"></div>
           <div class="prompter-text" id="prompter-text" contenteditable="true" spellcheck="false">
             Welcome to Ghost Studio! 🎥
 
@@ -211,6 +218,7 @@ When you read this text, your eyes align right next to your webcam lens!
           <span class="meta-pill" id="meta-duration">⏱ 00:00</span>
           <span class="meta-pill" id="meta-size">💾 0 MB</span>
           <span class="meta-pill meta-clean">✓ 100% Teleprompter-Free</span>
+          <span class="meta-pill" id="meta-storage-dest" style="color: #00F0FF; background: rgba(0, 240, 255, 0.12);">📁 Target: D:\facescreen recording</span>
         </div>
       </div>
 
@@ -219,7 +227,7 @@ When you read this text, your eyes align right next to your webcam lens!
           <span>🔄</span> Retake Fresh Take
         </button>
         <button class="btn-primary" id="btn-save-video">
-          <span>💾</span> Download Video (.webm)
+          <span>💾</span> Save Video (.webm)
         </button>
       </div>
     </div>

@@ -1,0 +1,78 @@
+/* ==========================================================================
+   GhostPrompter Desktop — Apple Design Tokens (macOS Sequoia & visionOS HIG)
+   ========================================================================== */
+
+:root {
+  /* System Colors */
+  --apple-blue: #0A84FF;
+  --apple-blue-hover: #0071E3;
+  --apple-cyan: #64D2FF;
+  --apple-green: #30D158;
+  --apple-green-hover: #24A143;
+  --apple-red: #FF453A;
+  --apple-red-hover: #D70015;
+  --apple-orange: #FF9F0A;
+  --apple-yellow: #FEBC2E;
+  --apple-traffic-close: #FF5F57;
+  --apple-traffic-min: #FEBC2E;
+  --apple-traffic-max: #28C840;
+
+  /* Neutrals & Typography */
+  --apple-text-primary: #FFFFFF;
+  --apple-text-secondary: rgba(235, 235, 245, 0.70);
+  --apple-text-tertiary: rgba(235, 235, 245, 0.40);
+  --apple-text-ghost: rgba(235, 235, 245, 0.25);
+
+  /* Materials & Translucency */
+  --apple-bg-base: #161618;
+  --apple-bg-sidebar: rgba(26, 26, 28, 0.85);
+  --apple-bg-surface: rgba(36, 36, 40, 0.75);
+  --apple-bg-surface-hover: rgba(50, 50, 54, 0.85);
+  --apple-bg-surface-active: rgba(60, 60, 66, 0.95);
+  --apple-bg-glass: rgba(28, 28, 30, 0.85);
+  --apple-bg-glass-solid: rgba(28, 28, 30, 0.96);
+  --apple-bg-glass-transparent: rgba(18, 18, 20, 0.35);
+
+  /* Borders & Specular Highlights */
+  --apple-border: rgba(255, 255, 255, 0.14);
+  --apple-border-subtle: rgba(255, 255, 255, 0.08);
+  --apple-border-focused: rgba(10, 132, 255, 0.60);
+  --apple-specular: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --apple-specular-subtle: inset 0 1px 0 rgba(255, 255, 255, 0.10);
+
+  /* Shadows */
+  --apple-shadow-window: 0 24px 60px rgba(0, 0, 0, 0.55), 0 4px 16px rgba(0, 0, 0, 0.35);
+  --apple-shadow-card: 0 8px 24px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.20);
+  --apple-shadow-pill: 0 4px 14px rgba(0, 0, 0, 0.40);
+
+  /* Radii */
+  --apple-radius-xs: 4px;
+  --apple-radius-s: 7px;
+  --apple-radius-m: 10px;
+  --apple-radius-l: 14px;
+  --apple-radius-xl: 18px;
+  --apple-radius-pill: 980px;
+
+  /* Typography Stacks */
+  --apple-font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Roboto, sans-serif;
+  --apple-font-mono: -apple-system, "SF Mono", Monaco, Menlo, Consolas, monospace;
+
+  /* Low-End PC Blur Factor (Optimized for AMD Vega 8 & Intel UHD) */
+  --apple-blur: 8px;
+  --apple-saturate: 140%;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--apple-font-sans);
+  color: var(--apple-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  overflow: hidden;
+}

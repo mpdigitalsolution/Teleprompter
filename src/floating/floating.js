@@ -37,7 +37,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         pipManager.updateRecordingState(true, '00:00');
       },
       onTimeUpdate: (elapsed, formattedTime) => {
-        pipManager.updateRecordingState(true, formattedTime);
+        const timeStr = typeof elapsed === 'object' && elapsed !== null
+          ? (elapsed.formattedTime || (typeof VideoRecorder !== 'undefined' ? VideoRecorder.formatTime(elapsed.elapsedSeconds || 0) : '00:00'))
+          : (formattedTime || (typeof VideoRecorder !== 'undefined' ? VideoRecorder.formatTime(typeof elapsed === 'number' ? elapsed : 0) : '00:00'));
+        pipManager.updateRecordingState(true, timeStr);
       },
       onStop: (take) => {
         pipManager.updateRecordingState(false);
@@ -76,6 +79,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   pipManager.isRecordingFn = () => (videoRecorder && videoRecorder.state === 'recording');
 
   // Initialize unified modern prompter interface inside this window
+  const urlParams = new URLSearchParams(window.location.search);
+  const isCompactOnly = urlParams.get('compact') === 'true';
+
   pipManager.activePiPWindow = window;
-  pipManager.setupPiPDocument(window, 0);
+  pipManager.setupPiPDocument(window, 0, isCompactOnly);
 });

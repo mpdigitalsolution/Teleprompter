@@ -6,8 +6,13 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <div class="header">
+  <div class="apple-card header">
     <div class="brand">
+      <div class="traffic-lights">
+        <span class="traffic-dot dot-red" title="Close"></span>
+        <span class="traffic-dot dot-yellow" title="Minimize"></span>
+        <span class="traffic-dot dot-green" title="Expand"></span>
+      </div>
       <svg class="brand-icon" viewBox="0 0 24 24">
         <path d="M12 2A9 9 0 0 0 3 11c0 3.2 1.6 6 4 7.6V21a1 1 0 0 0 1.5.9L12 20l3.5 1.9A1 1 0 0 0 17 21v-2.4c2.4-1.6 4-4.4 4-7.6A9 9 0 0 0 12 2zm-3 8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm6 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
       </svg>
@@ -18,45 +23,76 @@
 
   <div class="action-grid">
     <button class="btn-pip-pop" id="popup-btn-pip" title="Open PiP Mode: Float across ALL tabs, PowerPoint, Zoom, and Windows (Always-On-Top)">
-      <span>📌</span> Open PiP Mode (Always-On-Top)
+      <span class="apple-btn-icon">📌</span> Float Always-on-Top (PiP)
+    </button>
+    <button class="btn-pip-pop btn-pip-compact" id="popup-btn-pip-compact" title="Open Compact Bar Only: Slim floating control bar with all frames hidden">
+      <span class="apple-btn-icon">⚡</span> Float Compact Bar Only (PiP)
     </button>
   </div>
-  <div style="text-align: center; font-size: 10px; color: #64748B; margin-top: -4px; margin-bottom: 12px;">
-    💡 Tip: Press <kbd style="background: rgba(255, 255, 255, 0.08); padding: 1px 5px; border-radius: 4px; color: #94A3B8; font-family: monospace;">Alt + P</kbd> for in-tab HUD
+
+  <div class="shortcut-tip">
+    <span>Tip: Press</span> <kbd>Alt + P</kbd> <span>for in-tab prompter HUD</span>
   </div>
 
-  <!-- Transparency Mode Presets -->
+  <!-- Apple Segmented Control: Transparency Mode Presets -->
   <div class="section">
-    <div class="section-title">Transparency Mode</div>
-    <div class="preset-group">
-      <button class="preset-btn active" id="pop-preset-solid" data-preset="solid">⬛ Solid 95%</button>
-      <button class="preset-btn" id="pop-preset-dark" data-preset="dark">🌓 Dark 75%</button>
-      <button class="preset-btn" id="pop-preset-glass" data-preset="glass">🪟 Glass 35%</button>
-      <button class="preset-btn" id="pop-preset-clear" data-preset="clear">👻 Clear 0%</button>
+    <div class="section-header">
+      <span class="section-title">Transparency Mode</span>
     </div>
-    <div class="row" style="margin-top: 6px;">
+    <div class="preset-group apple-segmented-control">
+      <button class="preset-btn active" id="pop-preset-solid" data-preset="solid">Solid 95%</button>
+      <button class="preset-btn" id="pop-preset-dark" data-preset="dark">Dark 75%</button>
+      <button class="preset-btn" id="pop-preset-glass" data-preset="glass">Glass 35%</button>
+      <button class="preset-btn" id="pop-preset-clear" data-preset="clear">Clear 0%</button>
+    </div>
+    <div class="row slider-row">
       <span class="label">Custom Opacity:</span>
-      <input type="range" class="input-range" id="popup-range-opacity" min="0" max="1" step="0.05">
+      <input type="range" class="input-range apple-slider" id="popup-range-opacity" min="0" max="1" step="0.05">
+    </div>
+  </div>
+
+  <!-- Collapsible Focus Guide & Window Minimize Section -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Display & Guides</span>
+    </div>
+    <div class="row toggle-row">
+      <div class="toggle-info">
+        <span class="label">Reading Focus Bar</span>
+        <span class="sub-label">Highlight line behind script</span>
+      </div>
+      <label class="apple-switch" title="Toggle visibility of the reading focus highlight bar">
+        <input type="checkbox" id="popup-toggle-focus-line" checked>
+        <span class="apple-slider-round"></span>
+      </label>
+    </div>
+
+    <div class="row action-sub-row">
+      <button class="apple-btn-secondary" id="popup-btn-minimize" title="Collapse prompter window into a compact floating pill">
+        <span>⇲</span> Minimize to Compact Pill
+      </button>
     </div>
   </div>
 
   <!-- Speed & Mode Section -->
   <div class="section">
-    <div class="section-title">Speed & Script</div>
-    <div class="row">
-      <span class="label">Auto-Scroll Speed:</span>
-      <div class="speed-control">
-        <button class="btn-step" id="pop-btn-wpm-dec">-</button>
-        <span class="wpm-display" id="pop-val-wpm">130 WPM</span>
-        <button class="btn-step" id="pop-btn-wpm-inc">+</button>
-      </div>
+    <div class="section-header">
+      <span class="section-title">Speed & Script</span>
     </div>
     <div class="row">
-      <input type="range" class="input-range full-width" id="popup-range-wpm" min="50" max="300" step="10">
+      <span class="label">Auto-Scroll Speed:</span>
+      <div class="speed-control apple-stepper">
+        <button class="btn-step" id="pop-btn-wpm-dec" title="Decrease speed">−</button>
+        <span class="wpm-display" id="pop-val-wpm">130 WPM</span>
+        <button class="btn-step" id="pop-btn-wpm-inc" title="Increase speed">+</button>
+      </div>
+    </div>
+    <div class="row slider-row">
+      <input type="range" class="input-range full-width apple-slider" id="popup-range-wpm" min="50" max="300" step="10">
     </div>
     <div class="row">
       <span class="label">Mode:</span>
-      <select class="select" id="popup-select-mode">
+      <select class="select apple-select" id="popup-select-mode">
         <option value="auto">Auto-Scroll (WPM)</option>
         <option value="manual">Manual (Keys/Buttons)</option>
         <option value="dual">Dual (Gaze + Speech)</option>
@@ -66,11 +102,11 @@
     </div>
     <div class="row">
       <span class="label">Script:</span>
-      <select class="select" id="popup-select-script"></select>
+      <select class="select apple-select" id="popup-select-script"></select>
     </div>
     <div class="row">
       <span class="label">Font Size:</span>
-      <input type="range" class="input-range" id="popup-range-font" min="16" max="44" step="2">
+      <input type="range" class="input-range apple-slider" id="popup-range-font" min="16" max="44" step="2">
     </div>
   </div>
 
