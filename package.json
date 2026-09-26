@@ -7,6 +7,9 @@
     "desktop": "npm start --prefix desktop",
     "desktop:install": "npm install --prefix desktop",
     "desktop:test": "npm test --prefix desktop",
+    "desktop:build": "npm run dist:win --prefix desktop",
+    "build:exe": "npm run dist:win --prefix desktop",
+    "build:portable": "npm run dist:portable --prefix desktop",
     "check-syntax": "node scripts/check-syntax.js",
     "syntax": "node scripts/check-syntax.js",
     "test": "node tests/storage.test.js && node tests/gaze-tracker.test.js && node tests/speech-and-scroller.test.js && node tests/video-recorder.test.js && node tests/pip-prompter.test.js"
