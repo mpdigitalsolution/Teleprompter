@@ -17,27 +17,78 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function initStorageFolderManager() {
   const btnLinkFolder = document.getElementById('btn-setup-link-folder');
+  const btnResetFolder = document.getElementById('btn-setup-reset-folder');
   const folderStatus = document.getElementById('setup-folder-status');
+  const folderBadge = document.getElementById('setup-folder-badge');
+  const modeDirect = document.getElementById('setup-mode-direct');
+  const modePrompt = document.getElementById('setup-mode-prompt');
+  const modeDownloads = document.getElementById('setup-mode-downloads');
 
   async function updateFolderStatusUI() {
-    if (window.VideoRecorder && window.VideoRecorder.getSavedDirectoryHandle) {
-      const handle = await window.VideoRecorder.getSavedDirectoryHandle();
-      if (handle && handle.name) {
-        if (folderStatus) {
-          folderStatus.textContent = `${handle.name} (Linked ✓)`;
-          folderStatus.style.color = '#00FF88';
-        }
-        if (btnLinkFolder) btnLinkFolder.textContent = `✓ Linked: ${handle.name}`;
+    if (!window.VideoRecorder || !window.VideoRecorder.getStorageConfig) return;
+    const config = await window.VideoRecorder.getStorageConfig();
+    const mode = config.recordingStorageMode || 'direct';
+    const folderPath = config.recordingStoragePath || 'D:\\facescreen recording';
+    const folderName = config.handleName || config.recordingStorageName || 'facescreen recording';
+
+    // Update radios
+    if (mode === 'prompt' && modePrompt) modePrompt.checked = true;
+    else if (mode === 'downloads' && modeDownloads) modeDownloads.checked = true;
+    else if (modeDirect) modeDirect.checked = true;
+
+    // Update text and badges
+    if (folderStatus) {
+      if (mode === 'prompt') {
+        folderStatus.textContent = 'Save File Dialog (Prompt Each Take)';
+        folderStatus.style.color = '#64D2FF';
+      } else if (mode === 'downloads') {
+        folderStatus.textContent = 'Browser Downloads Folder';
+        folderStatus.style.color = '#BF5AF2';
       } else {
-        if (folderStatus) {
-          folderStatus.textContent = 'D:\\facescreen recording';
-          folderStatus.style.color = '#00F0FF';
-        }
-        if (btnLinkFolder) btnLinkFolder.textContent = '📁 Link D:\\facescreen recording';
+        folderStatus.textContent = folderPath;
+        folderStatus.style.color = config.hasHandle ? '#00FF88' : '#00F0FF';
       }
+    }
+
+    if (folderBadge) {
+      if (mode === 'prompt') {
+        folderBadge.textContent = 'Ask Each Take';
+        folderBadge.style.color = '#64D2FF';
+        folderBadge.style.borderColor = 'rgba(100, 210, 255, 0.3)';
+        folderBadge.style.background = 'rgba(100, 210, 255, 0.15)';
+      } else if (mode === 'downloads') {
+        folderBadge.textContent = 'Downloads';
+        folderBadge.style.color = '#BF5AF2';
+        folderBadge.style.borderColor = 'rgba(191, 90, 242, 0.3)';
+        folderBadge.style.background = 'rgba(191, 90, 242, 0.15)';
+      } else if (config.hasHandle) {
+        folderBadge.textContent = 'Linked ✓';
+        folderBadge.style.color = '#00FF88';
+        folderBadge.style.borderColor = 'rgba(0, 255, 136, 0.3)';
+        folderBadge.style.background = 'rgba(0, 255, 136, 0.15)';
+      } else {
+        folderBadge.textContent = 'Ready to Link';
+        folderBadge.style.color = '#FFD60A';
+        folderBadge.style.borderColor = 'rgba(255, 214, 10, 0.3)';
+        folderBadge.style.background = 'rgba(255, 214, 10, 0.15)';
+      }
+    }
+
+    if (btnLinkFolder) {
+      btnLinkFolder.textContent = config.hasHandle ? `📁 Change Folder (${folderName})` : '📁 Change / Select Folder';
     }
   }
 
+  // Radio button changes
+  const modeRadios = document.querySelectorAll('input[name="setup-storage-mode"]');
+  modeRadios.forEach(radio => {
+    radio.addEventListener('change', async () => {
+      await window.VideoRecorder.setStorageConfig({ recordingStorageMode: radio.value });
+      await updateFolderStatusUI();
+    });
+  });
+
+  // Select folder
   if (btnLinkFolder) {
     btnLinkFolder.addEventListener('click', async () => {
       if (window.VideoRecorder && window.VideoRecorder.selectStorageDirectory) {
@@ -46,6 +97,22 @@ async function initStorageFolderManager() {
           await updateFolderStatusUI();
           alert(`Successfully linked "${handle.name}"!\nAll video recordings will now be saved directly to this folder on your computer.`);
         }
+      }
+    });
+  }
+
+  // Reset folder
+  if (btnResetFolder) {
+    btnResetFolder.addEventListener('click', async () => {
+      if (window.VideoRecorder) {
+        await window.VideoRecorder.clearSavedDirectoryHandle();
+        await window.VideoRecorder.setStorageConfig({
+          recordingStorageMode: 'direct',
+          recordingStoragePath: 'D:\\facescreen recording',
+          recordingStorageName: 'facescreen recording'
+        });
+        await updateFolderStatusUI();
+        alert('Reset to default storage: D:\\facescreen recording');
       }
     });
   }

@@ -267,6 +267,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // Video Output Storage Location Display & Setting
+  const popupStorageDest = document.getElementById('popup-storage-dest');
+  const popupBtnChangeStorage = document.getElementById('popup-btn-change-storage');
+
+  if (popupStorageDest) {
+    const mode = currentSettings.recordingStorageMode || 'direct';
+    const folderPath = currentSettings.recordingStoragePath || 'D:\\facescreen recording';
+    const folderName = currentSettings.recordingStorageName || 'facescreen recording';
+
+    if (mode === 'prompt') {
+      popupStorageDest.textContent = 'Ask Every Take';
+      popupStorageDest.style.color = '#64D2FF';
+    } else if (mode === 'downloads') {
+      popupStorageDest.textContent = 'Downloads';
+      popupStorageDest.style.color = '#BF5AF2';
+    } else {
+      popupStorageDest.textContent = folderName || folderPath;
+      popupStorageDest.title = folderPath;
+    }
+  }
+
+  if (popupBtnChangeStorage) {
+    popupBtnChangeStorage.addEventListener('click', () => {
+      chrome.tabs.create({ url: chrome.runtime.getURL('src/setup/setup.html') });
+      window.close();
+    });
+  }
+
   // Links
   const floatingLink = document.getElementById('link-floating');
   if (floatingLink) {

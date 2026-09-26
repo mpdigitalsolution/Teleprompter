@@ -233,6 +233,76 @@ When you read this text, your eyes align right next to your webcam lens!
     </div>
   </div>
 
+  <!-- Output Video Storage Settings Modal -->
+  <div class="review-modal" id="storage-modal" style="display: none;">
+    <div class="review-card" style="max-width: 520px;">
+      <div class="review-header">
+        <div class="review-title">
+          <span>📁</span> Output Video Storage Options
+        </div>
+        <button class="btn-step" id="btn-close-storage-modal" title="Close">✕</button>
+      </div>
+
+      <div class="review-body" style="gap: 16px; padding: 18px 20px;">
+        <div style="font-size: 13px; color: var(--apple-text-secondary); line-height: 1.5;">
+          Choose where and how GhostPrompter will save your output recorded videos:
+        </div>
+
+        <!-- Storage Mode Options -->
+        <div class="storage-option-group">
+          <label class="storage-radio-label">
+            <input type="radio" name="studio-storage-mode" value="direct" id="mode-direct" checked>
+            <div class="storage-radio-content">
+              <strong>Direct Disk Folder (Auto-Save)</strong>
+              <span>Saves directly into your designated storage folder without asking every time.</span>
+            </div>
+          </label>
+
+          <label class="storage-radio-label">
+            <input type="radio" name="studio-storage-mode" value="prompt" id="mode-prompt">
+            <div class="storage-radio-content">
+              <strong>Ask Where to Save Each Take</strong>
+              <span>Opens a native file picker dialog for every take so you can choose folder and filename.</span>
+            </div>
+          </label>
+
+          <label class="storage-radio-label">
+            <input type="radio" name="studio-storage-mode" value="downloads" id="mode-downloads">
+            <div class="storage-radio-content">
+              <strong>Default Browser Downloads</strong>
+              <span>Saves directly through your browser's default download folder.</span>
+            </div>
+          </label>
+        </div>
+
+        <!-- Current Target Folder Box -->
+        <div id="storage-dir-details" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 12px; color: var(--apple-text-secondary); font-weight: 600;">Current Storage Destination:</span>
+            <span id="storage-status-pill" class="meta-pill" style="color: #00FF88; border-color: rgba(0, 255, 136, 0.3);">Linked ✓</span>
+          </div>
+          <div id="storage-current-path" style="font-family: monospace; font-size: 13px; color: #00F0FF; word-break: break-all; margin-bottom: 12px; font-weight: 500;">
+            D:\facescreen recording
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-secondary" id="btn-modal-choose-folder" style="flex: 1;">
+              <span>📂</span> Choose Different Folder...
+            </button>
+            <button class="btn-secondary" id="btn-modal-reset-folder" title="Reset back to default D:\facescreen recording">
+              <span>↺</span> Reset to D:\facescreen recording
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-footer">
+        <button class="btn-primary" id="btn-save-storage-settings">
+          <span>✓</span> Done
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="../modules/storage.js"></script>
   <script src="../modules/pip-prompter.js"></script>
   <script src="../modules/video-recorder.js"></script>

@@ -101,27 +101,59 @@
         <a href="../floating/floating.html" class="btn" style="text-decoration:none;">Launch Floating Prompter</a>
       </div>
 
-      <!-- Recording Storage Folder -->
+      <!-- Recording Storage Options -->
       <div class="card card-full">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
           <div class="card-title">
             <span class="card-title-icon">📁</span>
-            <h3>Recording Storage Location</h3>
+            <h3>Video Output Storage Options</h3>
           </div>
-          <div>
-            <button class="btn" id="btn-setup-link-folder">📁 Link D:\facescreen recording</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn" id="btn-setup-link-folder">📁 Change / Select Folder</button>
+            <button class="btn btn-secondary" id="btn-setup-reset-folder" title="Reset to default D:\facescreen recording">↺ Reset to Default</button>
           </div>
         </div>
         <p class="card-desc" style="margin-top: 10px;">
-          Directly link your storage directory so that all takes recorded in Studio Mode, Document PiP, or In-Tab Prompter are saved directly into <strong>D:\facescreen recording</strong> on your computer.
+          Configure where and how GhostPrompter saves output recorded videos across Studio Mode, PiP, and In-Tab prompter.
         </p>
-        <div style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.25); border-radius: 8px; padding: 12px 16px; margin-top: 10px; font-size: 13px; color: #CBD5E1;">
-          <div style="display:flex; align-items:center; gap: 8px; margin-bottom: 6px;">
-            <strong style="color: #00F0FF;">Target Storage Folder:</strong>
-            <span id="setup-folder-status" style="font-family: monospace; background: #0A0E1A; padding: 3px 8px; border-radius: 4px; color: #00FF88;">D:\facescreen recording</span>
+
+        <!-- Save Mode Selection -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 14px;">
+          <label style="display:flex; align-items:flex-start; gap:10px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px; cursor: pointer;">
+            <input type="radio" name="setup-storage-mode" value="direct" id="setup-mode-direct" checked style="margin-top:3px; accent-color: #0A84FF;">
+            <div>
+              <strong style="color: #FFFFFF; font-size: 13px; display:block;">Direct Folder (Auto-Save)</strong>
+              <span style="color: #94A3B8; font-size: 12px;">Writes straight to linked directory on disk.</span>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:10px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px; cursor: pointer;">
+            <input type="radio" name="setup-storage-mode" value="prompt" id="setup-mode-prompt" style="margin-top:3px; accent-color: #0A84FF;">
+            <div>
+              <strong style="color: #FFFFFF; font-size: 13px; display:block;">Ask Every Take</strong>
+              <span style="color: #94A3B8; font-size: 12px;">Opens native save dialog to choose location.</span>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:10px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; padding: 12px; cursor: pointer;">
+            <input type="radio" name="setup-storage-mode" value="downloads" id="setup-mode-downloads" style="margin-top:3px; accent-color: #0A84FF;">
+            <div>
+              <strong style="color: #FFFFFF; font-size: 13px; display:block;">Browser Downloads</strong>
+              <span style="color: #94A3B8; font-size: 12px;">Standard download to browser's default folder.</span>
+            </div>
+          </label>
+        </div>
+
+        <div style="background: rgba(0, 240, 255, 0.06); border: 1px solid rgba(0, 240, 255, 0.22); border-radius: 8px; padding: 14px 16px; margin-top: 14px; font-size: 13px; color: #CBD5E1;">
+          <div style="display:flex; align-items:center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+            <div style="display:flex; align-items:center; gap: 8px;">
+              <strong style="color: #00F0FF;">Current Designated Storage:</strong>
+              <span id="setup-folder-status" style="font-family: monospace; background: #0A0E1A; padding: 4px 10px; border-radius: 4px; color: #00FF88;">D:\facescreen recording</span>
+            </div>
+            <span id="setup-folder-badge" style="font-size: 11px; padding: 3px 8px; border-radius: 4px; background: rgba(0, 255, 136, 0.15); color: #00FF88; border: 1px solid rgba(0, 255, 136, 0.3);">Linked ✓</span>
           </div>
           <div style="color: #94A3B8; font-size: 12px; line-height: 1.5;">
-            💡 <em>Chrome Tip:</em> You can also set your default browser download location to <code>D:\facescreen recording</code> in <strong>Chrome Settings &gt; Downloads</strong>.
+            💡 <em>Chrome Tip:</em> You can also set your default browser download location to your preferred directory in <strong>Chrome Settings &gt; Downloads</strong>.
           </div>
         </div>
       </div>

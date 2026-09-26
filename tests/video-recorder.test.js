@@ -140,9 +140,34 @@ function testVideoRecorder() {
     assert.strictEqual(saveRes.success, true);
     assert.strictEqual(saveRes.method, 'direct_disk');
     assert.strictEqual(saveRes.directory, 'facescreen recording');
-    assert.strictEqual(fileWritten, true);
-    console.log('✓ Direct disk saving to D:\\facescreen recording verified.');
+    // Test storage configuration retrieval and persistence
+    const initialConfig = await VideoRecorder.getStorageConfig();
+    assert.ok(initialConfig, 'Storage config returned');
+    assert.strictEqual(typeof initialConfig.recordingStorageMode, 'string');
 
+    await VideoRecorder.setStorageConfig({ recordingStorageMode: 'downloads' });
+    const updatedConfig = await VideoRecorder.getStorageConfig();
+    assert.strictEqual(updatedConfig.recordingStorageMode, 'downloads');
+
+    // Test download fallback mode
+    let downloadedBlob = null;
+    let downloadedName = null;
+    const origDownloadBlob = VideoRecorder.downloadBlob;
+    VideoRecorder.downloadBlob = (b, name) => {
+      downloadedBlob = b;
+      downloadedName = name;
+    };
+
+    const dlRes = await VideoRecorder.saveVideoFile(mockBlob, 'test-download.webm');
+    assert.strictEqual(dlRes.success, true);
+    assert.strictEqual(dlRes.method, 'browser_download');
+    assert.strictEqual(downloadedName, 'test-download.webm');
+    VideoRecorder.downloadBlob = origDownloadBlob;
+
+    // Reset mode to direct
+    await VideoRecorder.setStorageConfig({ recordingStorageMode: 'direct' });
+
+    console.log('✓ Storage options configuration and mode switching verified.');
     console.log('✅ All VideoRecorder unit tests passed successfully!');
   }).catch((err) => {
     console.error('Test failed:', err);

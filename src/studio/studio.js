@@ -285,33 +285,138 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.warn('Camera could not start automatically:', err);
   }
 
-  // Storage Directory UI and Handler (D:\facescreen recording)
+  // ==========================================================================
+  // Output Video Storage Options & Modal Manager
+  // ==========================================================================
+  const storageModal = document.getElementById('storage-modal');
+  const btnCloseStorageModal = document.getElementById('btn-close-storage-modal');
+  const btnSaveStorageSettings = document.getElementById('btn-save-storage-settings');
+  const modeDirect = document.getElementById('mode-direct');
+  const modePrompt = document.getElementById('mode-prompt');
+  const modeDownloads = document.getElementById('mode-downloads');
+  const storageStatusPill = document.getElementById('storage-status-pill');
+  const storageCurrentPath = document.getElementById('storage-current-path');
+  const btnModalChooseFolder = document.getElementById('btn-modal-choose-folder');
+  const btnModalResetFolder = document.getElementById('btn-modal-reset-folder');
+
   async function updateStorageDirectoryUI() {
-    if (!VideoRecorder || !VideoRecorder.getSavedDirectoryHandle) return;
-    const handle = await VideoRecorder.getSavedDirectoryHandle();
-    if (handle && handle.name) {
-      if (storageDirLabel) storageDirLabel.textContent = `Storage: ${handle.name} (Linked ✓)`;
-      if (btnSelectStorageDir) {
-        btnSelectStorageDir.classList.add('active');
-        btnSelectStorageDir.title = `Direct storage linked to "${handle.name}". Click to change folder.`;
+    if (!VideoRecorder || !VideoRecorder.getStorageConfig) return;
+    const config = await VideoRecorder.getStorageConfig();
+    const mode = config.recordingStorageMode || 'direct';
+    const folderName = config.handleName || config.recordingStorageName || 'facescreen recording';
+    const folderPath = config.recordingStoragePath || 'D:\\facescreen recording';
+
+    // Update Modal Radios
+    if (mode === 'prompt' && modePrompt) modePrompt.checked = true;
+    else if (mode === 'downloads' && modeDownloads) modeDownloads.checked = true;
+    else if (modeDirect) modeDirect.checked = true;
+
+    // Update Modal Status & Path
+    if (storageCurrentPath) {
+      storageCurrentPath.textContent = folderPath;
+    }
+    if (storageStatusPill) {
+      if (mode === 'prompt') {
+        storageStatusPill.textContent = 'Ask Every Take';
+        storageStatusPill.style.color = '#64D2FF';
+        storageStatusPill.style.borderColor = 'rgba(100, 210, 255, 0.3)';
+      } else if (mode === 'downloads') {
+        storageStatusPill.textContent = 'Downloads Folder';
+        storageStatusPill.style.color = '#BF5AF2';
+        storageStatusPill.style.borderColor = 'rgba(191, 90, 242, 0.3)';
+      } else if (config.hasHandle) {
+        storageStatusPill.textContent = 'Linked ✓';
+        storageStatusPill.style.color = '#00FF88';
+        storageStatusPill.style.borderColor = 'rgba(0, 255, 136, 0.3)';
+      } else {
+        storageStatusPill.textContent = 'Click to Link';
+        storageStatusPill.style.color = '#FFD60A';
+        storageStatusPill.style.borderColor = 'rgba(255, 214, 10, 0.3)';
       }
-      if (metaStorageDest) metaStorageDest.textContent = `📁 Target: ${handle.name} (Direct Disk)`;
-    } else {
-      if (storageDirLabel) storageDirLabel.textContent = `Storage: D:\\facescreen recording`;
-      if (btnSelectStorageDir) {
+    }
+
+    // Update Header Button Display
+    if (storageDirLabel && btnSelectStorageDir) {
+      if (mode === 'prompt') {
+        storageDirLabel.textContent = 'Storage: Ask Every Take';
+        btnSelectStorageDir.classList.add('active');
+        btnSelectStorageDir.title = 'Storage Option: Opens save dialog for every take. Click to change.';
+      } else if (mode === 'downloads') {
+        storageDirLabel.textContent = 'Storage: Downloads';
+        btnSelectStorageDir.classList.add('active');
+        btnSelectStorageDir.title = 'Storage Option: Default browser downloads. Click to change.';
+      } else if (config.hasHandle) {
+        storageDirLabel.textContent = `Storage: ${folderName} (Linked ✓)`;
+        btnSelectStorageDir.classList.add('active');
+        btnSelectStorageDir.title = `Direct storage linked to "${folderName}". Click to change options.`;
+      } else {
+        storageDirLabel.textContent = `Storage: ${folderPath}`;
         btnSelectStorageDir.classList.remove('active');
-        btnSelectStorageDir.title = `Click to link folder (select D:\\facescreen recording) for direct saving`;
+        btnSelectStorageDir.title = `Storage set to ${folderPath}. Click to link or choose another folder.`;
+      }
+    }
+
+    // Update Review Modal Meta Tag
+    if (metaStorageDest) {
+      if (mode === 'prompt') {
+        metaStorageDest.textContent = '📁 Target: Save File Dialog';
+      } else if (mode === 'downloads') {
+        metaStorageDest.textContent = '📁 Target: Downloads Folder';
+      } else {
+        metaStorageDest.textContent = `📁 Target: ${folderPath} ${config.hasHandle ? '(Direct Disk)' : ''}`;
       }
     }
   }
 
+  // Header Storage Button Opens Storage Settings Modal
   if (btnSelectStorageDir) {
     btnSelectStorageDir.addEventListener('click', async () => {
+      if (storageModal) {
+        await updateStorageDirectoryUI();
+        storageModal.style.display = 'flex';
+      }
+    });
+  }
+
+  function closeStorageModal() {
+    if (storageModal) storageModal.style.display = 'none';
+  }
+
+  if (btnCloseStorageModal) btnCloseStorageModal.addEventListener('click', closeStorageModal);
+  if (btnSaveStorageSettings) btnSaveStorageSettings.addEventListener('click', closeStorageModal);
+
+  // Storage Mode Radio Changes
+  const modeRadios = document.querySelectorAll('input[name="studio-storage-mode"]');
+  modeRadios.forEach(radio => {
+    radio.addEventListener('change', async () => {
+      const selectedMode = radio.value;
+      await VideoRecorder.setStorageConfig({ recordingStorageMode: selectedMode });
+      await updateStorageDirectoryUI();
+    });
+  });
+
+  // Choose Custom Storage Directory
+  if (btnModalChooseFolder) {
+    btnModalChooseFolder.addEventListener('click', async () => {
       const handle = await VideoRecorder.selectStorageDirectory();
       if (handle) {
         await updateStorageDirectoryUI();
-        alert(`Storage folder linked: ${handle.name}!\nAll recordings will now be saved directly to this folder on your computer.`);
+        alert(`Storage destination linked to "${handle.name}"!\nRecordings will now be saved directly to this folder on your computer.`);
       }
+    });
+  }
+
+  // Reset to Default Storage Folder (D:\facescreen recording)
+  if (btnModalResetFolder) {
+    btnModalResetFolder.addEventListener('click', async () => {
+      await VideoRecorder.clearSavedDirectoryHandle();
+      await VideoRecorder.setStorageConfig({
+        recordingStorageMode: 'direct',
+        recordingStoragePath: 'D:\\facescreen recording',
+        recordingStorageName: 'facescreen recording'
+      });
+      await updateStorageDirectoryUI();
+      alert('Reset to default: D:\\facescreen recording.\nYou can click "Choose Different Folder..." anytime to link another directory.');
     });
   }
 
@@ -639,13 +744,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dateStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const filename = `ghostprompter-studio-${dateStr}.webm`;
 
+      const config = await VideoRecorder.getStorageConfig();
+      const targetLabel = (config && config.recordingStorageMode === 'prompt')
+        ? 'Opening Save Dialog...'
+        : ((config && config.recordingStorageMode === 'downloads')
+          ? 'Downloading to Downloads...'
+          : `Saving to ${config && (config.handleName || config.recordingStoragePath) ? (config.handleName || config.recordingStoragePath) : 'D:\\facescreen recording'}...`);
+
       btnSaveVideo.disabled = true;
-      btnSaveVideo.innerHTML = '<span>💾</span> Saving to D:\\facescreen recording...';
+      btnSaveVideo.innerHTML = `<span>💾</span> ${targetLabel}`;
 
       try {
         const res = await VideoRecorder.saveVideoFile(currentTake.blob, filename);
         if (res && res.success) {
-          const dir = res.directory ? res.directory : 'D:\\facescreen recording';
+          const dir = res.directory ? res.directory : 'Storage';
           btnSaveVideo.innerHTML = `<span>✓</span> Saved to ${dir}!`;
           if (metaStorageDest) {
             metaStorageDest.textContent = `✓ Saved: ${res.filename} in ${dir}`;

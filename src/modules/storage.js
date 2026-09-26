@@ -79,6 +79,9 @@ Let's keep each update to two minutes so we have ample time for open discussion.
     autoHideControls: false, // Keep controls visible
     showFocusLine: true,     // Focus reading highlight band visibility
     isWindowMinimized: false, // Minimized compact floating pill mode
+    recordingStorageMode: 'direct', // 'direct' (auto-save to linked folder), 'prompt' (ask every take), 'downloads' (default Downloads)
+    recordingStoragePath: 'D:\\facescreen recording',
+    recordingStorageName: 'facescreen recording',
     window: {
       x: null, // centered
       y: 24,

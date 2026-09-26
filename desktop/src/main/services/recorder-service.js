@@ -101,19 +101,48 @@ class RecorderService {
   }
 
   _getDefaultExportDir(app) {
-    const targetDir = 'D:\\facescreen recording';
+    let customDir = null;
+    try {
+      if (this.storage && typeof this.storage.get === 'function') {
+        const settings = this.storage.get('settings') || {};
+        customDir = settings.recordingStoragePath;
+      }
+    } catch (e) {}
+
+    const targetDir = customDir || 'D:\\facescreen recording';
     try {
       if (fs.existsSync(targetDir)) {
         return targetDir;
       }
-      if (fs.existsSync('D:\\')) {
+      const rootDir = path.parse(targetDir).root;
+      if (rootDir && fs.existsSync(rootDir)) {
         fs.mkdirSync(targetDir, { recursive: true });
         return targetDir;
       }
     } catch (e) {
-      // Fallback if D: drive is not writable or not available
+      // Fallback if drive/path is not writable or not available
     }
     return (app && app.getPath) ? (app.getPath('videos') || app.getPath('documents')) : '.';
+  }
+
+  async selectCustomExportDir() {
+    if (!electronModule || !electronModule.dialog) return null;
+    const { dialog } = electronModule;
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      title: 'Select Recording Storage Folder',
+      properties: ['openDirectory', 'createDirectory']
+    });
+    if (!canceled && filePaths && filePaths[0]) {
+      const selectedPath = filePaths[0];
+      if (this.storage && typeof this.storage.set === 'function') {
+        const settings = this.storage.get('settings') || {};
+        settings.recordingStoragePath = selectedPath;
+        settings.recordingStorageName = path.basename(selectedPath);
+        this.storage.set('settings', settings);
+      }
+      return selectedPath;
+    }
+    return null;
   }
 
   async exportSessionToFile(tempPath, defaultName = 'GhostPrompter_Take.webm') {

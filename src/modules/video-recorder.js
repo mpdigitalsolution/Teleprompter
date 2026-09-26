@@ -636,7 +636,7 @@
     }
 
     /**
-     * Store FileSystemDirectoryHandle into IndexedDB for persistent saving to D:\facescreen recording
+     * Store FileSystemDirectoryHandle into IndexedDB for persistent saving to D:\facescreen recording or custom folder
      */
     static async saveDirectoryHandle(handle) {
       if (typeof indexedDB === 'undefined' || !handle) return false;
@@ -669,7 +669,103 @@
     }
 
     /**
-     * Trigger native folder picker to select storage directory (e.g. D:\facescreen recording)
+     * Remove stored FileSystemDirectoryHandle from IndexedDB (e.g. to switch or reset storage folder)
+     */
+    static async clearSavedDirectoryHandle() {
+      if (typeof indexedDB === 'undefined') return false;
+      return new Promise((resolve) => {
+        try {
+          const req = indexedDB.open('GhostPrompterFS', 1);
+          req.onsuccess = (e) => {
+            const db = e.target.result;
+            try {
+              const tx = db.transaction('handles', 'readwrite');
+              const store = tx.objectStore('handles');
+              const delReq = store.delete('recordingDirectory');
+              delReq.onsuccess = () => resolve(true);
+              delReq.onerror = () => resolve(false);
+            } catch (err) {
+              resolve(false);
+            }
+          };
+          req.onerror = () => resolve(false);
+        } catch (err) {
+          resolve(false);
+        }
+      });
+    }
+
+    /**
+     * Retrieve current storage configuration and active directory link status
+     */
+    static async getStorageConfig() {
+      let settings = {
+        recordingStorageMode: 'direct',
+        recordingStoragePath: 'D:\\facescreen recording',
+        recordingStorageName: 'facescreen recording'
+      };
+
+      if (VideoRecorder._storageConfigCache) {
+        Object.assign(settings, VideoRecorder._storageConfigCache);
+      }
+
+      if (typeof GhostStorage !== 'undefined' && GhostStorage.getSettings) {
+        try {
+          const stored = await GhostStorage.getSettings();
+          if (stored) {
+            settings = Object.assign(settings, {
+              recordingStorageMode: stored.recordingStorageMode || settings.recordingStorageMode,
+              recordingStoragePath: stored.recordingStoragePath || settings.recordingStoragePath,
+              recordingStorageName: stored.recordingStorageName || settings.recordingStorageName
+            });
+          }
+        } catch (e) {}
+      } else if (typeof localStorage !== 'undefined') {
+        try {
+          const stored = JSON.parse(localStorage.getItem('ghost_settings') || '{}');
+          if (stored) {
+            settings = Object.assign(settings, {
+              recordingStorageMode: stored.recordingStorageMode || settings.recordingStorageMode,
+              recordingStoragePath: stored.recordingStoragePath || settings.recordingStoragePath,
+              recordingStorageName: stored.recordingStorageName || settings.recordingStorageName
+            });
+          }
+        } catch (e) {}
+      }
+
+      const handle = await VideoRecorder.getSavedDirectoryHandle();
+      return {
+        ...settings,
+        hasHandle: !!(handle && handle.name),
+        handleName: handle ? handle.name : null
+      };
+    }
+
+    /**
+     * Persist storage configuration settings
+     */
+    static async setStorageConfig(partialSettings) {
+      if (!partialSettings) return;
+      if (!VideoRecorder._storageConfigCache) {
+        VideoRecorder._storageConfigCache = {};
+      }
+      Object.assign(VideoRecorder._storageConfigCache, partialSettings);
+
+      if (typeof GhostStorage !== 'undefined' && GhostStorage.saveSettings) {
+        try {
+          await GhostStorage.saveSettings(partialSettings);
+        } catch (e) {}
+      } else if (typeof localStorage !== 'undefined') {
+        try {
+          const stored = JSON.parse(localStorage.getItem('ghost_settings') || '{}');
+          Object.assign(stored, partialSettings);
+          localStorage.setItem('ghost_settings', JSON.stringify(stored));
+        } catch (e) {}
+      }
+    }
+
+    /**
+     * Trigger native folder picker to select storage directory (e.g. D:\facescreen recording or custom folder)
      */
     static async selectStorageDirectory() {
       if (typeof window === 'undefined' || !window.showDirectoryPicker) {
@@ -677,12 +773,17 @@
       }
       try {
         const dirHandle = await window.showDirectoryPicker({
-          id: 'facescreen-recordings',
+          id: 'ghostprompter-recording-storage',
           mode: 'readwrite',
-          startIn: 'documents'
+          startIn: 'videos'
         });
         if (dirHandle) {
           await VideoRecorder.saveDirectoryHandle(dirHandle);
+          await VideoRecorder.setStorageConfig({
+            recordingStorageMode: 'direct',
+            recordingStorageName: dirHandle.name,
+            recordingStoragePath: dirHandle.name
+          });
           return dirHandle;
         }
       } catch (err) {
@@ -692,7 +793,10 @@
     }
 
     /**
-     * Save recording directly to target storage (e.g. D:\facescreen recording)
+     * Save recording directly to target storage based on user configured option:
+     * - 'direct': writes straight to linked disk directory (e.g. D:\facescreen recording or custom)
+     * - 'prompt': native Save File Picker dialog for every take
+     * - 'downloads': standard browser downloads
      */
     static async saveVideoFile(blob, filename, preferredHandle = null) {
       if (!blob) return { success: false, error: 'No blob provided' };
@@ -701,7 +805,49 @@
       const ext = blob.type && blob.type.includes('mp4') ? 'mp4' : 'webm';
       const finalFilename = filename || `ghostprompter-video-${dateStr}.${ext}`;
 
-      // 1. Try File System Access API with stored directory handle (D:\facescreen recording)
+      const config = await VideoRecorder.getStorageConfig();
+      const storageMode = config ? config.recordingStorageMode : 'direct';
+
+      // 1. If user chose 'downloads', download directly through browser
+      if (storageMode === 'downloads') {
+        VideoRecorder.downloadBlob(blob, finalFilename);
+        return {
+          success: true,
+          method: 'browser_download',
+          directory: 'Downloads',
+          filename: finalFilename
+        };
+      }
+
+      // 2. If user chose 'prompt', trigger native save dialog every time
+      if (storageMode === 'prompt') {
+        if (typeof window !== 'undefined' && window.showSaveFilePicker) {
+          try {
+            const fileHandle = await window.showSaveFilePicker({
+              suggestedName: finalFilename,
+              types: [{
+                description: 'Video File',
+                accept: { [blob.type || 'video/webm']: ['.webm', '.mp4'] }
+              }]
+            });
+            const writable = await fileHandle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            return {
+              success: true,
+              method: 'file_picker',
+              directory: fileHandle.name || 'Selected Folder',
+              filename: fileHandle.name || finalFilename
+            };
+          } catch (pickerErr) {
+            if (pickerErr.name === 'AbortError') {
+              return { success: false, aborted: true };
+            }
+          }
+        }
+      }
+
+      // 3. Mode is 'direct' (or fallback): try File System Access API with stored directory handle
       let dirHandle = preferredHandle || await VideoRecorder.getSavedDirectoryHandle();
 
       if (dirHandle) {
@@ -721,7 +867,7 @@
             return {
               success: true,
               method: 'direct_disk',
-              directory: dirHandle.name || 'facescreen recording',
+              directory: dirHandle.name || (config ? config.recordingStoragePath : 'facescreen recording'),
               filename: finalFilename
             };
           }
@@ -730,7 +876,7 @@
         }
       }
 
-      // 2. If no directory handle or permission denied, check if showSaveFilePicker is available
+      // 4. If no directory handle or permission denied, fall back to showSaveFilePicker
       if (typeof window !== 'undefined' && window.showSaveFilePicker) {
         try {
           const fileHandle = await window.showSaveFilePicker({
@@ -756,7 +902,7 @@
         }
       }
 
-      // 3. Fallback to standard browser download
+      // 5. Ultimate Fallback to standard browser download
       VideoRecorder.downloadBlob(blob, finalFilename);
       return {
         success: true,
